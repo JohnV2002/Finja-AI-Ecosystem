@@ -1,3 +1,37 @@
+"""
+title: Adaptive Memory
+author: John
+author_url: https://jappshome.de
+github:  https://github.com/JohnV2002/Open-Web-UI-Memory <---- #! IS NEEDED BECAUSE ON THERE IS THE CODE TO DEPLOY THE MEMORY SERVER / DOCKER
+
+funding_url: https://buymeacoffee.com/J.Apps
+
+Original / Credits: AG
+Original / Credits url: https://openwebui.com/f/alexgrama7/adaptive_memory_v2
+version: 4.1
+
+1. This is an Changed Version off the original Adaptive Memory v3 by AG
+2. This version Stores everything on an external Server instead in the local Vector DB
+3. I needed to do this as im using a External Webbrowser and ist stored the values also in the Vectore DB wich made everthing intervene with each other!
+
+
+4. !IMPORTANT!
+Please look at my github as i uploaded an Dockerfile and the needed memory-server.py to it, u need to deplay the docker container for this to work, i tested it, should be plug and PLAY!
+
+Features:
+1. uses User id von Openwebui - Safes for EACH user in an Seperare json (SERVER SIDE SEE GITHUB MEMORY-SERVER.py)
+2. Uses OpenAI as validation + to gather usefull information to safe as Memory
+3. gets Memory and checks Relevance off gatherd Memory to users input and uses Memory
+4. depupes
+5. Multiple json checks (Funktion sided + Server Sided)
+
+Roadmap:
+1. More finetuning
+2. More validation (when sending to OpenAI)
+3. More LOGGING + take from the old script logging (Like show the cool animation with MEMORY SAFED and so on)
+4. More to come?
+"""
+
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -35,7 +69,7 @@ class Filter:
 
         # --- Memory Server ---
         memory_api_base: str = Field(
-            default="http://localhost:8000",
+            default="http://87.106.217.52:8000",
             description="Base URL deines Memory-Servers (ohne Pfad, http!)"
         )
         memory_api_key: str = Field(default="changeme-supersecretkey")
