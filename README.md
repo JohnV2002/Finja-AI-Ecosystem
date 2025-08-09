@@ -56,11 +56,11 @@ So startest du den Memory-Server in Docker:
 
 1. **Docker-Image bauen**
    ```bash
-   docker build -t finja-memory-server .
+   docker build -t memory-server .
    ```
 2. **Container starten**
    ```bash
-   docker run -d      -p 8000:8000      -v $(pwd)/user_memories:/app/user_memories      -e API_KEY=changeme-supersecretkey      --name finja-memory-server      finja-memory-server
+   docker run -d      -p 8000:8000      -v $(pwd)/user_memories:/app/user_memories      -e API_KEY=changeme-supersecretkey      --name memory-server      memory-server
    ```
 3. **API testen**
    ```bash
