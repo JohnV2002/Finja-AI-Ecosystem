@@ -35,7 +35,7 @@ class Filter:
 
         # --- Memory Server ---
         memory_api_base: str = Field(
-            default="http://87.106.217.52:8000",
+            default="http://localhost:8000",
             description="Base URL deines Memory-Servers (ohne Pfad, http!)"
         )
         memory_api_key: str = Field(default="changeme-supersecretkey")
