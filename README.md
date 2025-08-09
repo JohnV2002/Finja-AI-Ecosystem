@@ -64,7 +64,7 @@ So startest du den Memory-Server in Docker:
    ```
 3. **API testen**
    ```bash
-   curl -X GET "http://localhost:8000/get_memories?user_id=test"         -H "X-API-Key: changeme-supersecretkey"
+   curl -X POST http://localhost:8000/add_memory -H "X-API-Key: changeme-supersecretkey" -H "Content-Type: application/json" -d '{"user_id": "defualt", "text": "Ich liebe Chatbots"}'
    ```
 
 💡 **Tipp:**  
