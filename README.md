@@ -6,10 +6,33 @@ Speichert Erinnerungen (`memories`) **pro Benutzer** und verbindet sich nahtlos 
 ---
 
 ## 🛣️ Roadmap
-1. **More finetuning** – Weitere Optimierungen der Erkennungslogik & Relevanzfilter.  
-2. **More validation** – Strengere Validierung vor dem Senden an OpenAI.  
-3. **More logging** – Erweiterte Logs, inkl. der coolen Animationen aus dem alten Script („MEMORY SAVED“ etc.).  
-4. **More to come?** – Platz für neue Ideen & Features in der Zukunft.  
+
+**Prio 1.0 – Hoch**
+- 🔄 **Embedding-Fallback beim Upload** → Falls OpenAI down → lokale Embeddings (all-MiniLM-L6-v2) in OpenWebUI nutzen, Relevanz prüfen, ggf. speichern oder ablehnen.
+- 🛡 **Duplicate-Killer 2.0** → Fuzzy-Matching + Levenshtein, vermeidet doppelte Memories.
+- 🧹 **Content-Filter** → Blockiert Spam, Ein-Wort-Einträge, irrelevante Inhalte.
+- 🗣 **Voice Memories** → STT/TTS-Support, Audio im Memory verlinken.
+
+**Prio 0.5 – Mittel**
+- 💾 **Offline-Backup** → Backups als `.tar.gz`, Download-Endpoint + SFTP-Option.
+- 📢 **Status-Emitter** → Sichtbare Speicher-Events im Plugin („MEMORY SAVED“, „DUPLICATE“ etc.).
+
+**Prio 0.4 – Nice-to-Have**
+- 🔗 **Memory-Chaining** → Verknüpfung ähnlicher Memories.
+- 🔐 **Private Memory Lock** → Bank `"Secrets"` optional verschlüsseln.
+
+**Prio 0.3 – Zusatzfeatures**
+- 🗂 **Memory-Banks** (General/Personal/Work/Jokes/Secrets) + Filterung.
+- 🔍 **Search+Ask** → „Was weißt du über X?“ → Memory-Server gibt Antwort.
+- 📊 **Memory-Stats Dashboard** → Hits, Rejects, Duplicates, Banks.
+
+**Prio 0.2–0.1 – Langfristig**
+- 🌐 **WebSocket Push** → Live-Events für UI.
+- 📜 **Memory-Story Mode** → Zusammenfassung wichtiger Memories.
+- ⏳ **Memory-Expiry** & **Auto-Prune** (optional).
+- 🎨 **Memory-Visualizer** → UI zum Durchstöbern.
+
+📄 **Komplette Roadmap lesen:** [ROADMAP.md](ROADMAP.md)
 
 ---
 
@@ -101,5 +124,6 @@ Das **OpenWebUI Plugin** verbindet dein LLM mit dem Memory-Server.
 - **Skalierbar**: Mehrere Benutzer, getrennte Erinnerungen  
 - **Offline-fähig**: Memory-Server kann lokal oder auf V-Server laufen  
 - **Einfache Integration**: Funktioniert mit jedem API-kompatiblen LLM
+
 
 ---
