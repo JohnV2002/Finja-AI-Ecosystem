@@ -43,10 +43,10 @@ Dieses Dockerfile erstellt einen Container, in dem der Memory-Server läuft:
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
-COPY memory_service.py .
+COPY memory-service.py .
 RUN pip install fastapi uvicorn pydantic
 EXPOSE 8000
-CMD ["uvicorn", "memory_service:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "memory-service:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # This Dockerfile sets up a FastAPI application for the memory service.
 # It uses Python 3.11 on a slim base image, installs necessary dependencies,
@@ -54,7 +54,7 @@ CMD ["uvicorn", "memory_service:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 💡 **Was macht das?**  
 - Lädt ein schlankes Python 3.11 Image  
-- Kopiert unseren Memory-Server Code (`memory_service.py`) hinein  
+- Kopiert unseren Memory-Server Code (`memory-service.py`) hinein  
 - Installiert **FastAPI**, **Uvicorn**, **Pydantic**  
 - Startet den Server auf Port **8000**  
 
