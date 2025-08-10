@@ -91,8 +91,7 @@ So startest du den Memory-Server in Docker:
    ```
 
 💡 **Tipp:**  
-- Mit `-v` mountest du den Speicherordner aus dem Container auf den Host → einfache Backups  
-- Mit `--env` kannst du den API-Key setzen  
+- Mit `-v` mountest du den Speicherordner aus dem Container auf den Host → einfache Backups    
 
 ---
 
