@@ -8,7 +8,7 @@ Speichert Erinnerungen (`memories`) **pro Benutzer** und verbindet sich nahtlos 
 ## 🛣️ Roadmap
 
 **Prio 1.0 – Hoch**
-- 🔄 **Embedding-Fallback beim Upload** → Falls OpenAI down → lokale Embeddings (all-MiniLM-L6-v2) in OpenWebUI nutzen, Relevanz prüfen, ggf. speichern oder ablehnen.
+- 🔄 **Embedding-Fallback beim Upload** → Falls OpenAI down → lokale Embeddings (all-MiniLM-L6-v2) in OpenWebUI nutzen, Relevanz prüfen, ggf. speichern oder ablehnen. <-- Working on this :) 25.08.25
 - 🛡 **Duplicate-Killer 2.0** → Fuzzy-Matching + Levenshtein, vermeidet doppelte Memories.
 - 🧹 **Content-Filter** → Blockiert Spam, Ein-Wort-Einträge, irrelevante Inhalte.
 - 🗣 **Voice Memories** → STT/TTS-Support, Audio im Memory verlinken.
