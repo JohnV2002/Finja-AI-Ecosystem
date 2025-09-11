@@ -1,5 +1,3 @@
-Ahh okay 🥲 dann pack ich sie dir jetzt hier direkt rein, und du kannst sie einfach als `.md` speichern:
-
 ---
 
 📄 **README.md**
