@@ -167,7 +167,7 @@ flowchart TD
 
 * `/finja-chat` → Twitch Chatbot
 * `/finja-music` → Musikengine + Radio + Memory
-* `/finja-memory` → Chat- & Musik-Memory
+* `/finja-memory` → Chat-Memory
 * `/finja-web-crawler` → Websuche (TOR/Google)
 * `/finja-ocr` → OCR-Modul
 * `/finja-stable-diffusion` → Bildgenerierung
