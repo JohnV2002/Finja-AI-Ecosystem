@@ -89,11 +89,13 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 ```mermaid
 flowchart TD
 
+    %% --- Twitch / Chat ---
     subgraph Twitch["🎮 Twitch / Chat"]
         A1["Chat Messages"]
         A2["Chat Commands (!drink, !theme, ...)"]
     end
 
+    %% --- Music / Radio ---
     subgraph Music["🎵 Music / Radio"]
         B1["Spotify API"]
         B2["TruckersFM"]
@@ -101,44 +103,59 @@ flowchart TD
         B4["MDR Sachsen-Anhalt"]
     end
 
+    %% --- Memories ---
+    subgraph Memories["🧠 Finja Memories"]
+        C1["Chat Memory"]
+        C2["Music + Reaction Memory"]
+    end
+
+    %% --- OpenWebUI Modules ---
     subgraph OpenWebUI["🌐 OpenWebUI Modules"]
-        C1["Chat Memory 🧠"]
-        C2["Web Crawler 🔍"]
-        C3["OCR 📷"]
-        C4["Stable Diffusion 🎨"]
-        C5["TTS 🔊 (planned)"]
+        D1["Web Crawler 🔍"]
+        D2["OCR 📷"]
+        D3["Stable Diffusion 🎨"]
+        D4["TTS 🔊 (planned)"]
     end
 
+    %% --- VPet ---
     subgraph VPet["🐾 VPet Simulator"]
-        D1["Finja Avatar"]
-        D2["Mods (z.B. !drink = Animation)"]
+        E1["Finja Avatar"]
+        E2["Mods (z.B. !drink = Animation)"]
     end
 
+    %% --- LLM Core ---
     subgraph LLM["🔒 Finja LLM (privat)"]
-        E1["Language Core"]
+        F1["Language Core"]
     end
 
-    %% Connections
+    %% === Connections ===
+
+    %% Chat → Chat Memory
     A1 --> C1
-    A2 --> D2
+    A2 --> E2
 
-    B1 -->|Song Info| C1
-    B2 -->|NowPlaying| C1
-    B3 -->|NowPlaying| C1
-    B4 -->|NowPlaying| C1
+    %% Music → Music Memory
+    B1 -->|Song Info| C2
+    B2 -->|NowPlaying| C2
+    B3 -->|NowPlaying| C2
+    B4 -->|NowPlaying| C2
 
-    C1 --> E1
-    C2 --> E1
-    C3 --> E1
-    C4 --> E1
-    C5 --> E1
+    %% Memories + OpenWebUI → LLM
+    C1 --> F1
+    C2 --> F1
+    D1 --> F1
+    D2 --> F1
+    D3 --> F1
+    D4 --> F1
 
-    E1 --> D1
-    D2 --> D1
+    %% LLM → VPet
+    F1 --> E1
+    E2 --> E1
 
-    %% Styling
+    %% === Styling ===
     style Twitch fill:#f4f1fe,stroke:#9146FF,stroke-width:2px
     style Music fill:#f0fcf4,stroke:#1DB954,stroke-width:2px
+    style Memories fill:#fff9e6,stroke:#f9a825,stroke-width:2px
     style OpenWebUI fill:#f5f3ff,stroke:#6a32e2,stroke-width:2px
     style VPet fill:#fff0f7,stroke:#ff69b4,stroke-width:2px
     style LLM fill:#ffebee,stroke:#d32f2f,stroke-width:2px
