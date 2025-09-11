@@ -47,7 +47,7 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 * Song/Genre-Erkennung (Spotify, TruckersFM, 89.0 RTL, MDR …)
 * Merkt sich Reaktionen zu Songs/Genres
 * 600+ dynamische Reaktionen (von wholesome bis meme)
-* Kontextabhängig: Minecraft ≠ ETS2 ≠ Chill
+* Kontextabhängig: Minecraft = Chill und lofi, ETS2 = Pop, Rock, vieles Mehr 
 
 ---
 
