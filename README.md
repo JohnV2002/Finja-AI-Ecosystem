@@ -204,3 +204,31 @@ Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
 Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ```
+# Projektstatus
+
+Hier ist eine aktuelle Übersicht über den Status der einzelnen Projektordner.
+
+| Projekt / Ordner | Bekannte Bugs |
+| :--- | :---: |
+| **assets** | 🟢 |
+| **finja-chat** | 🟢 |
+| **Finja-music** | 🔴 |
+| &nbsp;&nbsp;&nbsp; ↳ 89.0RTL | 🔴 |
+| &nbsp;&nbsp;&nbsp; ↳ MDR | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ Spotify | 🔴 |
+| &nbsp;&nbsp;&nbsp; ↳ TruckersFM | 🔴 |
+| **finja-Open-Web-UI**| 🔴 |
+| &nbsp;&nbsp;&nbsp; ↳ finja-Memory | 🔴 |
+| &nbsp;&nbsp;&nbsp; ↳ finja-ocr | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ finja-stable-diffusion | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ finja-tts | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ finja-web-crawler | 🔴 |
+| **VPet-Simulator Mods** | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ Chat Commands | 🟢 |
+| &nbsp;&nbsp;&nbsp; ↳ Dance zu Liked Music | 🟢 |
+
+---
+*Stand: 12.09.2025*
+
+```
+
