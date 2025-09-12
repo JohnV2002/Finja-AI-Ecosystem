@@ -204,31 +204,38 @@ Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
 Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ```
-# Projektstatus
+# 📊 Projektstatus-Übersicht
 
-Hier ist eine aktuelle Übersicht über den Status der einzelnen Projektordner.
+Aktueller Stand aller Projektordner, gruppiert nach Hauptkomponenten.
 
-| Projekt / Ordner | Bekannte Bugs |
-| :--- | :---: |
-| **assets** | 🟢 |
-| **finja-chat** | 🟢 |
-| **Finja-music** | 🔴 |
-| &nbsp;&nbsp;&nbsp; ↳ 89.0RTL | 🔴 |
-| &nbsp;&nbsp;&nbsp; ↳ MDR | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ Spotify | 🔴 |
-| &nbsp;&nbsp;&nbsp; ↳ TruckersFM | 🔴 |
-| **finja-Open-Web-UI**| 🔴 |
-| &nbsp;&nbsp;&nbsp; ↳ finja-Memory | 🔴 |
-| &nbsp;&nbsp;&nbsp; ↳ finja-ocr | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ finja-stable-diffusion | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ finja-tts | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ finja-web-crawler | 🔴 |
-| **VPet-Simulator Mods** | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ Chat Commands | 🟢 |
-| &nbsp;&nbsp;&nbsp; ↳ Dance zu Liked Music | 🟢 |
+| Bereich / Projekt                          | Status             | Bekannte Bugs / Hinweise                     |
+|:-------------------------------------------|:-------------------|:---------------------------------------------|
+| **📁 assets**                              | 🟢 Stabil         | Keine                                        |
+| **💬 finja-chat**                          | 🟢 Stabil         | Keine                                        |
+| **🎵 finja-music**                         | 🔴 Teilweise      | Mehrere Submodule mit Fehlern                |
+| ├─ 89.0RTL                                  | 🔴 Offen         | Nicht vollständig getestet                   |
+| ├─ MDR                                      | 🟢 Stabil        | Keine                                        |
+| ├─ Spotify                                  | 🔴 Offen         | Pfade/Config prüfen                          |
+| └─ TruckersFM                               | 🔴 Teilweise     | `.lock`-Cleanup prüfen                       |
+| **🧠 finja-Open-Web-UI**                    | 🔴 Teilweise     | Memory-Modul ungetestet, sonst ok           |
+| ├─ finja-Memory                             | 🔴 Offen         | Logging & Dedupe prüfen                      |
+| ├─ finja-ocr                                | 🟢 Stabil        | Keine                                        |
+| ├─ finja-stable-diffusion                   | 🟢 Geplant       | Setup abgeschlossen, keine Tests             |
+| ├─ finja-tts                                | 🟡 WIP           | Leer (noch nicht implementiert)              |
+| └─ finja-web-crawler                        | 🔴 Offen         | Kein Rate-Limit, Security-Review nötig       |
+| **🧩 VPet-Simulator Mods**                  | 🟡 WIP           | Aktuell leer / geplant                       |
+| ├─ Chat Commands                            | 🟡 WIP           | Keine                                        |
+| └─ Dance zu Liked Music                     | 🟡 WIP           | Keine                                        |
 
 ---
-*Stand: 12.09.2025*
+
+📌 **Legende**  
+- 🟢 **Stabil / OK** – Keine bekannten Bugs  
+- 🟡 **WIP / Geplant** – Noch leer oder in Vorbereitung  
+- 🔴 **Offen / Fehlerhaft** – Bekannte Bugs oder noch nicht getestet  
+
+🗓️ *Stand: 12.09.2025*
+
 
 ```
 
