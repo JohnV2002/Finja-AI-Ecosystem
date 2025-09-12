@@ -236,6 +236,5 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 | 🟡     | **WIP / Geplant** – In Arbeit oder noch nicht umgesetzt |
 | 🔴     | **Offen / Fehlerhaft** – Bekannte Probleme oder ungetestet |
 
-> 💡 *Hinweis: Alle Submodule sind unter ihrer Hauptkomponente eingerückt. Bei GitHub/GitLab wird die Hierarchie durch Leerzeichen korrekt dargestellt.*
 
 ---
