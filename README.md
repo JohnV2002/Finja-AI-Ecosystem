@@ -203,39 +203,39 @@ Alle Module sind Open-Source – das **LLM bleibt privat**.
 Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
 Finja sagt: *“Stay hydrated, Chat 💖”*
 
-```
-# 📊 Projektstatus-Übersicht
+---
 
-Aktueller Stand aller Projektordner, gruppiert nach Hauptkomponenten.
+# 📊 Projektstatus-Übersicht  
+*Stand: 12.09.2025*
 
-| Bereich / Projekt                          | Status             | Bekannte Bugs / Hinweise                     |
-|:-------------------------------------------|:-------------------|:---------------------------------------------|
-| **📁 assets**                              | 🟢 Stabil         | Keine                                        |
-| **💬 finja-chat**                          | 🟢 Stabil         | Keine                                        |
-| **🎵 finja-music**                         | 🔴 Teilweise      | Mehrere Submodule mit Fehlern                |
-| ├─ 89.0RTL                                  | 🔴 Offen         | Nicht vollständig getestet                   |
-| ├─ MDR                                      | 🟢 Stabil        | Keine                                        |
-| ├─ Spotify                                  | 🔴 Offen         | Pfade/Config prüfen                          |
-| └─ TruckersFM                               | 🔴 Teilweise     | `.lock`-Cleanup prüfen                       |
-| **🧠 finja-Open-Web-UI**                    | 🔴 Teilweise     | Memory-Modul ungetestet, sonst ok           |
-| ├─ finja-Memory                             | 🔴 Offen         | Logging & Dedupe prüfen                      |
-| ├─ finja-ocr                                | 🟢 Stabil        | Keine                                        |
-| ├─ finja-stable-diffusion                   | 🟢 Geplant       | Setup abgeschlossen, keine Tests             |
-| ├─ finja-tts                                | 🟡 WIP           | Leer (noch nicht implementiert)              |
-| └─ finja-web-crawler                        | 🔴 Offen         | Kein Rate-Limit, Security-Review nötig       |
-| **🧩 VPet-Simulator Mods**                  | 🟡 WIP           | Aktuell leer / geplant                       |
-| ├─ Chat Commands                            | 🟡 WIP           | Keine                                        |
-| └─ Dance zu Liked Music                     | 🟡 WIP           | Keine                                        |
+| Hauptkomponente             | Status     | Bemerkungen |
+|-----------------------------|------------|-------------|
+| **📁 assets**               | 🟢 Stabil  | Keine bekannten Probleme |
+| **💬 finja-chat**           | 🟢 Stabil  | Funktioniert einwandfrei |
+| **🎵 finja-music**          | 🔴 Teilweise | Mehrere Submodule ungeprüft |
+| &nbsp;&nbsp;└─ 89.0RTL      | 🔴 Offen   | Nicht vollständig getestet |
+| &nbsp;&nbsp;└─ MDR          | 🟢 Stabil  | Keine Probleme |
+| &nbsp;&nbsp;└─ Spotify      | 🔴 Offen   | Pfade/Config prüfen |
+| &nbsp;&nbsp;└─ TruckersFM   | 🔴 Teilweise | `.lock`-Dateien bereinigen |
+| **🧠 finja-Open-Web-UI**    | 🔴 Teilweise | Memory-Modul ungetestet |
+| &nbsp;&nbsp;└─ finja-Memory | 🔴 Offen   | Logging & Deduplication prüfen |
+| &nbsp;&nbsp;└─ finja-ocr    | 🟢 Stabil  | Funktioniert stabil |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Geplant | Setup abgeschlossen, keine Tests |
+| &nbsp;&nbsp;└─ finja-tts    | 🟡 WIP     | Noch nicht implementiert |
+| &nbsp;&nbsp;└─ finja-web-crawler | 🔴 Offen | Kein Rate-Limit, Security-Review nötig |
+| **🧩 VPet-Simulator Mods**   | 🟡 WIP     | Aktuell geplant, noch leer |
+| &nbsp;&nbsp;└─ Chat Commands | 🟡 WIP     | In Planung |
+| &nbsp;&nbsp;└─ Dance zu Liked Music | 🟡 WIP | In Planung |
 
 ---
 
-📌 **Legende**  
-- 🟢 **Stabil / OK** – Keine bekannten Bugs  
-- 🟡 **WIP / Geplant** – Noch leer oder in Vorbereitung  
-- 🔴 **Offen / Fehlerhaft** – Bekannte Bugs oder noch nicht getestet  
+### 📌 Legende
+| Symbol | Bedeutung         |
+|--------|-------------------|
+| 🟢     | **Stabil** – Keine bekannten Bugs |
+| 🟡     | **WIP / Geplant** – In Arbeit oder noch nicht umgesetzt |
+| 🔴     | **Offen / Fehlerhaft** – Bekannte Probleme oder ungetestet |
 
-🗓️ *Stand: 12.09.2025*
+> 💡 *Hinweis: Alle Submodule sind unter ihrer Hauptkomponente eingerückt. Bei GitHub/GitLab wird die Hierarchie durch Leerzeichen korrekt dargestellt.*
 
-
-```
-
+---
