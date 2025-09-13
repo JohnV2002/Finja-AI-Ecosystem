@@ -220,9 +220,9 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 | **🧠 finja-Open-Web-UI**    | 🔴 Teilweise | Memory-Modul ungetestet |
 | &nbsp;&nbsp;└─ finja-Memory | 🔴 Offen   | Logging & Deduplication prüfen |
 | &nbsp;&nbsp;└─ finja-ocr    | 🟢 Stabil  | Funktioniert stabil |
-| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Geplant | Setup abgeschlossen, keine Tests |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup abgeschlossen, keine Tests |
 | &nbsp;&nbsp;└─ finja-tts    | 🟡 WIP     | Noch nicht implementiert |
-| &nbsp;&nbsp;└─ finja-web-crawler | 🔴 Offen | Kein Rate-Limit, Security-Review nötig |
+| &nbsp;&nbsp;└─ finja-web-crawler | 🟢 Offen | Kein Rate-Limit, Security-Review nötig |
 | **🧩 VPet-Simulator Mods**   | 🟡 WIP     | Aktuell geplant, noch leer |
 | &nbsp;&nbsp;└─ Chat Commands | 🟡 WIP     | In Planung |
 | &nbsp;&nbsp;└─ Dance zu Liked Music | 🟡 WIP | In Planung |
