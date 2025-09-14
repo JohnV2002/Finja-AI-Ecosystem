@@ -177,7 +177,7 @@ Copyright © 2025 J. Apps
 
 > ⚠️ **Hinweis:** Die Lizenz gilt nur für dieses Memory-Projekt. Alle anderen Module des Finja-Ökosystems bleiben unter der MIT-Lizenz.
 
-![Berechtigungs-Screenshot](./assets/Screenshot2025-09-12.png)
+![Berechtigungs-Screenshot](https://github.com/JohnV2002/Finja-AI-Ecosystem/blob/main/assets/Screenshot2025-09-12.png)
 
 ---
 
