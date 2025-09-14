@@ -34,25 +34,27 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 ---
 
 ## 📊 Projektstatus-Übersicht
-*Stand: 14. September 2025*
 
-| Komponente (🟢 Stabil | 🟡 WIP | 🔴 Offen) | Status | Bemerkungen |
-| :--- | :--- | :--- |
-| **💬 finja-chat** | 🟢 | Funktioniert einwandfrei |
-| **🎵 finja-music** | 🟢 | Snyk false Positive |
-| &nbsp;&nbsp;└─ 89.0RTL | 🟢 | Snyk false Positive |
-| &nbsp;&nbsp;└─ MDR | 🟢 | Keine Probleme |
-| &nbsp;&nbsp;└─ Spotify | 🟢 | Snyk false Positive |
-| &nbsp;&nbsp;└─ TruckersFM | 🟢 | Snyk false Positive |
-| **🌐 finja-Open-Web-UI** | 🟢 | Snyk false Positive |
-| &nbsp;&nbsp;└─ finja-Memory | 🟢 | snyk false Positive |
-| &nbsp;&nbsp;└─ finja-ocr | 🟢 | Funktioniert stabil |
-| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 | Setup abgeschlossen, keine Tests |
-| &nbsp;&nbsp;└─ finja-tts | 🟡 | Noch nicht implementiert |
-| &nbsp;&nbsp;└─ finja-web-crawler | 🟢 | Kein Rate-Limit! Security-Review OK |
-| **🐾 VPet-Simulator Mods** | 🟡 | Aktuell geplant, noch leer |
-| &nbsp;&nbsp;└─ Chat Commands | 🟡 | Aktuell geplant, noch leer |
-| &nbsp;&nbsp;└─ finja-web-crawler | 🟡 | Aktuell geplant, noch leer |
+*Stand: 14.09.2025*
+
+| Hauptkomponente             | Status     | Bemerkungen |
+|-----------------------------|------------|-------------|
+| **assets**                  |  Stabil   | Keine bekannten Probleme |
+| **finja-chat**              |  Stabil   | Funktioniert einwandfrei |
+| **finja-music**             |  Stabil   | Snyk false Positive |
+| &nbsp;&nbsp;└─ 89.0RTL      |  Stabil   | Snyk false Positive |
+| &nbsp;&nbsp;└─ MDR          |  Stabil   | Keine Probleme |
+| &nbsp;&nbsp;└─ Spotify      |  Stabil   | Snyk false Positive |
+| &nbsp;&nbsp;└─ TruckersFM   |  Stabil   | Snyk false Positive |
+| **finja-Open-Web-UI**       |  Stabil   | Snyk false Positive |
+| &nbsp;&nbsp;└─ finja-Memory |  Stabil   | snyk false Positive |
+| &nbsp;&nbsp;└─ finja-ocr    |  Stabil   | Funktioniert stabil |
+| &nbsp;&nbsp;└─ finja-stable-diffusion |  Stabil | Setup abgeschlossen, keine Tests |
+| &nbsp;&nbsp;└─ finja-tts    | ⚠ WIP      | Noch nicht implementiert |
+| &nbsp;&nbsp;└─ finja-web-crawler |  Stabil | Kein Rate-Limit! Security-Review OK |
+| **VPet-Simulator Mods**     | ⚠ WIP      | Aktuell geplant, noch leer |
+| &nbsp;&nbsp;└─ Chat Commands | ⚠ WIP      | In Planung |
+| &nbsp;&nbsp;└─ Dance zu Liked Music | ⚠ WIP | In Planung |
 
 ---
 
