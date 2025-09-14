@@ -1,0 +1,10 @@
+Finja OCR - Appache Tika-Docker
+Copyright 2025 J. Apps
+
+This software is a derivative work based on the concepts and original work
+of the "Apache-Docker" Docker by tballison.
+The original work was released under the Apache License, Version 2.0.
+
+This software includes modifications and has been barly rewritten (just start / docker-compose)
+by J. Apps. The original licensing terms of the Apache License, Version 2.0,
+apply to this work.

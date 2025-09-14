@@ -1,0 +1,5 @@
+{
+  "output":"nowplaying_spotify.txt",
+  "interval":5,
+  "spotify": {"client_id":"your id","client_secret":"your secret","refresh_token": "your refreshtoken"}
+}

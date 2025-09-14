@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  tika:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tika-ocr-deu:latest
+    container_name: tika
+    ports:
+      - "9998:9998"
+    environment:
+      # Java-Heap nach Bedarf erhöhen (größere PDFs/Scans)
+      - JAVA_OPTS=-Xms256m -Xmx1g
+      # Optional: Zusätzliche Tika-OCR-Settings (Beispiele)
+      # - TIKA_OCR_TIMEOUT=120
+      # - TIKA_OCR_MIN_FILE_SIZE_TO_OCR=0
+      # - TIKA_OCR_MAX_FILE_SIZE_TO_OCR=200000000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9998/tika"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped

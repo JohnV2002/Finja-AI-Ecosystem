@@ -1,0 +1,230 @@
+
+<!-- ====================================================================== -->
+
+<!--           Finja's Brain & Knowledge Core - MDR                         -->
+
+<!-- ====================================================================== -->
+
+<!--                                                                        -->
+
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+
+<!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
+
+<!--   Version: 1.0.0                                                       -->
+
+<!--   Description: HTML für MDR.                                           -->
+
+<!--                                                                        -->
+
+<!--   Copyright (c) 2025 J. Apps                                           -->
+
+<!--   Licensed under the MIT License.                                      -->
+
+<!-- ====================================================================== -->
+
+
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MDR Sachsen-Anhalt – Now Playing</title>
+<style>
+  /* Transparent für OBS */
+  html, body { margin:0; background:transparent; font-family: Inter, system-ui, Arial; }
+
+  :root{
+    /* Finja-Akzente */
+    --accent-a:#ff6ad5;  /* pink */
+    --accent-b:#7aa2ff;  /* cyan */
+    --panel-bg: rgba(16,18,26,.88);
+    --panel-border: rgba(255,255,255,.08);
+    --txt:#eef3ff; --sub:#c6cfe6;
+    --radius: 16px;
+    --shadow: 0 8px 22px rgba(0,0,0,.26);
+
+    /* Größe „readable-compact“ */
+    --card-w: 720px;      /* vorher 880/640 – jetzt sweet spot */
+    --pad-x: 18px;
+    --pad-y: 16px;
+
+    --fs-h1: 26px;        /* Titel */
+    --fs-h2: 19px;        /* Artist */
+    --fs-meta: 13px;      /* Quelle */
+    --fs-chip: 13px;      /* Genres-Text */
+    --fs-react: 18px;     /* Finja Antwort */
+  }
+
+  /* Seite huggt Inhalt: kein 100vh (wichtig für OBS-Rand!) */
+  .wrap{ display:block; padding:0; }
+  .card{
+    width:min(var(--card-w), 94vw);
+    border-radius: var(--radius);
+    background:
+      radial-gradient(120% 140% at 80% 0%, rgba(122,162,255,.18) 0%, transparent 60%),
+      radial-gradient(120% 140% at 0% 100%, rgba(255,106,213,.16) 0%, transparent 60%),
+      var(--panel-bg);
+    box-shadow: var(--shadow);
+    border:1px solid var(--panel-border);
+    position:relative; overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; inset:-1px;
+    background: conic-gradient(from 150deg,var(--accent-a), var(--accent-b), var(--accent-a));
+    filter: blur(16px); opacity:.20; z-index:0;
+  }
+  .content{ position:relative; z-index:1; padding:var(--pad-y) var(--pad-x); }
+
+  header{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .pill{
+    padding:4px 9px; border-radius:999px;
+    background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+    color:#0b0f1a; font-weight:800; font-size:12px; letter-spacing:.2px;
+  }
+  .live{ display:inline-flex; align-items:center; gap:6px; color:var(--sub); font-size:12px; }
+  .dot{ width:6px; height:6px; border-radius:50%;
+    background:linear-gradient(90deg, var(--accent-a), var(--accent-b));
+    box-shadow: 0 0 6px var(--accent-a), 0 0 6px var(--accent-b);
+  }
+
+  /* Title / Artist – klar/kontrastreich */
+  h1{ margin:2px 0 0; font-size: var(--fs-h1); line-height:1.2; color: var(--txt); font-weight:900; letter-spacing:.2px; }
+  h2{ margin:2px 0 0; font-size: var(--fs-h2); line-height:1.25; color: var(--sub); font-weight:600; }
+
+  /* Meta (Quelle + EQ) */
+  .meta{ display:flex; align-items:center; gap:10px; margin-top:8px; color:var(--sub); font-size:var(--fs-meta); }
+  .src{ opacity:.95 }
+
+  .eq{ height:16px; display:flex; gap:3px; align-items:flex-end; margin-left:auto; opacity:.9; }
+  .bar{ width:3px; border-radius:2px;
+    background:linear-gradient(180deg, var(--accent-b), var(--accent-a));
+    animation: bop 1.2s ease-in-out infinite;
+  }
+  .bar:nth-child(2){ animation-delay:.15s }
+  .bar:nth-child(3){ animation-delay:.30s }
+  .bar:nth-child(4){ animation-delay:.45s }
+  .bar:nth-child(5){ animation-delay:.60s }
+  @keyframes bop{ 0%,100%{ height:16% } 50%{ height:100% } }
+
+  /* Stack */
+  .stack{ margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+
+  /* schlanke Genres-Pille (gut lesbarer Kontrast) */
+  .genres{
+    display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;
+    color:#0b0f1a; font-weight:800; font-size:var(--fs-chip);
+    background: linear-gradient(90deg, rgba(255,106,213,.97), rgba(122,162,255,.97));
+    padding:7px 12px; border-radius:11px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.14);
+  }
+  .genres .label{
+    background: rgba(255,255,255,.30);
+    color:#0b0f1a; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:900; text-transform:uppercase;
+  }
+  .genres .text{ color:#0b0f1a; font-weight:900; }
+
+  /* Reaction: dezentes Panel, volle Lesbarkeit */
+  .react{
+    padding:10px 12px; border-radius:10px;
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    color: var(--txt);
+    font-size: var(--fs-react);
+    font-weight:800;
+  }
+
+  .err{ margin-top:8px; font-size:12px; color:#ff98c9; }
+</style>
+
+<div class="wrap">
+  <div class="card">
+    <div class="content">
+      <header>
+        <span class="pill">MDR SACHSEN-ANHALT</span>
+        <div class="live"><span class="dot"></span> Live</div>
+      </header>
+
+      <h1 id="title">Lade Titel…</h1>
+      <h2 id="artist">Bitte kurz warten</h2>
+
+      <div class="meta">
+        <div class="src" id="source">Quelle: —</div>
+        <div class="eq" aria-hidden="true">
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:30%"></div>
+          <div class="bar" style="height:75%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar" style="height:85%"></div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="genres">
+          <span class="label">Genres</span>
+          <span class="text" id="genres">—</span>
+        </div>
+        <div class="react" id="react">Listening…</div>
+      </div>
+
+      <div class="err" id="err" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = (id)=>document.getElementById(id);
+
+  /* Pfade ggf. anpassen */
+  const NOW   = "nowplaying.txt";
+  const SRC   = "now_source.txt";
+  const GEN   = "../MDR/outputs/obs_genres.txt";
+  const REACT = "../MDR/outputs/obs_react.txt";
+
+  async function fetchText(path){
+    const res = await fetch(path + "?_=" + Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status + " @ " + path);
+    return res.text();
+  }
+
+  function parseLine(line){
+    const s = (line || "").trim();
+    const seps = [" — ", " - ", " – ", " —", " -", " –", "—", "-", "–"];
+    for (const sep of seps){
+      if (s.includes(sep)){
+        const [left, right] = s.split(sep);
+        return { title: (left||"").trim(), artist:(right||"").trim() };
+      }
+    }
+    const byIdx = s.toLowerCase().lastIndexOf(" by ");
+    if (byIdx > 0){
+      return { title:s.slice(0, byIdx).trim(), artist:s.slice(byIdx+4).trim() };
+    }
+    return { title:s, artist:"" };
+  }
+
+  async function tick(){
+    try{
+      const [line, src] = await Promise.all([
+        fetchText(NOW).catch(()=>"-"),
+        fetchText(SRC).catch(()=>"-")
+      ]);
+      const {artist, title} = parseLine((line||"").trim());
+      $("title").textContent = title || "—";
+      $("artist").textContent = artist || "—";
+      $("source").textContent = "Quelle: " + ((src||"").trim() || "—");
+
+      const [genres, react] = await Promise.all([
+        fetchText(GEN).catch(()=>"-"),
+        fetchText(REACT).catch(()=>"-")
+      ]);
+      $("genres").textContent = (genres||"—").trim() || "—";
+      $("react").textContent  = (react||"—").trim()  || "—";
+
+      $("err").hidden = true;
+    }catch(e){
+      $("err").hidden = false;
+      $("err").textContent = "Fehler beim Laden: " + e.message;
+    }
+  }
+  tick();
+  setInterval(tick, 2000);
+</script>

@@ -1,0 +1,6 @@
+# .dockerignore
+.git
+.env.example
+README.md
+*.log
+__pycache__

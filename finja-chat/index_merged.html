@@ -1,0 +1,927 @@
+<!-- ====================================================================== -->
+
+<!--                      Finja's Twitch Bot & Overlay                      -->
+
+<!-- ====================================================================== -->
+
+<!--                                                                        -->
+
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+
+<!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
+
+<!--   Version: 2.1.0                                                       -->
+
+<!--   Description: Bot panel and visual overlay for OBS.                   -->
+
+<!--                                                                        -->
+
+<!--   Copyright (c) 2025 J. Apps                                           -->
+
+<!--   Licensed under the MIT License.                                      -->
+
+<!-- ====================================================================== -->
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Twitch Chat Overlay (Overlay-only)</title>
+
+  <!-- FIX: Version auf 'latest' aktualisiert, um das Twitch-Authentifizierungsproblem zu beheben -->
+  <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
+
+  <style>
+    :root{
+      --font: Inter, system-ui, Arial;
+      --font-size: 26px;
+      --name-weight: 700;
+      --emote-size: 34px;
+      --gap: 14px;
+      --message-width: 64%;
+      --radius: 18px;
+
+      --bg-alpha: .70;
+      --bubble-bg: rgba(20,22,30,var(--bg-alpha));
+      --bubble-text:#f2f6ff;
+      --bubble-sub:#b8c0d4;
+
+      --accent:#7aa2ff; /* Finja */
+      --accent-2:#ff6ad5;
+
+      --glass-tex-url:none;
+
+      /* RGB (Winkel-Animation wie in „Funktioniert“) */
+      --rgb-speed: 8s;
+      --rgb-ring-w: 6px;
+    }
+
+    html,body{height:100%;margin:0;background:transparent}
+    #overlay{width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;box-sizing:border-box}
+    #chat{display:flex;flex-direction:column;gap:var(--gap)}
+    #chat.top{justify-content:flex-start}
+
+    .message{
+      position:relative; max-width:var(--message-width);
+      background:var(--bubble-bg); color:var(--bubble-text);
+      border-radius:var(--radius); padding:10px 14px;
+      font-family:var(--font); font-size:var(--font-size); line-height:1.35;
+      box-sizing:border-box; backdrop-filter:blur(8px);
+      transform-origin:bottom left; animation:slideUp .45s cubic-bezier(.2,.8,.2,1) both;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.45), 0 8px 26px rgba(0,0,0,.35);
+    }
+
+    /* GLASS texture overlay */
+    .message.glass::after{
+      content:""; position:absolute; inset:0; border-radius:inherit;
+      background-image:var(--glass-tex-url); background-repeat:repeat; background-size:96px 96px;
+      opacity:.14; mix-blend-mode:overlay; pointer-events:none;
+    }
+
+    .message .line{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+    .badges{display:inline-flex;gap:4px;margin-right:2px}
+    .badges .badge{height:18px}
+    .message img.emote{height:var(--emote-size);vertical-align:middle}
+    .username{font-weight:var(--name-weight)}
+    .timestamp{margin-left:auto;opacity:.75;font-size:.85em;color:var(--bubble-sub)}
+    .message .content{word-break:break-word;overflow-wrap:anywhere;flex:1 1 auto}
+
+    /* ---------- ACCENT RING (statisch) ---------- */
+    .message.accent-ring{
+      outline:3px solid color-mix(in oklab,var(--accent) 65%,transparent);
+      box-shadow:
+        0 0 0 2px color-mix(in oklab,#000 60%,transparent) inset,
+        0 6px 24px rgba(0,0,0,.35),
+        0 0 18px color-mix(in oklab,var(--accent) 45%,transparent);
+    }
+
+    /* Neon base (no RGB) */
+    .message.neon{
+      outline-width:4px;
+      box-shadow:
+        0 0 0 2px color-mix(in oklab,#000 55%,transparent) inset,
+        0 10px 28px rgba(0,0,0,.45);
+    }
+    .message.neon-glow{
+      outline:4px solid color-mix(in oklab,var(--accent) 55%,transparent);
+      box-shadow:
+        0 0 28px color-mix(in oklab,var(--accent) 60%,transparent),
+        0 8px 26px rgba(0,0,0,.45);
+    }
+
+    /* ---------- nur Winkel animieren ---------- */
+    @property --rgba { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+    @keyframes rgb-hue { to { --rgba: 360deg; } }
+
+    /* RGB RING */
+    .message.rgb-ring::before{
+      content:"";
+      position:absolute;
+      inset: calc(-1 * (var(--rgb-ring-w) + 1px));
+      padding: calc(var(--rgb-ring-w) + 1px);
+      border-radius: calc(var(--radius) + var(--rgb-ring-w));
+      background: conic-gradient(from var(--rgba),
+          #ff004c,#ff7a00,#ffee00,#2bff00,#00ffff,#0055ff,#ad00ff,#ff004c);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      filter: blur(6px) saturate(1.15);
+      animation: rgb-hue var(--rgb-speed) linear infinite;
+      z-index:0;
+    }
+    .message.rgb-ring{
+      outline:3px solid transparent;
+      box-shadow:
+        0 10px 28px rgba(0,0,0,.45),
+        0 0 18px color-mix(in oklab,var(--accent) 35%,transparent);
+    }
+
+    /* RGB FILL */
+    .message.rgb-fill::before{
+      content:""; position:absolute; inset:0; border-radius:inherit;
+      background:
+        radial-gradient(120% 120% at 20% 50%, rgba(255,255,255,.06), transparent 60%),
+        conic-gradient(from var(--rgba),
+          #ff004c,#ff7a00,#ffee00,#2bff00,#00ffff,#0055ff,#ad00ff,#ff004c);
+      mix-blend-mode: overlay; opacity:.40; filter: blur(10px);
+      animation: rgb-hue calc(var(--rgb-speed) * 1.2) linear infinite;
+      z-index:0;
+    }
+
+    .message>*{ position:relative; z-index:1 }
+
+    .username.accent-gradient{
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent !important; -webkit-text-fill-color: transparent !important;
+      filter: drop-shadow(0 0 2px color-mix(in oklab,var(--accent) 60%, transparent));
+    }
+
+    .message.me .content{ font-style:italic; color:var(--accent) }
+
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+    /* ---------- DEV UI ---------- */
+    #dev-badge{position:fixed;left:10px;bottom:10px;padding:6px 8px;background:#16a34a;color:#fff;font:600 12px/1 Inter,system-ui,Arial;border-radius:10px;z-index:2147483647;display:none}
+    .dev #dev-badge{display:block}
+    #cfg{position:fixed;right:16px;bottom:16px;z-index:2147483647;display:none}
+    .dev #cfg{display:block}
+    #cfg .btn{cursor:pointer;padding:10px 12px;border-radius:12px;background:#2b2f3a;color:#fff;border:0;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+    #cfg .sheet{display:none;position:absolute;right:0;bottom:52px;width:360px;max-height:70vh;overflow:auto;background:#161922;color:#eaf1ff;border-radius:16px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    #cfg.open .sheet{display:block}
+    #cfg .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    #cfg .row label{flex:1 1 auto;font-size:12px;opacity:.9}
+    #cfg .row input[type="number"], #cfg .row input[type="text"], #cfg .row select{flex:0 0 160px;padding:6px 8px;border-radius:10px;border:1px solid #333845;background:#0f1219;color:#eaf1ff}
+    #cfg .row input[type="checkbox"]{transform:scale(1.1)}
+    #cfg .save{width:100%;margin-top:6px}
+    #cfg .status{display:block;text-align:center;opacity:.75;margin-top:8px;font-size:12px}
+    #cheatsheet{margin-top:10px;font-size:12px;background:#0f1219;border:1px solid #2b2f3a;border-radius:12px;padding:10px;line-height:1.35}
+    #cheatsheet code{background:#111521;padding:1px 6px;border-radius:8px}
+
+    /* ---------- FINJA bleibt FINJA ---------- */
+    .message.finja{
+      --accent:#7aa2ff !important;
+      --accent-2:#ff6ad5 !important;
+      outline:3px solid color-mix(in oklab,var(--accent) 65%,transparent) !important;
+      box-shadow:
+        0 0 0 2px color-mix(in oklab,#000 60%,transparent) inset,
+        0 6px 24px rgba(0,0,0,.35),
+        0 0 18px color-mix(in oklab,var(--accent) 45%,transparent) !important;
+    }
+    .message.finja.rgb-ring::before,
+    .message.finja.rgb-fill::before{ display:none !important; }
+    .message.finja .username{
+      background:linear-gradient(90deg,var(--accent),var(--accent-2)) !important;
+      -webkit-background-clip:text !important; background-clip:text !important;
+      color:transparent !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <div id="chat" aria-live="polite" aria-relevant="additions removals"></div>
+  </div>
+
+  <!-- DEV (ohne Bot/OAuth) -->
+  <div id="dev-badge">DEV</div>
+  <div id="cfg">
+    <div class="sheet">
+      <div class="row"><label>Channel</label><input id="c_channel" type="text" placeholder="deinchannel"></div>
+      <div class="row"><label>Theme</label>
+        <select id="c_theme">
+          <option>glass</option><option>dark</option><option>light</option><option>neon</option>
+        </select>
+      </div>
+      <div class="row"><label>Opacity %</label><input id="c_opacity" type="number" min="0" max="100"></div>
+      <div class="row"><label>Accent</label>
+        <select id="c_accent">
+          <option value="finja">finja</option>
+          <option value="channel">channel</option>
+          <option value="custom">custom</option>
+        </select>
+      </div>
+      <div class="row"><label>Custom hex</label><input id="c_hex" type="text" placeholder="#7aa2ff"></div>
+      <div class="row"><label>RGB Style</label>
+        <select id="c_rgbstyle">
+          <option value="off">off</option><option value="ring">ring</option><option value="fill">fill</option><option value="both">ring+fill</option>
+        </select>
+      </div>
+      <div class="row"><label>RGB Speed (s)</label><input id="c_rgbspeed" type="number" min="2" max="30"></div>
+      <div class="row"><label>RGB Ring px</label><input id="c_ringw" type="number" min="2" max="20"></div>
+      <div class="row"><label>Glass Texture URL</label><input id="c_gtex" type="text" placeholder="https://i.imgur.com/DR1B1tn.png"></div>
+      <div class="row"><label>Stack</label><select id="c_stack"><option value="bottom">bottom</option><option value="top">top</option></select></div>
+      <div class="row"><label>Drop shadow</label><input id="c_shadow" type="checkbox"></div>
+      <div class="row"><label>Msg width %</label><input id="c_width" type="number" min="20" max="100"></div>
+      <div class="row"><label>Gap px</label><input id="c_gap" type="number" min="0" max="64"></div>
+      <div class="row"><label>Font px</label><input id="c_fsize" type="number" min="10" max="48"></div>
+      <div class="row"><label>Emote px</label><input id="c_esize" type="number" min="16" max="96"></div>
+      <div class="row"><label>Show Badges</label><input id="c_badges" type="checkbox"></div>
+      <div class="row"><label>Show Timestamps</label><input id="c_times" type="checkbox"></div>
+
+      <button class="btn save" id="c_save">💾 Save</button>
+      <button class="btn save" id="c_copy">🔗 Copy Link für OBS</button>
+      <span class="status" id="c_status"></span>
+
+      <div id="cheatsheet">
+        <b>Info:</b><br>
+        Dieses Overlay reagiert auf Kommandos, die <code>bot.html</code> per Broadcast/OBS senden:<br>
+        <code>theme glass|dark|light|neon</code> ·
+        <code>rgb off|ring|fill|both</code> ·
+        <code>rgbspeed 2-30</code> ·
+        <code>ring 6-10</code> ·
+        <code>opacity 0-100</code> ·
+        <code>accent finja|channel|custom #hex</code><br>
+        <i>Finja bleibt dabei immer im Finja-Style 💙</i>
+      </div>
+    </div>
+    <button class="btn" id="c_toggle">⚙️ Settings</button>
+  </div>
+
+  <script>
+    /* --------------------------- CONFIG (Overlay only) --------------------------- */
+    const STORAGE_KEY = "standaloneChatCfg";
+    const CONFIG = {
+      channel: "sodakiller1",
+      maxMessages: 12,
+      despawnSeconds: 22,
+      gap: 14,
+      messageWidthPct: 64,
+      stackDir: "bottom",
+      theme: "glass",
+      opacity: 70,
+      radius: 18,
+      dropShadow: true,
+      accentMode: "channel",
+      accentCustom: "#7aa2ff",
+
+      // RGB
+      rgbStyle: "off",
+      rgbSpeed: 8,
+      rgbRingWidth: 6,
+
+      // Glass
+      glassTexture: "https://i.imgur.com/DR1B1tn.png",
+
+      // Typo
+      fontSize: 26,
+      nameWeight: 700,
+      emoteSize: 34,
+      showBadges: true,
+      showTimestamps: false,
+
+      // Filter
+      filterBots: true,
+      blockedWords: "",
+
+      // Finja-Erkennung
+      botDisplayName: "finja_chat_bot"
+    };
+
+    const qs = new URLSearchParams(String(location.search || ""));
+    const DEV = qs.has("dev") || qs.get("mode") === "dev";
+    if (DEV) document.body.classList.add("dev");
+
+    /* load saved */
+    try{ const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); if (saved && typeof saved === "object") Object.assign(CONFIG, saved); }catch{}
+
+    /* URL overrides (OBS) */
+    if (qs.get("channel")) CONFIG.channel = qs.get("channel");
+    if (qs.get("theme"))   CONFIG.theme   = qs.get("theme");
+    if (qs.get("opacity")) CONFIG.opacity = Number(qs.get("opacity"));
+    if (qs.get("stack"))   CONFIG.stackDir= qs.get("stack");
+    if (qs.get("accent"))  CONFIG.accentMode = qs.get("accent");
+    if (qs.get("width"))   CONFIG.messageWidthPct = Number(qs.get("width"));
+    if (qs.get("gap"))     CONFIG.gap = Number(qs.get("gap"));
+    if (qs.get("font"))    CONFIG.fontSize = Number(qs.get("font"));
+    if (qs.get("emote"))   CONFIG.emoteSize= Number(qs.get("emote"));
+    if (qs.get("ringw"))   CONFIG.rgbRingWidth = Math.max(2, Math.min(20, Number(qs.get("ringw")) || CONFIG.rgbRingWidth));
+    if (qs.get("gtex"))    CONFIG.glassTexture = qs.get("gtex");
+    if (qs.get("rgbstyle"))CONFIG.rgbStyle = qs.get("rgbstyle");
+    if (qs.get("botname")) CONFIG.botDisplayName = qs.get("botname");
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG));
+
+    /* --------------------------- THEME APPLY --------------------------- */
+    const chat = document.getElementById("chat");
+
+    function applyTheme(){
+      document.documentElement.style.setProperty("--font-size", CONFIG.fontSize + "px");
+      document.documentElement.style.setProperty("--name-weight", CONFIG.nameWeight);
+      document.documentElement.style.setProperty("--emote-size", CONFIG.emoteSize + "px");
+      document.documentElement.style.setProperty("--gap", CONFIG.gap + "px");
+      document.documentElement.style.setProperty("--message-width", CONFIG.messageWidthPct + "%");
+      document.documentElement.style.setProperty("--radius", CONFIG.radius + "px");
+      document.documentElement.style.setProperty("--rgb-speed", Math.max(2, Number(CONFIG.rgbSpeed)||8) + "s");
+      document.documentElement.style.setProperty("--rgb-ring-w", Math.max(2, Math.min(20, Number(CONFIG.rgbRingWidth)||6)) + "px");
+
+      chat.classList.toggle("top", CONFIG.stackDir === "top");
+
+      let alpha = Math.max(0, Math.min(100, Number(CONFIG.opacity))) / 100;
+      let bubbleBg, bubbleText, bubbleSub;
+      const theme = (CONFIG.theme || "glass").toLowerCase();
+
+      switch (theme){
+        case "dark":  bubbleBg=`rgba(10,12,18,${alpha})`; bubbleText="#f5f7ff"; bubbleSub="#aeb6c7"; break;
+        case "light": bubbleBg=`rgba(255,255,255,${alpha})`; bubbleText="#0e1020"; bubbleSub="#475069"; break;
+        case "neon":  alpha=Math.max(alpha,.85); bubbleBg=`rgba(8,10,16,${alpha})`; bubbleText="#e7f0ff"; bubbleSub="#9fb0d2"; break;
+        default:      alpha=Math.min(alpha,.45); bubbleBg=`rgba(20,22,30,${alpha})`; bubbleText="#f2f6ff"; bubbleSub="#b8c0d4";
+      }
+      document.documentElement.style.setProperty("--bg-alpha", alpha);
+      document.documentElement.style.setProperty("--bubble-bg", bubbleBg);
+      document.documentElement.style.setProperty("--bubble-text", bubbleText);
+      document.documentElement.style.setProperty("--bubble-sub", bubbleSub);
+
+      let accent="#7aa2ff", accent2="#ff6ad5";
+      if (CONFIG.accentMode==="channel"){ accent="#9146FF"; accent2="#B98AFF"; }
+      if (CONFIG.accentMode==="custom"){  accent=CONFIG.accentCustom||"#7aa2ff"; accent2=accent; }
+      document.documentElement.style.setProperty("--accent", accent);
+      document.documentElement.style.setProperty("--accent-2", accent2);
+
+      const glassTex = (theme === "glass" && CONFIG.glassTexture) ? `url("${CONFIG.glassTexture}")` : "none";
+      document.documentElement.style.setProperty("--glass-tex-url", glassTex);
+
+      [...chat.children].forEach(updateClassesForMessage);
+      updateBadgesVisibility();
+      updateTimestampsVisibility();
+    }
+    applyTheme();
+
+    /* --------------------------- Third-Party Emotes (7TV v3 / BTTV / FFZ) --------------------------- */
+    const EMOTE_MAP = new Map(); // code -> url
+    const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    async function fetchJSON(url){
+      try{ const r = await fetch(url, { cache:"no-store" }); if(!r.ok) throw new Error(r.status); return await r.json(); }
+      catch(e){ console.warn("emote fetch failed:", url, e); return null; }
+    }
+
+    async function getTwitchId(login){
+      try{
+        const r = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(login)}`, { cache:"no-store" });
+        if (r.ok){ const id = (await r.text()).trim(); if (id) return id; }
+      }catch{}
+      try{
+        const r = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${encodeURIComponent(login)}`, { cache:"no-store" });
+        if (r.ok){ const j = await r.json(); const u = Array.isArray(j)?j[0]:j; return u?.id || null; }
+      }catch{}
+      return null;
+    }
+
+    function addEmote(code, url){ if(code && url) EMOTE_MAP.set(code, url); }
+
+    async function loadEmotes(channel){
+      EMOTE_MAP.clear();
+      const tid = await getTwitchId(channel);
+
+      // 7TV global
+      const stvG = await fetchJSON(`https://7tv.io/v3/emote-sets/global`);
+      (stvG?.emotes || []).forEach(e => addEmote(e?.name, `https://cdn.7tv.app/emote/${e?.data?.id}/2x.webp`));
+
+      // 7TV channel
+      if (tid){
+        const stvU = await fetchJSON(`https://7tv.io/v3/users/twitch/${tid}`);
+        const setId = stvU?.emote_set?.id;
+        if (setId){
+          const stvS = await fetchJSON(`https://7tv.io/v3/emote-sets/${setId}`);
+          (stvS?.emotes || []).forEach(e => addEmote(e?.name, `https://cdn.7tv.app/emote/${e?.data?.id}/2x.webp`));
+        }
+      }
+
+      // FFZ global
+      const ffzG = await fetchJSON(`https://api.frankerfacez.com/v1/set/global`);
+      const setsG = ffzG?.sets || {};
+      Object.values(setsG).forEach(s => (s?.emoticons || []).forEach(em => addEmote(em.name, `https://cdn.frankerfacez.com/emote/${em.id}/2`)));
+
+      // FFZ channel
+      if (tid){
+        const ffzR = await fetchJSON(`https://api.frankerfacez.com/v1/room/id/${tid}`);
+        const sets = ffzR?.sets || {};
+        Object.values(sets).forEach(s => (s?.emoticons || []).forEach(em => addEmote(em.name, `https://cdn.frankerfacez.com/emote/${em.id}/2`)));
+      }
+
+      // BTTV global
+      const bttvG = await fetchJSON(`https://api.betterttv.net/3/cached/emotes/global`);
+      (bttvG || []).forEach(e => addEmote(e?.code, `https://cdn.betterttv.net/emote/${e?.id}/3x`));
+
+      // BTTV channel (404 möglich → ignorieren)
+      if (tid){
+        const bttvU = await fetchJSON(`https://api.betterttv.net/3/cached/users/twitch/${tid}`);
+        (bttvU?.channelEmotes || []).concat(bttvU?.sharedEmotes || []).forEach(e => addEmote(e?.code, `https://cdn.betterttv.net/emote/${e?.id}/3x`));
+      }
+
+      console.log("Emotes loaded:", EMOTE_MAP.size);
+    }
+
+    loadEmotes(CONFIG.channel);
+
+    /* --------------------------- UTILS --------------------------- */
+    const escapeHtml = (s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const hashToColor = (str)=>{let h=0;for(let i=0;i<str.length;i++)h=((h<<5)-h)+str.charCodeAt(i)|0;const hue=Math.abs(h)%360;return `hsl(${hue} 70% 60%)`;}
+    const BOT_NAMES=new Set(['streamelements','streamlabs','nightbot','moobot','fossabot']);
+
+    // Farb-Whitelist für inline style
+    function safeCssColor(input, fallbackName){
+      const s = String(input||'').trim();
+      const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+      const RGB = /^rgba?\(\s*\d{1,3}\s*(,\s*\d{1,3}\s*){2}(,\s*(0|0?\.\d+|1(\.0+)?))?\s*\)$/i;
+      const HSL = /^hsla?\(\s*\d{1,3}\s*(,\s*\d{1,3}%\s*){2}(,\s*(0|0?\.\d+|1(\.0+)?))?\s*\)$/i;
+      const NAMED = /^[a-z]{3,20}$/i;
+      if (HEX.test(s) || RGB.test(s) || HSL.test(s) || NAMED.test(s)) return s;
+      return hashToColor(fallbackName);
+    }
+
+    // Tokenizer: zerlegt Text in Text-/IMG-Token (Twitch + 7TV/BTTV/FFZ + einfache Text-Emotes)
+    function tokenizeEmotes(rawText, messageEmotes){
+      const twitch = Array.isArray(messageEmotes) ? new Map(messageEmotes.map(e=>[e.code, e.id])) : new Map();
+      const emoteURL=(id,scale="2.0")=>`https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/${scale}`;
+      const TEXT_EMOTES = {
+        "<3": { kind:"img", src:"https://static-cdn.jtvnw.net/emoticons/v2/9/default/dark/2.0", alt:"<3" }
+      };
+
+      const parts = String(rawText||"").match(/(\S+|\s+)/g) || [];
+      const out = [];
+
+      for (let tok of parts){
+        if (/^\s+$/.test(tok)){ out.push({t:"text", v:tok}); continue; }
+        const m = tok.match(/^([(\[{'"~]*)(.*?)([.,!?;:)\]}'"~]*)$/);
+        const lead = m?m[1]:"", core = m?m[2]:tok, trail = m?m[3]:"";
+
+        if (lead) out.push({t:"text", v:lead});
+
+        if (twitch.has(core)){
+          out.push({t:"img", src: emoteURL(twitch.get(core)), alt: core});
+        } else if (EMOTE_MAP.has(core)){
+          out.push({t:"img", src: EMOTE_MAP.get(core), alt: core});
+        } else if (TEXT_EMOTES[core]){
+          const te = TEXT_EMOTES[core];
+          if (te.kind === "img") out.push({t:"img", src: te.src, alt: te.alt||core});
+        } else {
+          out.push({t:"text", v:core});
+        }
+
+        if (trail) out.push({t:"text", v:trail});
+      }
+      return out;
+    }
+
+    /* --------------------------- CLASS HELPER --------------------------- */
+    function updateClassesForMessage(msg){
+      const theme = (CONFIG.theme || "").toLowerCase();
+      const isNeon = theme === "neon";
+      const wantRing = isNeon && (CONFIG.rgbStyle==="ring" || CONFIG.rgbStyle==="both");
+      const wantFill = isNeon && (CONFIG.rgbStyle==="fill" || CONFIG.rgbStyle==="both");
+      const hasRGB = wantRing || wantFill;
+
+      const isFinja = msg.classList.contains("finja");
+      msg.classList.toggle("glass", theme==="glass" && !!CONFIG.glassTexture);
+
+      if (isFinja){
+        msg.classList.remove("neon","neon-glow","rgb-ring","rgb-fill");
+        msg.classList.add("accent-ring");
+      }else{
+        msg.classList.toggle("neon", isNeon);
+        msg.classList.toggle("neon-glow", isNeon && !hasRGB);
+        msg.classList.toggle("rgb-ring", !!wantRing);
+        msg.classList.toggle("rgb-fill", !!wantFill);
+        msg.classList.toggle("accent-ring", !hasRGB);
+      }
+    }
+    function updateBadgesVisibility(){ [...chat.querySelectorAll('.badges')].forEach(el=> el.style.display = CONFIG.showBadges ? 'inline-flex' : 'none'); }
+    function updateTimestampsVisibility(){ [...chat.querySelectorAll('.timestamp')].forEach(el=> el.style.display = CONFIG.showTimestamps ? '' : 'none'); }
+
+    /* --------------------------- RENDER (XSS-safe) --------------------------- */
+    function addMessageFromComfy(user, message, flags, extra){
+      const displayName = extra?.displayName || user || "User";
+      const lower = (extra?.username || user || "").toLowerCase();
+      if (CONFIG.filterBots && BOT_NAMES.has(lower)) return;
+
+      if (CONFIG.blockedWords){
+        const words = CONFIG.blockedWords.split(',').map(w=>w.trim()).filter(Boolean);
+        const mlow = (message||"").toLowerCase();
+        if (words.some(w=> mlow.includes(w.toLowerCase()))) return;
+      }
+
+      const botName = (CONFIG.botDisplayName || "finja_chat_bot").toLowerCase();
+      const isFinjaName = (displayName || "").toLowerCase() === botName;
+
+      const color = safeCssColor(extra?.userColor, displayName);
+      const tokens = tokenizeEmotes(message || "", extra?.messageEmotes);
+
+      const msg = document.createElement("div");
+      msg.className = "message";
+
+      // Line
+      const line = document.createElement("div");
+      line.className = "line";
+
+      const badges = document.createElement("span");
+      badges.className = "badges";
+      badges.style.display = CONFIG.showBadges ? "inline-flex" : "none";
+
+      const addBadge = (sym, title)=>{
+        const b = document.createElement("span");
+        b.className = "badge";
+        b.title = title;
+        b.textContent = sym;
+        badges.appendChild(b);
+      };
+      if (isFinjaName) addBadge("💙", "Finja");
+      if (flags?.broadcaster) addBadge("📺","Broadcaster");
+      if (flags?.mod)         addBadge("🛡️","Moderator");
+      if (flags?.vip)         addBadge("💎","VIP");
+      if (flags?.subscriber)  addBadge("⭐","Subscriber");
+      if (flags?.founder)     addBadge("🏅","Founder");
+      line.appendChild(badges);
+
+      const username = document.createElement("span");
+      username.className = "username";
+      username.style.color = color;
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "accent-gradient";
+      nameSpan.textContent = displayName;
+      username.appendChild(nameSpan);
+      username.appendChild(document.createTextNode(":"));
+      line.appendChild(username);
+
+      const ts = document.createElement("span");
+      ts.className = "timestamp";
+      if (!CONFIG.showTimestamps) ts.style.display = "none";
+      ts.textContent = new Date().toTimeString().slice(0,5);
+      line.appendChild(ts);
+
+      msg.appendChild(line);
+
+      // Content
+      const content = document.createElement("div");
+      content.className = "content";
+      for (const t of tokens){
+        if (t.t === "text"){
+          content.appendChild(document.createTextNode(t.v));
+        }else if (t.t === "img"){
+          const img = document.createElement("img");
+          img.className = "emote";
+          img.src = t.src;
+          img.alt = t.alt || "";
+          content.appendChild(img);
+        }
+      }
+      msg.appendChild(content);
+
+      if (isFinjaName){
+        msg.classList.add("finja");
+        username.style.color = "inherit";
+      }
+
+      chat.appendChild(msg);
+
+      updateClassesForMessage(msg);
+      msg.classList.toggle("me", !!flags?.me);
+
+      while (chat.children.length > CONFIG.maxMessages) chat.removeChild(chat.firstChild);
+      if (CONFIG.despawnSeconds > 0) setTimeout(()=> msg.remove(), CONFIG.despawnSeconds*1000);
+    }
+
+    /* --------------------------- COMFYJS (READ-ONLY) --------------------------- */
+    (function connect(){
+      const channel = (CONFIG.channel||"").trim().toLowerCase();
+      if (!channel){ console.warn("Kein Channel gesetzt."); return; }
+      ComfyJS.onError = err => console.error("ComfyJS error:", err);
+      ComfyJS.onChat = (user, message, flags, self, extra) => { if (!self) addMessageFromComfy(user, message, flags, extra); };
+      ComfyJS.onAction = (user, message, flags, self, extra) => addMessageFromComfy(user, message, { ...flags, me:true }, extra);
+      ComfyJS.Init(channel);
+    })();
+
+    /* --------------------------- Broadcast from bot.html --------------------------- */
+    try{
+      const bc = new BroadcastChannel("finja-overlay");
+      bc.onmessage = (ev)=>{
+        const d = ev.data || {};
+        if (d.type === "chat"){
+          addMessageFromComfy(d.user, d.message, d.flags||{}, d.extra||{});
+        }
+        if (d.type === "command"){
+          applyRemoteCommand(d.cmd, d.arg, d.flags||{});
+        }
+      };
+    }catch(e){ console.warn("BroadcastChannel not available", e); }
+
+    /* --------------------------- applyRemoteCommand (vom Bot) --------------------------- */
+    function applyRemoteCommand(cmd, arg, flags){
+      if (cmd==="theme"){
+        const v = (arg||"").toLowerCase();
+        if (["glass","dark","light","neon"].includes(v)){ CONFIG.theme = v; persistAndApply(); }
+        return;
+      }
+      if (cmd==="rgb"){
+        const v = (arg||"").toLowerCase();
+        if (["off","ring","fill","both"].includes(v)){ CONFIG.rgbStyle = v; if (v!=="off") CONFIG.theme="neon"; persistAndApply(); }
+        return;
+      }
+      if (cmd==="rgbspeed"){
+        const n = Math.max(2, Math.min(30, Number(arg)||CONFIG.rgbSpeed)); CONFIG.rgbSpeed = n; persistAndApply(); return;
+      }
+      if (cmd==="ring"){
+        const px = Math.max(2, Math.min(20, Number(arg)||CONFIG.rgbRingWidth)); CONFIG.rgbRingWidth = px; persistAndApply(); return;
+      }
+      if (cmd==="opacity"){
+        const v = Math.max(0, Math.min(100, Number(arg)||CONFIG.opacity)); CONFIG.opacity = v; persistAndApply(); return;
+      }
+      if (cmd==="accent"){
+        const parts = String(arg||"").trim().split(/\s+/);
+        const mode = (parts[0]||"").toLowerCase();
+        if (["finja","channel","custom"].includes(mode)){
+          CONFIG.accentMode = mode;
+          if (mode==="custom" && parts[1] && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(parts[1])) CONFIG.accentCustom = parts[1];
+          persistAndApply();
+        }
+        return;
+      }
+    }
+    function persistAndApply(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG)); applyTheme(); }
+
+    /* --------------------------- DEV PANEL --------------------------- */
+    if (DEV){
+      const cfg = document.getElementById('cfg');
+      const toggle = document.getElementById('c_toggle');
+      const copyBtn = document.getElementById('c_copy');
+      const saveBtn = document.getElementById('c_save');
+      const statusEl = document.getElementById('c_status');
+      const field = id => document.getElementById(id);
+
+      document.getElementById('dev-badge').style.display = 'block';
+
+      const setStatus = (m)=>{ if(!statusEl) return; statusEl.textContent = m; statusEl.style.opacity='1'; clearTimeout(window.__cfgStatusTimer); window.__cfgStatusTimer = setTimeout(()=>{ statusEl.style.opacity='.75' }, 2200); };
+      const buildObsUrl = ()=>{
+        const base = location.href.split("?")[0];
+        const p = new URLSearchParams();
+        p.set("channel", CONFIG.channel);
+        p.set("theme", CONFIG.theme);
+        p.set("accent", CONFIG.accentMode);
+        p.set("opacity", String(CONFIG.opacity));
+        p.set("stack", CONFIG.stackDir);
+        p.set("width", String(CONFIG.messageWidthPct));
+        p.set("gap", String(CONFIG.gap));
+        p.set("font", String(CONFIG.fontSize));
+        p.set("emote", String(CONFIG.emoteSize));
+        p.set("ringw", String(CONFIG.rgbRingWidth));
+        if (CONFIG.theme==="neon" && CONFIG.rgbStyle) p.set("rgbstyle", CONFIG.rgbStyle);
+        if (CONFIG.theme==="glass" && CONFIG.glassTexture) p.set("gtex", CONFIG.glassTexture);
+        p.set("botname", CONFIG.botDisplayName);
+        if (DEV) p.set("dev","1");
+        return `${base}?${p.toString()}`;
+      };
+
+      const syncFromConfig = ()=>{
+        field('c_channel').value = CONFIG.channel;
+        field('c_theme').value = CONFIG.theme;
+        field('c_opacity').value = CONFIG.opacity;
+        field('c_accent').value = CONFIG.accentMode;
+        field('c_hex').value = CONFIG.accentCustom;
+        field('c_rgbstyle').value = CONFIG.rgbStyle;
+        field('c_rgbspeed').value = CONFIG.rgbSpeed;
+        field('c_ringw').value = CONFIG.rgbRingWidth;
+        field('c_gtex').value = CONFIG.glassTexture;
+        field('c_stack').value = CONFIG.stackDir;
+        field('c_shadow').checked = !!CONFIG.dropShadow;
+        field('c_width').value = CONFIG.messageWidthPct;
+        field('c_gap').value = CONFIG.gap;
+        field('c_fsize').value = CONFIG.fontSize;
+        field('c_esize').value = CONFIG.emoteSize;
+        field('c_badges').checked = !!CONFIG.showBadges;
+        field('c_times').checked = !!CONFIG.showTimestamps;
+      };
+      const readIntoConfig = ()=>{
+        const oldChannel = CONFIG.channel;
+        CONFIG.channel = field('c_channel').value.trim();
+        CONFIG.theme = field('c_theme').value;
+        CONFIG.opacity = Math.max(0, Math.min(100, Number(field('c_opacity').value) || 70));
+        CONFIG.accentMode = field('c_accent').value;
+        CONFIG.accentCustom = field('c_hex').value || "#7aa2ff";
+        CONFIG.rgbStyle = field('c_rgbstyle').value;
+        CONFIG.rgbSpeed = Math.max(2, Number(field('c_rgbspeed').value) || 8);
+        CONFIG.rgbRingWidth = Math.max(2, Math.min(20, Number(field('c_ringw').value) || 6));
+        CONFIG.glassTexture = field('c_gtex').value.trim();
+        CONFIG.stackDir = field('c_stack').value;
+        CONFIG.dropShadow = !!field('c_shadow').checked;
+        CONFIG.messageWidthPct = Math.min(100, Math.max(20, Number(field('c_width').value) || 70));
+        CONFIG.gap = Math.max(0, Number(field('c_gap').value) || 14);
+        CONFIG.fontSize = Math.max(10, Number(field('c_fsize').value) || 26);
+        CONFIG.emoteSize = Math.max(16, Number(field('c_esize').value) || 34);
+        CONFIG.showBadges = !!field('c_badges').checked;
+        CONFIG.showTimestamps = !!field('c_times').checked;
+
+        if (CONFIG.channel && CONFIG.channel !== oldChannel){
+          loadEmotes(CONFIG.channel);
+        }
+      };
+
+      toggle.onclick = ()=> cfg.classList.toggle('open');
+      syncFromConfig();
+
+      saveBtn.onclick = ()=>{ readIntoConfig(); localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG)); applyTheme(); setStatus("✔ Gespeichert (LocalStorage)"); };
+      copyBtn.onclick = async ()=>{ readIntoConfig(); localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG)); applyTheme(); const url = buildObsUrl(); try{ await navigator.clipboard.writeText(url); setStatus("🔗 Link kopiert!"); }catch{ window.prompt("Kopiere diesen Link für OBS:", url); } };
+    }
+
+    /* --------------------------- Confirm aus URL nach Reload anzeigen (5s) --------------------------- */
+    (function showConfirmOnce(){
+      try{
+        const msg = new URLSearchParams(location.search||"").get("confirm");
+        if (!msg) return;
+        setTimeout(()=>{
+          addMessageFromComfy(CONFIG.botDisplayName || "finja_chat_bot", msg, { broadcaster:true }, { displayName: CONFIG.botDisplayName || "finja_chat_bot", messageEmotes: [] });
+        }, 5000);
+      }catch{}
+    })();
+  </script>
+
+<!-- === Accent / Theme helper === -->
+<script>
+(function(){
+  try {
+    const bc = new BroadcastChannel("finja-overlay");
+    bc.onmessage = (ev) => {
+      const d = ev.data || {};
+      if (d.type === "accent" && d.value){
+        document.documentElement.style.setProperty("--accent", d.value);
+        localStorage.setItem("finja_accent", d.value);
+      }
+    };
+  } catch (e) { /* ignore */ }
+})();
+</script>
+<!-- === /Accent / Theme helper === -->
+
+
+<!-- === SR Pending Box (DEV-ONLY) === -->
+<style>
+#srPendingBox{
+  position:fixed; right:16px; bottom: var(--srbox-bottom, 160px); z-index:2147483000;
+  max-width: 520px; font: 14px/1.35 Inter, system-ui, Arial;
+  background: rgba(12,14,20,.78); color:#eaf1ff;
+  border:1px solid rgba(120,140,200,.18); border-radius:14px; padding:12px 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.35);
+}
+#srPendingBox .title{ font-weight:700; color:#7aa2ff; margin-bottom:8px; display:flex; align-items:center; gap:8px }
+#srPendingBox .item{ opacity:.98; display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.08) }
+#srPendingBox .item:last-child{ border-bottom:none }
+#srPendingBox .id{ color:#9bb0ff; min-width: 36px }
+#srPendingBox .meta{ flex:1 }
+#srPendingBox .who{ opacity:.75 }
+#srPendingBox .btns{ display:flex; gap:6px }
+#srPendingBox button.srBtn{
+  cursor:pointer; border:none; border-radius:10px; padding:6px 10px;
+  background:#1a2033; color:#eaf1ff; transition: transform .05s ease;
+}
+#srPendingBox button.srBtn.yes{ background:#2a4; }
+#srPendingBox button.srBtn.no{ background:#c33; }
+#srPendingBox button.srBtn:disabled{ opacity:.6; cursor:not-allowed }
+#srPendingBox[hidden]{ display:none !important; }
+</style>
+<div id="srPendingBox" hidden aria-live="polite">
+  <div class="title">
+    <span>🎧 Wünsche in Prüfung</span>
+    <small style="opacity:.7">DEV</small>
+  </div>
+  <div id="srPendingList"></div>
+</div>
+<script>
+(function(){
+  const devMode = new URLSearchParams(location.search||"").get("dev") === "1";
+  const BOX  = document.getElementById("srPendingBox");
+  const LIST = document.getElementById("srPendingList");
+  const URLP = "http://127.0.0.1:8099/pending";
+  const URLC = "http://127.0.0.1:8099/chat";
+
+  let bc;
+  try { bc = new BroadcastChannel("finja-overlay"); } catch {}
+
+  if (!devMode){ BOX.hidden = true; return; } // DEV ONLY
+  BOX.hidden = false;
+
+  function el(tag, cls){ const x=document.createElement(tag); if(cls) x.className=cls; return x; }
+
+  async function refresh(){
+    LIST.textContent = "lädt …";
+    try{
+      const res = await fetch(URLP);
+      const data = await res.json();
+      const items = data?.pending || [];
+      LIST.innerHTML = "";
+      if (!items.length){
+        const em = el("div","item"); em.textContent = "— leer —"; LIST.appendChild(em);
+        return;
+      }
+      for (const it of items){
+        const row = el("div","item");
+        const id  = el("div","id"); id.textContent = `#${it.id}`;
+        const meta= el("div","meta");
+        const title = el("div","title"); title.textContent = it.title;
+        const who = el("div","who"); who.textContent = `von ${it.user}`;
+        meta.appendChild(title); meta.appendChild(who);
+        const btns = el("div","btns");
+        const yes = el("button","srBtn yes"); yes.textContent = "Accept";
+        const no  = el("button","srBtn no");  no.textContent  = "Deny";
+        yes.onclick = async ()=>{
+          yes.disabled = no.disabled = true;
+          await fetch(URLC, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ user:"overlay", message:`!accept ${it.id}`, is_mod:true, is_broadcaster:true }) });
+          try { bc?.postMessage({ type:"sr-announce", text: `ACCEPT: ${it.title} → queued` }); } catch{}
+          await refresh();
+        };
+        no.onclick = async ()=>{
+          no.disabled = yes.disabled = true;
+          await fetch(URLC, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ user:"overlay", message:`!deny ${it.id}`, is_mod:true, is_broadcaster:true }) });
+          try { bc?.postMessage({ type:"sr-announce", text: `DENY: ${it.title}` }); } catch{}
+          await refresh();
+        };
+        btns.appendChild(yes); btns.appendChild(no);
+        row.appendChild(id); row.appendChild(meta); row.appendChild(btns);
+        LIST.appendChild(row);
+      }
+    }catch(e){
+      LIST.textContent = "⚠️ Fehler beim Laden";
+      console.warn("pending load failed:", e);
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 8000);
+})();
+</script>
+<!-- === /SR Pending Box === -->
+
+
+<!-- === Overlay Help Panel (BroadcastChannel) === -->
+<style>
+  #helpPanel{
+    position: fixed; right: 16px; top: 16px; z-index: 2147483600;
+    width: min(640px, 90vw);
+    background: rgba(12,14,20,.86);
+    color: #eaf1ff;
+    border:1px solid rgba(120,140,200,.18);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 10px 36px rgba(0,0,0,.35);
+    backdrop-filter: blur(6px);
+    display:none;
+  }
+  #helpPanel .hp-title{
+    font: 700 16px/1.2 Inter, system-ui, Arial; color:#7aa2ff; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  #helpPanel .hp-list{ display: grid; gap: 6px; }
+  #helpPanel .hp-item{
+    font: 14px/1.35 Inter, system-ui, Arial;
+    background: rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:10px; padding:8px 10px;
+  }
+</style>
+<div id="helpPanel" role="dialog" aria-live="polite" aria-label="Befehle">
+  <div class="hp-title">🧭 Befehle</div>
+  <div class="hp-list" id="helpPanelList"></div>
+</div>
+<script>
+(() => {
+  let bc;
+  try { bc = new BroadcastChannel("finja-overlay"); } catch {}
+  if (!bc) return;
+  const panel = document.getElementById("helpPanel");
+  const list  = document.getElementById("helpPanelList");
+  let hideTimer;
+  bc.onmessage = (ev) => {
+    const d = ev.data || {};
+    if (d.type === "help" && Array.isArray(d.lines)) {
+      panel.querySelector(".hp-title").textContent = (d.title || "Befehle");
+      list.innerHTML = d.lines.map(t => `<div class="hp-item">${String(t).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>`).join("");
+      panel.style.display = "block";
+      clearTimeout(hideTimer);
+      const ttl = Math.max(2000, parseInt(d.ttl||"9000", 10));
+      hideTimer = setTimeout(() => { panel.style.display = "none"; }, ttl);
+    }
+  };
+})();
+</script>
+<!-- === /Overlay Help Panel === -->
+
+</body>
+</html>

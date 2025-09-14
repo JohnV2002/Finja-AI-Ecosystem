@@ -1,0 +1,674 @@
+<!-- ====================================================================== -->
+
+<!--                      Finja's Twitch Bot & Overlay                      -->
+
+<!-- ====================================================================== -->
+
+<!--                                                                        -->
+
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+
+<!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
+
+<!--   Version: 2.1.0                                                       -->
+
+<!--   Description: Bot panel and visual overlay for OBS.                   -->
+
+<!--                                                                        -->
+
+<!--   Copyright (c) 2025 J. Apps                                           -->
+
+<!--   Licensed under the MIT License.                                      -->
+
+<!-- ====================================================================== -->
+
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Finja Bot Panel</title>
+
+  <!-- Twitch Chat -->
+  <script src="https://cdn.jsdelivr.net/npm/comfy.js@1.1.1/dist/comfy.min.js"></script>
+  <!-- OBS WebSocket v5 -->
+  <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-ws.min.js"></script>
+
+  <style>
+    :root{ --accent:#7aa2ff }
+    *{ box-sizing: border-box }
+    body{
+      margin:0; padding:0;
+      font:15px/1.4 Inter, system-ui, Arial;
+      background:#0c0e14; color:#eaf1ff;
+    }
+    h2{ margin:16px 16px 0; color:var(--accent) }
+    .card{ background:#121725; border:1px solid #263048; border-radius:12px; padding:14px; margin:16px }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    label{ display:block; font-size:12px; opacity:.85; margin-top:8px }
+    input{ width:100%; padding:8px 10px; border-radius:10px; border:1px solid #364057; background:#0b0f1a; color:#eaf1ff }
+    .btn{ display:inline-block; margin-top:10px; padding:10px 12px; border-radius:10px; background:#2a6cff; color:#fff; border:0; cursor:pointer }
+    .btn.alt{ background:#444 }
+    #log{ font-size:14px; line-height:1.4; padding:10px; max-height:320px; overflow:auto; white-space:pre-wrap; background:#0b0f1a; border:1px solid #2b3447; border-radius:10px }
+    #log .ok{ color:#7df97d } #log .warn{ color:#ffd166 } #log .err{ color:#ff6b6b }
+    code{ background:#0b0f1a; padding:2px 6px; border-radius:6px; border:1px solid #2b3447 }
+
+    /* Pretty Commands Panel */
+    .cmds {
+      margin: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #eaf1ff;
+      font: 14px/1.4 Inter, system-ui, Arial;
+    }
+    .cmds .title {
+      font-weight: 700; color: var(--accent,#7aa2ff); margin-bottom: 8px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .cmds .list { display: grid; gap: 8px 16px; grid-template-columns: 1fr 1fr; }
+    .cmds .item { display:flex; gap:8px; align-items:flex-start; }
+    .cmds .k {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 2px 6px; border-radius: 8px; white-space: nowrap;
+    }
+    .cmds .desc { opacity:.9 }
+    .cmds .note {
+      margin-top: 10px; opacity:.85; font-size: 13px;
+      border-top: 1px dashed rgba(255,255,255,.12); padding-top: 10px;
+    }
+    .cmds .subgrid { display:grid; gap:6px }
+    @media (max-width: 900px) { .cmds .list { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <h2>Finja Bot Panel</h2>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Channel</label>
+        <input id="channel" placeholder="deinchannel" value="sodakiller1">
+      </div>
+      <div>
+        <label>Bot Username</label>
+        <input id="botuser" placeholder="finja_chat_bot" value="finja_chat_bot">
+      </div>
+    </div>
+    <label>OAuth (Format: <code>oauth:xxxxxxxxxxxxxxxx</code>)</label>
+    <input id="oauth" placeholder="oauth:..." />
+    <button class="btn" id="connectBtn">Verbinden</button>
+    <button class="btn alt" id="disconnectBtn">Trennen</button>
+  </div>
+
+  <!-- Hübsches Commands-Panel -->
+  <div class="cmds">
+    <div class="title">🧭 Befehle</div>
+    <div class="list">
+      <div class="item"><div class="k">!help</div><div class="desc">Übersicht (zeigt auch Overlay-Panel)</div></div>
+      <div class="item"><div class="k">!drink</div><div class="desc">Finja bekommt was zu trinken 🥤</div></div>
+      <div class="item"><div class="k">!theme</div><div class="desc">glass | dark | light | neon (neon auto-aktiviert <span class="k">rgb ring</span>)</div></div>
+      <div class="item"><div class="k">!rgb</div><div class="desc">off | ring | fill | both · <span class="k">!rgb ring &lt;6-10&gt;</span></div></div>
+      <div class="item"><div class="k">!rgbspeed</div><div class="desc">2-30 (Sekunden)</div></div>
+      <div class="item"><div class="k">!ring</div><div class="desc">6-10 (Ringbreite)</div></div>
+      <div class="item"><div class="k">!opacity</div><div class="desc">0-100</div></div>
+      <div class="item"><div class="k">!pulse</div><div class="desc">on | off</div></div>
+      <div class="item"><div class="k">!accent</div><div class="desc">finja | channel | custom #hex</div></div>
+    </div>
+
+    <div class="title" style="margin-top:12px">🎵 Song-Requests</div>
+    <div class="subgrid">
+      <div class="item"><div class="k">!sr</div><div class="desc">Viewer: &lt;suche|link&gt; (Spotify)</div></div>
+      <div class="item"><div class="k">!rq</div><div class="desc">Mods: Liste Wünsche</div></div>
+      <div class="item"><div class="k">!accept</div><div class="desc">Mods: &lt;id&gt; in Queue</div></div>
+      <div class="item"><div class="k">!deny</div><div class="desc">Mods: &lt;id&gt; ablehnen</div></div>
+    </div>
+    <div class="note">
+      Cooldown: 60s global + 60s/User (gilt <b>nicht</b> für <span class="k">!drink</span>).  
+      <span class="k">Usage</span> verbraucht keinen Cooldown.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;color:#7aa2ff">OBS Sync</h2>
+    <div class="row">
+      <div>
+        <label>OBS WS Adresse</label>
+        <input id="obs_addr" placeholder="ws://127.0.0.1:4455" value="ws://127.0.0.1:4455">
+      </div>
+      <div>
+        <label>OBS Passwort</label>
+        <input id="obs_pass" placeholder="••••••••">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Browser-Quelle (Name in OBS)</label>
+        <input id="obs_input" placeholder="Finja Overlay">
+      </div>
+      <div>
+        <label>Overlay-URL (Basis)</label>
+        <input id="obs_overlay_url" placeholder="http://127.0.0.1:8088/index_merged.html">
+        <small>Die Parameter (channel, theme, …) hängt der Bot automatisch an.</small>
+      </div>
+    </div>
+    <button class="btn" id="obs_connect">OBS verbinden</button>
+    <button class="btn alt" id="obs_disconnect">OBS trennen</button>
+  </div>
+
+  <div class="card">
+    <div id="log"></div>
+  </div>
+
+<script>
+/* ========== Helpers ========== */
+const $ = (id)=>document.getElementById(id);
+function nowHHMMSS(){ return new Date().toTimeString().slice(0,8); }
+function toLogText(m){ try{ if(m instanceof Error) return `${m.name}: ${m.message}`; if(typeof m==="object") return JSON.stringify(m); return String(m);}catch{return String(m);} }
+function log(m,cls=""){ const host=$("log"); if(!host) return; const row=document.createElement("div"); if(cls) row.className=cls; row.textContent=`[${nowHHMMSS()}] ${toLogText(m)}`; host.prepend(row); }
+
+/* ========== Local storage defaults ========== */
+$("oauth").value = localStorage.getItem("finja_bot_oauth") || "";
+$("obs_addr").value = localStorage.getItem("finja_obs_addr") || "ws://127.0.0.1:4455";
+$("obs_pass").value = localStorage.getItem("finja_obs_pass") || "";
+$("obs_input").value = localStorage.getItem("finja_obs_input") || "";
+$("obs_overlay_url").value = localStorage.getItem("finja_obs_overlay_url") || "";
+
+/* ========== Broadcast Channel (Overlay in gleichem Browser) ========== */
+let bc; try{ bc = new BroadcastChannel("finja-overlay"); }catch{}
+
+/* ========== OBS WebSocket v5 ========== */
+const obs = new OBSWebSocket();
+let obsReady = false;
+
+async function connectOBS(){
+  const addr = $("obs_addr").value.trim() || "ws://127.0.0.1:4455";
+  const pass = $("obs_pass").value;
+  try{
+    await obs.connect(addr, pass);
+    obsReady = true;
+    localStorage.setItem("finja_obs_addr", addr);
+    localStorage.setItem("finja_obs_pass", pass);
+    localStorage.setItem("finja_obs_input", $("obs_input").value.trim());
+    localStorage.setItem("finja_obs_overlay_url", $("obs_overlay_url").value.trim());
+    log(`OBS verbunden: ${addr}`, "ok");
+  }catch(e){
+    obsReady = false;
+    log(`OBS connect failed: ${e?.message||e}`, "err");
+  }
+}
+async function disconnectOBS(){ try{ await obs.disconnect(); }catch{} obsReady=false; log("OBS getrennt","warn"); }
+
+/* ========== Overlay-State (für OBS-URL) ========== */
+const OVERLAY = {
+  channel: $("channel").value.trim().toLowerCase(),
+  theme: "glass",
+  rgbstyle: "off",
+  rgbspeed: 8,
+  ringw: 6,
+  opacity: 70,
+  accent: "finja",
+  accentHex: "#7aa2ff",
+  botname: "finja_chat_bot",
+  confirm: null
+};
+function capRing(n){ if(!Number.isFinite(n)) return null; n=Math.round(n); return Math.min(10, Math.max(6, n)); }
+
+/* ========== Build URL – mit prevUrl + saved channel fallback ========== */
+function buildOverlayUrl(prevUrl = null) {
+  let base = $("obs_overlay_url").value.trim();
+  if (!base) return null;
+  if (!/^[a-z]+:\/\//i.test(base)) return null; // schema nötig (http/https/file)
+
+  const u = new URL(base);
+
+  // Vorherige Parameter & gespeicherten Channel als Defaults nutzen
+  const prev = new URLSearchParams(prevUrl ? new URL(prevUrl).search : "");
+  const saved = (localStorage.getItem("finja_last_channel") || "").trim().toLowerCase();
+
+  const p = new URLSearchParams();
+  const chan = (OVERLAY.channel || $("channel").value.trim().toLowerCase() || saved || prev.get("channel") || "").trim();
+
+  if (!chan) {
+    // Ohne Channel: Keine URL-Änderung (nur Refresh)
+    return null;
+  }
+
+  p.set("channel", chan);
+  if (OVERLAY.theme)   p.set("theme", OVERLAY.theme);
+  if (OVERLAY.accent)  p.set("accent", OVERLAY.accent);
+  if (OVERLAY.opacity != null)  p.set("opacity", String(OVERLAY.opacity));
+  if (OVERLAY.theme === "neon" && OVERLAY.rgbstyle) p.set("rgbstyle", OVERLAY.rgbstyle);
+  if (OVERLAY.rgbspeed != null) p.set("rgbspeed", String(OVERLAY.rgbspeed));
+  if (OVERLAY.ringw != null)    p.set("ringw", String(OVERLAY.ringw));
+  if (OVERLAY.botname)          p.set("botname", OVERLAY.botname);
+  if (OVERLAY.accent === "custom" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(OVERLAY.accentHex)) {
+    p.set("hex", OVERLAY.accentHex);
+  }
+  if (OVERLAY.confirm) p.set("confirm", OVERLAY.confirm); // nur beim Verbinden genutzt
+
+  // Cache-Bust
+  p.set("v", Date.now().toString());
+
+  u.search = "?" + p.toString();
+  return u.toString();
+}
+
+/* ========== OBS-Quelle aktualisieren: prevUrl verwenden + safe refresh ========== */
+async function refreshBrowserSource() {
+  if (!obsReady) return;
+  const inputName = $("obs_input").value.trim();
+  if (!inputName){ log("OBS: Bitte Browser-Quellen-Name eintragen.","warn"); return; }
+
+  // Aktuelle Settings lesen
+  let got;
+  try {
+    got = await obs.call("GetInputSettings", { inputName });
+  } catch (e) {
+    log("OBS GetInputSettings fehlgeschlagen: " + (e?.message||e), "err");
+    return;
+  }
+  const oldSettings = got?.inputSettings || {};
+  const newSettings = { ...oldSettings };
+
+  const prevUrl = oldSettings?.url || null;
+  const newUrl = buildOverlayUrl(prevUrl); // <— prevUrl mitgeben
+
+  if (newUrl) {
+    newSettings.is_local_file = false; // URL-Modus erzwingen
+    newSettings.url = newUrl;
+    if ("local_file" in newSettings) delete newSettings.local_file;
+    try {
+      await obs.call("SetInputSettings", { inputName, inputSettings: newSettings, overlay: false });
+      log("OBS: Quelle-URL aktualisiert", "ok");
+    } catch (e) {
+      log("OBS SetInputSettings fehlgeschlagen: " + (e?.message||e), "err");
+    }
+  }
+
+  // In jedem Fall: Refresh-Button drücken
+  try {
+    await obs.call("PressInputPropertiesButton", { inputName, propertyName: "refreshnocache" });
+    log("OBS: Browser-Quelle refreshed", "ok");
+  } catch (e) {
+    log("OBS Refresh fehlgeschlagen: " + (e?.message||e), "err");
+  }
+}
+
+/* ========== sendVisual – keine confirm-Meldungen für Commands ========== */
+function sendVisual(cmd, arg, flags){
+  // Overlay-State aktualisieren
+  if (cmd==="theme"){
+    const v=String(arg||"").toLowerCase();
+    if (["glass","dark","light","neon"].includes(v)) OVERLAY.theme=v;
+  }
+  if (cmd==="rgb"){
+    const v=String(arg||"").toLowerCase();
+    if (["off","ring","fill","both"].includes(v)){
+      OVERLAY.rgbstyle=v;
+      if (v!=="off") OVERLAY.theme="neon";
+    }
+  }
+  if (cmd==="rgbspeed"){ OVERLAY.rgbspeed = Math.max(2, Math.min(30, Number(arg)||8)); }
+  if (cmd==="ring"){ const px = capRing(Number(arg)); if(px!=null) OVERLAY.ringw = px; }
+  if (cmd==="opacity"){ OVERLAY.opacity = Math.max(0, Math.min(100, Number(arg)||70)); }
+  if (cmd==="accent"){
+    const parts = String(arg||"").trim().split(/\s+/);
+    const mode = (parts[0]||"").toLowerCase();
+    if (["finja","channel","custom"].includes(mode)){
+      OVERLAY.accent = mode;
+      if (mode==="custom" && parts[1] && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(parts[1])) OVERLAY.accentHex = parts[1];
+    }
+  }
+
+  // an Overlay im gleichen Browser
+  try { bc?.postMessage({ type:"command", cmd, arg, flags }); } catch {}
+
+  // Nur URL ändern, wenn Channel sicher vorhanden – sonst nur Refresh
+  const chan = OVERLAY.channel || $("channel").value.trim() || localStorage.getItem("finja_last_channel");
+  if (!chan) {
+    log("Kein Channel gesetzt – nur Refresh, keine URL-Änderung.","warn");
+    refreshBrowserSource();
+    return;
+  }
+  refreshBrowserSource();
+}
+
+/* ========== Cooldowns & Router ========== */
+let connected = false;
+const COOLDOWN_MS = 60_000; // 60s
+const cdGlobal = Object.create(null);
+const cdUser   = Object.create(null);
+const now = ()=>Date.now();
+function cooldownRemaining(cmd, userId){
+  const g = cdGlobal[cmd] || 0;
+  const u = cdUser[`${cmd}:${userId||"?"}`] || 0;
+  const t = now();
+  const remain = Math.max(0, COOLDOWN_MS - Math.max(t-g, t-u));
+  return Math.ceil(remain/1000);
+}
+function startCooldown(cmd, userId){
+  const t = now();
+  cdGlobal[cmd] = t;
+  cdUser[`${cmd}:${userId||"?"}`] = t;
+}
+function say(msg){ try{ ComfyJS.Say(msg); }catch(e){ log(`Say() failed: ${e}`,"err"); } }
+const isPriv = (flags)=> !!(flags?.broadcaster || flags?.mod);
+
+/* ——— 3-teiliger !help ——— */
+function helpTriplet(){
+  const line1 = "🧭 Befehle: 💧 !drink (Fun-Command für Finja)";
+  const line2 = "✨ Visuals: !theme glass|dark|light|neon · !rgb off|ring|fill|both · !rgb ring <6-10> · !rgbspeed 2-30 · !ring 6-10 · !opacity 0-100 · !pulse on|off · !accent finja|channel|custom #hex";
+  const line3 = "🎵 Song-Requests: !sr <suche|link> · Mods: !rq · !accept <id> · !deny <id> · ⏱ Cooldown ~120s";
+  setTimeout(()=>{ try{ say(line1); }catch{} }, 200);
+  setTimeout(()=>{ try{ say(line2); }catch{} }, 1400);
+  setTimeout(()=>{ try{ say(line3); }catch{} }, 2600);
+  try{ (window.bc||new BroadcastChannel("finja-overlay")).postMessage({type:"help",title:"Befehle",lines:[line1,line2,line3],ttl:10000}); }catch{}
+}
+
+function handleCommand(user, cmd, arg, flags, extra){
+  const uid = extra?.userId || (extra?.username||user||"").toLowerCase();
+  OVERLAY.channel = $("channel").value.trim().toLowerCase();
+
+  // ohne Cooldown
+  if (cmd==="help"){ helpTriplet(); return; }
+  if (cmd==="drink"){ say("🥤 Finja hat was zu trinken bekommen!"); return; }
+
+  // Mod/Broadcaster-only + Cooldown
+  if (!isPriv(flags)) return;
+  function guardCooldown(name){ const rem=cooldownRemaining(name, uid); if(rem>0){ say(`⏳ Cooldown noch ${rem}s aktiv – bitte warten`); return false; } return true; }
+  function done(name){ startCooldown(name, uid); }
+
+  if (cmd==="rgb"){
+    const parts = String(arg||"").trim().split(/\s+/);
+    if (parts[0]==="ring" && parts[1]){
+      const raw = Number(parts[1]); const px = capRing(raw);
+      if (px===null){ say("Usage: !rgb ring <6-10>"); return; }
+      if (!guardCooldown("rgb")) return;
+      sendVisual("ring", String(px), flags);
+      sendVisual("rgb", "ring", flags);
+      sendVisual("theme","neon",flags);
+      setTimeout(()=>{ say(`RGB Ring → ${px}px`); }, 5000);
+      done("rgb"); return;
+    }
+    const v=(parts[0]||"").toLowerCase();
+    if (!["off","ring","fill","both"].includes(v)){ say("Usage: !rgb off|ring|fill|both  (oder: !rgb ring <6-10>)"); return; }
+    if (!guardCooldown("rgb")) return;
+    sendVisual("rgb", v, flags);
+    if (v!=="off") sendVisual("theme","neon",flags);
+    setTimeout(()=>{ say(`RGB → ${v}`); }, 5000);
+    done("rgb"); return;
+  }
+
+  if (cmd==="rgbspeed"){
+    const n = Math.max(2, Math.min(30, Number(arg)||0));
+    if (!n){ say("Usage: !rgbspeed 2-30"); return; }
+    if (!guardCooldown("rgbspeed")) return;
+    sendVisual("rgbspeed", String(n), flags);
+    setTimeout(()=>{ say(`RGB Speed → ${n}s`); }, 5000);
+    done("rgbspeed"); return;
+  }
+
+  if (cmd==="ring"){
+    const px = capRing(Number(arg));
+    if (px===null){ say("Usage: !ring 6-10"); return; }
+    if (!guardCooldown("ring")) return;
+    sendVisual("ring", String(px), flags);
+    setTimeout(()=>{ say(`RGB Ring → ${px}px`); }, 5000);
+    done("ring"); return;
+  }
+
+  if (cmd==="opacity"){
+    const v = Math.max(0, Math.min(100, Number(arg)||-1));
+    if (v<0){ say("Usage: !opacity 0-100"); return; }
+    if (!guardCooldown("opacity")) return;
+    sendVisual("opacity", String(v), flags);
+    setTimeout(()=>{ say(`Opacity → ${v}%`); }, 4000);
+    done("opacity"); return;
+  }
+
+  if (cmd==="pulse"){
+    const on = (String(arg||"").toLowerCase()==="on");
+    if (!["on","off"].includes(String(arg||"").toLowerCase())){ say("Usage: !pulse on|off"); return; }
+    if (!guardCooldown("pulse")) return;
+    // (Visual ggf. vom Overlay interpretiert, hier nur announce)
+    setTimeout(()=>{ say(`RGB Pulse: ${on?"ON":"OFF"}`); }, 4000);
+    done("pulse"); return;
+  }
+
+  if (cmd==="theme"){
+    const v=(arg||"").toLowerCase();
+    if (!["glass","dark","light","neon"].includes(v)){ say("Usage: !theme glass|dark|light|neon"); return; }
+    if (!guardCooldown("theme")) return;
+    sendVisual("theme", v, flags);
+    // Chat erst später, damit OBS/Browser stabil ist
+    setTimeout(()=>{ say(`Theme → ${v}`); }, 10000);
+    done("theme"); return;
+  }
+
+  if (cmd==="accent"){
+    const p = String(arg||"").trim().split(/\s+/);
+    const mode = (p[0]||"").toLowerCase();
+    const hex  = p[1] || "";
+    if (!["finja","channel","custom"].includes(mode)){ say("Usage: !accent finja|channel|custom [#hex]"); return; }
+    if (mode==="custom" && !/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)){ say("Usage: !accent custom #rrggbb"); return; }
+    if (!guardCooldown("accent")) return;
+    sendVisual("accent", mode==="custom" ? `custom ${hex}` : mode, flags);
+    setTimeout(()=>{ say(`Accent → ${mode}${mode==="custom" ? " "+hex : ""}`); }, 6000);
+    done("accent"); return;
+  }
+}
+
+/* ========== ComfyJS Lifecycle ========== */
+ComfyJS.onConnected = (addr,port,isSSL)=>{
+  connected = true;
+  log(`Verbunden: ${addr}:${port} (SSL:${isSSL})`,"ok");
+  try{ ComfyJS.Say('Finja ist online ✨ & Layout zurückgesetzt!'); }catch{}
+};
+ComfyJS.onReconnect = (n)=> log(`Reconnecting (#${n})`,"warn");
+ComfyJS.onError = (err)=> {
+  const msg = (err && err.message) ? err.message : String(err||"");
+  if (msg.includes("channel:read:redemptions") || msg.includes("user:read:email")){
+    log("Hinweis: Redemptions/Email-Scopes fehlen – ignorierbar.", "warn");
+  } else {
+    log(`Fehler: ${msg}`, "err");
+  }
+};
+ComfyJS.onChat = (user, message, flags, self, extra)=>{
+  if (self) return;
+  if (typeof message !== "string" || !message.startsWith("!")) return;
+  const parts = message.trim().split(/\s+/);
+  const cmd = parts[0].slice(1).toLowerCase();
+  const arg = parts.slice(1).join(" ");
+  handleCommand(user, cmd, arg, flags, extra);
+};
+ComfyJS.onCommand = (user, command, message, flags, extra)=>{
+  handleCommand(user, String(command||"").toLowerCase(), message||"", flags, extra);
+};
+
+/* ========== Connect/Disconnect UI ========== */
+$("obs_connect").onclick = connectOBS;
+$("obs_disconnect").onclick = disconnectOBS;
+
+$("connectBtn").onclick = ()=>{
+  if (connected) return;
+  const channel = $("channel").value.trim().toLowerCase();
+  const botuser = $("botuser").value.trim().toLowerCase();
+  let oauth = $("oauth").value.trim();
+
+  if (!channel || !botuser || !oauth){ log("Bitte Channel, Bot-User und OAuth ausfüllen.","warn"); return; }
+  if (!/^oauth:[a-z0-9]+$/i.test(oauth)){ log("OAuth muss mit 'oauth:' beginnen.","warn"); return; }
+
+  localStorage.setItem("finja_bot_oauth", oauth);
+
+  try{
+    // Comfy verbinden + Channel merken
+    ComfyJS.Init(botuser, oauth, channel);
+    localStorage.setItem("finja_last_channel", channel);
+    OVERLAY.channel = channel;
+
+    // einmalige Start-Confirm ins Overlay (ok für Doppelpost, weils nur 1x ist)
+    refreshBrowserSource();
+    log(`Verbinde als @${botuser} in #${channel} ...`, "ok");
+  }catch(e){
+    log(`Init Fehler: ${e}`,"err");
+  }
+};
+$("disconnectBtn").onclick = ()=>{
+  try{ ComfyJS.Disconnect?.(); connected=false; log("Getrennt.","warn"); }catch{}
+};
+</script>
+
+<!-- === Song Request Bridge (Finja SR v2) === -->
+<script>
+(() => {
+  const SR_ENDPOINT = "http://127.0.0.1:8099/chat";
+  const SR_ALIASES = new Set(["sr","songrequest","queue","q","accept","deny","rq","requests","pending"]);
+  const SR_REQUEST_CMDS = new Set(["sr","songrequest","queue","q"]);
+
+  // Local cooldown (client-side), default 120s, overridable via ?srcd=<seconds>
+  const qs = new URLSearchParams(location.search||"");
+  const LOCAL_CD_MS = Math.max(0, (parseInt(qs.get("srcd") || "120", 10) || 120) * 1000);
+  const lastByUser = new Map();
+  function onLocalCooldown(user, flags){
+    if (!LOCAL_CD_MS) return false;
+    if (flags && (flags.mod || flags.broadcaster)) return false; // mods/broadcaster bypass
+    const u = String(user||"").toLowerCase();
+    const now = Date.now();
+    const t = lastByUser.get(u) || 0;
+    if (now - t < LOCAL_CD_MS) return true;
+    lastByUser.set(u, now);
+    return false;
+  }
+
+  // Chat output helper (chat if possible, else overlay BC -> index.html)
+  const botname = (window.OVERLAY && window.OVERLAY.botname) || "finja_chat_bot";
+  let bc;
+  try { bc = window.bc || new BroadcastChannel("finja-overlay"); } catch {}
+
+  function sayOrOverlay(text){
+    let said = false;
+    try { if (typeof ComfyJS.Say === "function") { ComfyJS.Say(text); said = true; } } catch {}
+    if (!said && bc){
+      try { bc.postMessage({ type:"chat", user: botname, message: text, flags:{ broadcaster:true }, extra:{ displayName: botname } }); } catch {}
+    }
+  }
+  function finjaCooldownText(user){
+    const secs = Math.max(1, Math.round(LOCAL_CD_MS/1000));
+    return `💤 Finja: Kurz mal durchatmen, ${user}! Alle ${secs}s ist ein Wunsch drin.`;
+  }
+
+  async function sendToSR(user, cmd, arg, flags){
+    const payload = {
+      user: String(user||""),
+      message: `!${cmd}` + (arg ? ` ${arg}` : ""),
+      is_mod: !!(flags && (flags.mod || flags.broadcaster)),
+      is_broadcaster: !!(flags && flags.broadcaster)
+    };
+    try{
+      const res = await fetch(SR_ENDPOINT, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(()=>({}));
+      if (data && data.finja) {
+        // direkt in den Chat posten (und optional zusätzlich ins Overlay, wenn du willst)
+        try { ComfyJS.Say(String(data.finja)); } catch {
+          // Fallback: Overlay anzeigen, falls Chat-Send nicht geht
+          if (bc) try { bc.postMessage({ type:"sr-announce", text: String(data.finja) }); } catch {}
+        }
+      } else if (data && data.reply) {
+        // Fallback nur wenn KEIN finja-Text vorhanden ist
+        sayOrOverlay(String(data.reply));
+      }
+    }catch(e){
+      console.warn("[SR] fetch failed:", e);
+      sayOrOverlay("⚠️ Finja SR: Der Server antwortet nicht.");
+    }
+  }
+
+  // Intercept onCommand to add extras and handle SR aliases
+  const prevOnCommand = ComfyJS.onCommand;
+  ComfyJS.onCommand = (user, command, message, flags, extra) => {
+    const cmd = String(command||"").toLowerCase();
+    const arg = String(message||"");
+
+    // Let existing handler run first for most commands
+    if (typeof prevOnCommand === "function") {
+      try { prevOnCommand(user, command, message, flags, extra); } catch(e) { console.error(e); }
+    }
+
+    // Theme extras: neon -> auto RGB ring + re-apply accent to keep rim
+    if (cmd === "theme"){
+      setTimeout(() => {
+        try{
+          if (arg.trim().toLowerCase() === "neon") {
+            sendVisual("rgb", "ring", flags);
+          }
+          const accMode = (OVERLAY && OVERLAY.accent) || "finja";
+          const accHex  = (OVERLAY && OVERLAY.accentHex) || "";
+          sendVisual("accent", `${accMode}${accMode==="custom" && accHex ? " "+accHex : ""}`, flags);
+        }catch(e){ console.warn("theme extras failed", e); }
+      }, 50);
+      return;
+    }
+
+    if (cmd === "help"){ return; } // SR-Bridge sendet kein Help (zentraler Help-Block übernimmt)
+
+    if (SR_ALIASES.has(cmd)) {
+      if (SR_REQUEST_CMDS.has(cmd) && onLocalCooldown(user, flags)) {
+        try { sayOrOverlay(finjaCooldownText(user)); } catch(_){}
+        return;
+      }
+      sendToSR(user, cmd, arg, flags);
+      return;
+    }
+  };
+
+  // Also handle raw onChat to catch plain "!sr text" if onCommand isn't emitted
+  const prevOnChat = ComfyJS.onChat;
+  ComfyJS.onChat = (user, message, flags, self, extra) => {
+    if (!self && typeof message === "string" && message.trim().startsWith("!")){
+      const parts = message.trim().split(/\s+/);
+      const name = parts[0].slice(1).toLowerCase();
+      const rest = parts.slice(1).join(" ");
+      if (SR_ALIASES.has(name)) {
+        if (SR_REQUEST_CMDS.has(name) && onLocalCooldown(user, flags)) {
+          try { sayOrOverlay(finjaCooldownText(user)); } catch(_){}
+          return;
+        }
+        sendToSR(user, name, rest, flags);
+        return;
+      }
+    }
+    if (typeof prevOnChat === "function") {
+      try { prevOnChat(user, message, flags, self, extra); } catch(e){ console.error(e); }
+    }
+  };
+})();
+</script>
+<!-- === /Song Request Bridge === -->
+
+<!-- Relay overlay announcements back to chat (sr-announce) -->
+<script>
+(function(){
+  try {
+    const bc = new BroadcastChannel("finja-overlay");
+    bc.onmessage = (ev) => {
+      const data = ev.data || {};
+      if (data.type === "sr-announce" && data.text && typeof ComfyJS.Say === "function"){
+        try { ComfyJS.Say(data.text); } catch(e){ console.warn("Say failed:", e); }
+      }
+    };
+  } catch {}
+})();
+</script>
+
+</body>
+</html>

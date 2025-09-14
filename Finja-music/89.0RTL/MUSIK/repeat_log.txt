@@ -1,0 +1,7 @@
+[run] starting Repeat Counter 
+[run] BAT: C:\Users\johnv\Pictures\Streaming\MUSICRTL\run_repeat_rtl.bat 
+[run] CWD: C:\Users\johnv\Pictures\Streaming\MUSICRTL 
+[run] NP : C:\Users\johnv\Pictures\Streaming\RTL980\nowplaying.txt 
+[run] OUT: C:\Users\johnv\Pictures\Streaming\RTL980\outputs 
+[run] MEM: C:\Users\johnv\Pictures\Streaming\MUSICRTL\Memory\repeat_counts.json 
+ 

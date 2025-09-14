@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  tor:
+    image: dperson/torproxy
+    container_name: tor
+    ports:
+      - "9050:9050"
+    restart: unless-stopped
+
+  search-proxy:
+    build: .
+    container_name: duckduckgo_proxy
+    ports:
+      - "8080:80"
+    depends_on:
+      - tor
+    restart: unless-stopped
+    env_file:                 # 👈 DAS IST DER SCHLÜSSEL!
+      - .env                  # 👈 Liest die .env-Datei automatisch ein

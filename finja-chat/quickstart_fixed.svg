@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="740" viewBox="0 0 1200 740">
+  <defs>
+    <style>
+      .box { fill: #0c0e14; stroke: #2b3447; stroke-width: 2; rx: 14; ry: 14; }
+      .title { font: 700 18px Inter, Arial, sans-serif; fill: #eaf1ff; }
+      .text { font: 400 14px Inter, Arial, sans-serif; fill: #b8c0d4; }
+      .accent { fill: #7aa2ff; }
+      .accent2 { fill: #ff6ad5; }
+      .bg { fill: #0b0f1a; }
+      .pill { fill: #121725; stroke: #263048; stroke-width: 2; rx: 18; ry: 18; }
+      .note { font: 400 13px Inter, Arial, sans-serif; fill: #aab4c9; }
+      .small { font: 400 12px Inter, Arial, sans-serif; fill: #9fb0d2; }
+      marker#arrow { markerWidth: 10; markerHeight: 10; refX: 8; refY: 3; orient: auto; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="3" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M0,0 L10,3 L0,6 z" fill="#7aa2ff"/>
+    </marker>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="3" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M0,0 L10,3 L0,6 z" fill="#ff6ad5"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="740" />
+
+  <!-- Header -->
+  <text x="40" y="60" class="title">Finja Chat – Quick Start</text>
+  <text x="40" y="86" class="small">Overview: Twitch ↔ Bot Panel ↔ OBS WebSocket ↔ OBS Browser Source ↔ Overlay (+ Song Requests)</text>
+
+  <!-- Twitch Chat -->
+  <rect class="box" x="40" y="140" width="260" height="110" />
+  <text x="60" y="172" class="title">🎮 Twitch Chat</text>
+  <text x="60" y="198" class="text">Channel: yourname</text>
+  <text x="60" y="218" class="text">ComfyJS (read)</text>
+
+  <!-- Bot Panel -->
+  <rect class="box" x="360" y="140" width="320" height="160" />
+  <text x="380" y="172" class="title">🤖 Bot Panel</text>
+  <text x="380" y="198" class="text">bot_merged.html</text>
+  <text x="380" y="218" class="text">OAuth: oauth:xxxx... · Channel</text>
+  <text x="380" y="238" class="text">Sends visual commands + manages SR</text>
+
+  <!-- Static Server -->
+  <rect class="pill" x="360" y="320" width="320" height="58" />
+  <text x="380" y="356" class="text">Local Server: http://127.0.0.1:8088/</text>
+
+  <!-- OBS WebSocket -->
+  <rect class="box" x="740" y="140" width="180" height="110" />
+  <text x="760" y="172" class="title">🔗 OBS WS v5</text>
+  <text x="760" y="198" class="text">ws://127.0.0.1:4455</text>
+  <text x="760" y="218" class="text">password (Tools → WS)</text>
+
+  <!-- OBS Browser Source -->
+  <rect class="box" x="960" y="120" width="200" height="160" />
+  <text x="980" y="152" class="title">🖥️ OBS Browser</text>
+  <text x="980" y="178" class="text">Source: "Finja Overlay"</text>
+  <text x="980" y="198" class="text">URL: http://127.0.0.1:8088/</text>
+  <text x="980" y="218" class="text">index_merged.html</text>
+  <text x="980" y="238" class="text">?channel=YOURNAME&amp;dev=1</text>
+
+  <!-- Overlay -->
+  <rect class="box" x="960" y="320" width="200" height="110" />
+  <text x="980" y="352" class="title">💬 Overlay</text>
+  <text x="980" y="378" class="text">index_merged.html</text>
+  <text x="980" y="398" class="text">7TV/BTTV/FFZ emotes</text>
+
+  <!-- Song Request Server -->
+  <rect class="box" x="360" y="430" width="320" height="170" />
+  <text x="380" y="462" class="title">🎵 Song Requests</text>
+  <text x="380" y="488" class="text">spotify_request_server_env.py</text>
+  <text x="380" y="508" class="text">/pending · /devices · POST /chat</text>
+  <text x="380" y="528" class="text">!sr · !rq · !accept · !deny</text>
+  <text x="380" y="548" class="text">Scopes: playback state + modify</text>
+
+  <!-- Spotify -->
+  <rect class="box" x="720" y="510" width="200" height="90" />
+  <text x="740" y="542" class="title">🟢 Spotify</text>
+  <text x="740" y="568" class="text">Add to queue / play</text>
+
+  <!-- 7TV box -->
+  <rect class="box" x="40" y="480" width="260" height="120" />
+  <text x="60" y="512" class="title">7TV Emotes</text>
+  <text x="60" y="538" class="text">Account → Emote Set → Add</text>
+  <text x="60" y="558" class="text">Rename EXACT like Twitch</text>
+
+  <!-- Arrows -->
+  <line x1="300" y1="195" x2="360" y2="195" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="360" y1="220" x2="300" y2="220" stroke="#ff6ad5" stroke-width="3" marker-end="url(#arrow2)"/>
+
+  <line x1="680" y1="195" x2="740" y2="195" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="920" y1="195" x2="960" y2="195" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="1060" y1="280" x2="1060" y2="320" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="680" y1="515" x2="720" y2="555" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="360" y="398" class="note">Open overlay directly: /index_merged.html?channel=YOU&amp;dev=1</text>
+  <text x="360" y="416" class="note">Open bot panel: /bot_merged.html</text>
+
+  <!-- Footer note -->
+  <text x="40" y="700" class="small">Tip: If emotes don't show, refresh OBS browser source, reconnect bot, or re-activate emote set in 7TV. Case-sensitive names!</text>
+</svg>

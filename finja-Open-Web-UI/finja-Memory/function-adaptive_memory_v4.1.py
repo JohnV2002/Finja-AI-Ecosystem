@@ -1,35 +1,51 @@
+
 """
-title: Adaptive Memory
-author: John
-author_url: https://jappshome.de
-github:  https://github.com/JohnV2002/Open-Web-UI-Memory <---- #! IS NEEDED BECAUSE ON THERE IS THE CODE TO DEPLOY THE MEMORY SERVER / DOCKER
+======================================================================
+            Adaptive Memory – External Server Edition
+======================================================================
 
-funding_url: https://buymeacoffee.com/J.Apps
+  Project: Adaptive Memory (OpenWebUI Plugin)
+  Version: 4.1
+  Author:  John (J. Apps / Sodakiller1)
+  License: Apache License 2.0 (c) 2025 J. Apps
+  Original Inspiration & Credits: gramanoid (aka diligent_chooser)
+  Original Plugin: https://openwebui.com/f/alexgrama7/adaptive_memory_v2
+  Author Website: https://jappshome.de
+  Support: https://buymeacoffee.com/J.Apps
 
-Original / Credits: AG
-Original / Credits url: https://openwebui.com/f/alexgrama7/adaptive_memory_v2
-version: 4.1
+----------------------------------------------------------------------
+ Features:
+ ---------------------------------------------------------------------
+  • Vollständig überarbeitete Version von Adaptive Memory v3 (gramanoid)
+  • Speichert Memories nicht mehr lokal, sondern auf einem externen Server
+  • Nutzerbasierte Speicherung: jede User-ID erhält eigene Memory-JSONs (serverseitig)
+  • OpenAI-gestützte Validierung und Extraktion nützlicher Fakten
+  • Relevanzprüfung von Memories pro User-Eingabe
+  • Automatisches Dedupe (lokal und serverseitig)
+  • Mehrstufige Sicherheitsprüfungen (funktion- und serverseitig)
+  • Kompatibel mit externem Browser + OpenWebUI User-ID
 
-1. This is an Changed Version off the original Adaptive Memory v3 by AG
-2. This version Stores everything on an external Server instead in the local Vector DB
-3. I needed to do this as im using a External Webbrowser and ist stored the values also in the Vectore DB wich made everthing intervene with each other!
+----------------------------------------------------------------------
+ Updates:
+ ---------------------------------------------------------------------
 
+----------------------------------------------------------------------
+ Roadmap:
+ ---------------------------------------------------------------------
+  • Feintuning der Memory-Auswahl und Relevanzbewertung
+  • Erweiterte Validierung vor dem Abspeichern (OpenAI-Check)
+  • Detaillierteres Logging (inkl. Memory-Save-Animationen etc.)
+  • Erweiterbare Memory-Services (z. B. ChromaDB-Backend optional)
+  • Mehr Visualisierung und Admin-Tools
 
-4. !IMPORTANT!
-Please look at my github as i uploaded an Dockerfile and the needed memory-server.py to it, u need to deplay the docker container for this to work, i tested it, should be plug and PLAY!
+----------------------------------------------------------------------
+ License Notice:
+ ---------------------------------------------------------------------
+  Dieses Projekt basiert auf der Arbeit von gramanoid (diligent_chooser)
+  und wurde unter Beibehaltung der Apache License 2.0 veröffentlicht.
+  Alle Rechte an den Änderungen © 2025 J. Apps
 
-Features:
-1. uses User id von Openwebui - Safes for EACH user in an Seperare json (SERVER SIDE SEE GITHUB MEMORY-SERVER.py)
-2. Uses OpenAI as validation + to gather usefull information to safe as Memory
-3. gets Memory and checks Relevance off gatherd Memory to users input and uses Memory
-4. depupes
-5. Multiple json checks (Funktion sided + Server Sided)
-
-Roadmap:
-1. More finetuning
-2. More validation (when sending to OpenAI)
-3. More LOGGING + take from the old script logging (Like show the cool animation with MEMORY SAFED and so on)
-4. More to come?
+======================================================================
 """
 
 import json
@@ -332,7 +348,12 @@ class Filter:
     ) -> Dict[str, Any]:
         _log("inlet: received batch")
 
-        # 1) user_id
+        # 1) user_id # !snyk FALSE Positiv! 
+
+        # snyk:ignore:python/UseOfHardcodedCredentials
+        # Reason: User ID is dynamically retrieved from Open-Web-UI at runtime
+        #         to identify the correct memory context. No static credentials
+        #         are stored or loaded from hardcoded strings.
         user_id = self._get_user_id(__user__)
 
         # last user message
