@@ -206,7 +206,7 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 ---
 
 # 📊 Projektstatus-Übersicht  
-*Stand: 12.09.2025*
+*Stand: 14.09.2025*
 
 | Hauptkomponente             | Status     | Bemerkungen |
 |-----------------------------|------------|-------------|
@@ -217,12 +217,12 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 | &nbsp;&nbsp;└─ MDR          | 🟢 Stabil  | Keine Probleme |
 | &nbsp;&nbsp;└─ Spotify      | 🔴 Offen   | Pfade/Config prüfen |
 | &nbsp;&nbsp;└─ TruckersFM   | 🔴 Teilweise | `.lock`-Dateien bereinigen |
-| **🧠 finja-Open-Web-UI**    | 🔴 Teilweise | Memory-Modul ungetestet |
-| &nbsp;&nbsp;└─ finja-Memory | 🔴 Offen   | Logging & Deduplication prüfen |
+| **🧠 finja-Open-Web-UI**    | 🟢 In Ordnung | Alles läuft |
+| &nbsp;&nbsp;└─ finja-Memory | 🟢 Offen   | Snyk sagt supi |
 | &nbsp;&nbsp;└─ finja-ocr    | 🟢 Stabil  | Funktioniert stabil |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup abgeschlossen, keine Tests |
 | &nbsp;&nbsp;└─ finja-tts    | 🟡 WIP     | Noch nicht implementiert |
-| &nbsp;&nbsp;└─ finja-web-crawler | 🟢 Offen | Kein Rate-Limit, Security-Review nötig |
+| &nbsp;&nbsp;└─ finja-web-crawler | 🟢 Stabil | Kein Rate-Limit !wichtig!, Security-Review (snyk sagt Okay) |
 | **🧩 VPet-Simulator Mods**   | 🟡 WIP     | Aktuell geplant, noch leer |
 | &nbsp;&nbsp;└─ Chat Commands | 🟡 WIP     | In Planung |
 | &nbsp;&nbsp;└─ Dance zu Liked Music | 🟡 WIP | In Planung |
