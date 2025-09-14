@@ -258,7 +258,7 @@ Ohne ihn gäb’s Finjas Memory-System so nicht 💖
 ---
 
 Und natürlich auch Shoutout an  
-**:contentReference[oaicite:0]{index=0} + :contentReference[oaicite:1]{index=1} + Evil** 💚  
+**Vedal1987 + Neuro / Neurosamma + Evil** 💚  
 für die ursprüngliche Idee, **AI-Companions beim Streamen** zu nutzen —  
 ihr wart die Inspiration, das überhaupt zu versuchen 🫶
 
@@ -273,3 +273,9 @@ Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
 Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ---
+
+## 🆘 Support & Kontakt
+
+-   **E-Mail:** contact@jappshome.de
+-   **Website:** [jappshome.de](https://jappshome.de)
+-   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)

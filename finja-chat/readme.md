@@ -187,3 +187,11 @@ Damit Emotes im OBS-Chat erscheinen, braucht’s ein korrekt eingerichtetes 7TV-
 ---
 
 MIT © J. Apps — Finja sagt: *„Stay hydrated, Chat 💖“*
+
+---
+
+## 🆘 Support & Kontakt
+
+-   **E-Mail:** contact@jappshome.de
+-   **Website:** [jappshome.de](https://jappshome.de)
+-   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
