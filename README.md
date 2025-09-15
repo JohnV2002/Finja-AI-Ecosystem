@@ -16,6 +16,10 @@
 
 ---
 
+[![Docker Security Scan](https://github.com/JohnV2002/Finja-AI-Ecosystem/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/finja-Open-Web-UI/actions/workflows/docker-scan.yml)
+
+---
+
 # ✨ Finja AI Ecosystem
 
 Dein Hybrid-KI-Buddy fürs Streaming – mit Chatbot, Musikengine, Memories, Mods und einem geheimen LLM-Core.
