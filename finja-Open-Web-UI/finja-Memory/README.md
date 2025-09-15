@@ -21,26 +21,50 @@ Hier ist ein kurzer Auszug der aktuellen Planung:
 
 Der Kern des Systems ist ein kleiner, in Python geschriebener Server, der die Erinnerungen verwaltet.
 
-### Dockerfile
+### Was ist neu im Dockerfile? (v4.1.1)
+Das `Dockerfile` wurde optimiert, um es sicherer und effizienter zu machen:
+-   **Sicheres Basis-Image**: Umstieg auf `python:3.12-alpine`. Obwohl dieses Image aktuell 3 bekannte Sicherheitslücken (CVEs) ohne verfügbaren Fix aufweist, wird es als sicherer gegenüber der `slim-bookworm`-Version eingestuft, die eine kritische Sicherheitslücke enthielt.
+-   **Stabile Abhängigkeiten**: Alle Python-Bibliotheken werden jetzt über eine `requirements.txt`-Datei verwaltet. Das sorgt für nachvollziehbare und stabile Builds.
+-   **Optimierter Build-Prozess**: Durch die richtige Reihenfolge der `COPY`-Befehle und die Verwendung von `--no-cache-dir` wird der Docker-Build-Cache besser genutzt und das finale Image ist kleiner.
 
-Das `Dockerfile` beschreibt, wie unser Docker-Image gebaut wird.
+### `memory-server.py`
+Der eigentliche Server-Code bietet eine REST-API mit folgenden Funktionen:
+-   Speichert Erinnerungen als **JSON-Dateien pro Benutzer**.
+-   Bietet Endpunkte zum Hinzufügen, Abrufen, Löschen und Sichern von Erinnerungen.
+-   Sichert den Zugriff über einen `X-API-Key` ab.
+-   Läuft extrem ressourcenschonend und ist ideal für kleine V-Server oder Docker-Umgebungen.
 
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
 
-# Installiere Abhängigkeiten inkl. python-dotenv
-RUN pip install fastapi uvicorn pydantic python-dotenv
+### Setup mit Docker Compose (Empfohlen)
+Die einfachste und sicherste Methode, den Server zu starten, ist mit Docker Compose.
 
-# Kopiere Server-Code und .env Datei
-COPY memory-server.py .
-COPY .env .  # Wichtig: .env für Konfiguration
+**1. Konfigurationsdatei erstellen**
+Erstelle im Hauptverzeichnis eine `.env`-Datei, falls noch nicht geschehen. Hier wird dein geheimer API-Key gespeichert.
+```ini
+# .env
+MEMORY_API_KEY=dein-super-sicherer-production-key-12345
+```
+> ⚠️ **Wichtig:** Füge die `.env`-Datei unbedingt zu deiner `.gitignore`-Datei hinzu, damit dein API-Key niemals auf GitHub landet!
 
-EXPOSE 8000
-CMD ["uvicorn", "memory-server:app", "--host", "0.0.0.0", "--port", "8000"]
+**2. Server per Kommandozeile starten**
+Dies ist der schnellste und direkteste Weg.
+1.  Stelle sicher, dass du eine `docker-compose.yml`-Datei im Hauptverzeichnis hast.
+2.  Öffne ein Terminal im Projektverzeichnis und führe folgenden Befehl aus:
+    ```bash
+    docker compose up -d --build
+    ```
+    -   `docker compose up`: Startet den Service.
+    -   `-d`: Startet den Container im Hintergrund (detached mode).
+    -   `--build`: Baut das Docker-Image neu, falls es Änderungen gab.
+
+### API testen
+Nachdem der Container läuft, kannst du die API testen:
+```bash
+curl -X GET "http://localhost:8000/get_memories?user_id=test" \
+  -H "X-API-Key: dein-super-sicherer-production-key-12345"
 ```
 
--   **Was es macht:** Es nutzt ein schlankes Python 3.11 Image, installiert die nötigen Bibliotheken (`FastAPI`, `Uvicorn`, `Pydantic`, `python-dotenv`), kopiert den Code und startet den Server auf Port `8000`.
+-   **Was es macht:** Es nutzt ein schlankes Python 3.12 Image, installiert die nötigen Bibliotheken (`FastAPI`, `Uvicorn`, `Pydantic`, `python-dotenv`), kopiert den Code und startet den Server auf Port `8000`.
 
 ### `memory-server.py`
 
@@ -61,33 +85,6 @@ MEMORY_API_KEY=dein-super-sicherer-api-key-hier
 # Optional: Weitere Einstellungen
 # MAX_RAM_MEMORIES=5000
 # BACKUP_INTERVAL=600
-```
-Für die Entwicklung kannst du eine `.env.example`-Datei bereitstellen, um die benötigten Variablen zu zeigen.
-
-### Setup mit Docker
-
-Folge diesen Schritten, um den Server zu starten:
-
-**1. `.env`-Datei erstellen**
-```bash
-echo "MEMORY_API_KEY=dein-super-sicherer-production-key-12345" > .env
-```
-
-**2. Docker-Image bauen**
-```bash
-docker build -t finja-memory-server .
-```
-
-**3. Container starten**
-Du hast zwei Möglichkeiten, den API-Key an den Container zu übergeben:
-
-**Option A (für Entwicklung):** Die `.env`-Datei wird direkt in den Container kopiert.
-```bash
-docker run -d \
-  -p 8000:8000 \
-  -v $(pwd)/user_memories:/app/user_memories \
-  --name finja-memory-server \
-  finja-memory-server
 ```
 
 **Option B (sicherer für Produktion):** Der Key wird als Umgebungsvariable übergeben.
@@ -131,39 +128,15 @@ Das Plugin ist die Brücke zwischen OpenWebUI und deinem Memory-Server.
 
 ## ⚠️ Sicherheitshinweise
 
-### API Key Management
-
--   Schreibe API-Keys **niemals** direkt in den Code.
--   Füge deine `.env`-Datei zur `.gitignore`-Datei hinzu, um ein versehentliches Hochladen zu verhindern.
--   Nutze für die Produktion immer Umgebungsvariablen (Option B beim Docker-Start).
--   Wechsle deine Keys regelmäßig.
-
-### `.gitignore` Eintrag
-```gitignore
-# .gitignore
-.env
-*.env.local
-user_memories/
-__pycache__/
-```
-
----
-
-## 🚀 Deployment (Produktion)
-
-Ein Beispiel für einen sichereren Startbefehl in einer Produktionsumgebung:
-
-```bash
-docker run -d \
-  -p 8000:8000 \
-  -v /pfad/zum/speicherort:/app/user_memories \
-  -e MEMORY_API_KEY="$(cat /pfad/zu/secrets/memory-api-key)" \
-  --restart unless-stopped \
-  --name finja-memory-server \
-  finja-memory-server
-```
-
----
+-   **API Key Management:** Schreibe API-Keys **niemals** direkt in den Code. Nutze immer `.env`-Dateien oder Umgebungsvariablen und rotiere die Keys regelmäßig.
+-   **.gitignore Eintrag:**
+    ```gitignore
+    # .gitignore
+    .env
+    *.env.local
+    user_memories/
+    __pycache__/
+    ```
 
 ## 💖 Credits & Lizenz
 

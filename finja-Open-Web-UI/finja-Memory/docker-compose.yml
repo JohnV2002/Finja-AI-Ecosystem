@@ -1,0 +1,28 @@
+# =====================================================================
+#  Project: Finja Cloud Memory - Docker Compose
+#  Version: 1.0.0
+#  Author:  JohnV2002 (J. Apps / Sodakiller1)
+# =====================================================================
+
+version: '3.8'
+
+services:
+  # Definiert den Haupt-Service für den Memory-Server
+  finja-memory-server:
+    # Baut das Docker-Image aus dem Dockerfile im aktuellen Verzeichnis
+    build: .
+    # Gibt dem Container einen festen, wiedererkennbaren Namen
+    container_name: finja-memory-server
+    # Liest die Konfiguration (API-Key) aus der .env-Datei
+    # Dies ist sicherer, als die Datei ins Image zu kopieren
+    env_file:
+      - .env
+    # Mappt den Ordner für die Speicherdaten auf den Host, damit die Daten
+    # auch nach einem Löschen des Containers erhalten bleiben
+    volumes:
+      - ./user_memories:/app/user_memories
+    # Leitet den Port 8000 des Hosts auf den Port 8000 im Container um
+    ports:
+      - "8000:8000"
+    # Startet den Container automatisch neu, es sei denn, er wird manuell gestoppt
+    restart: unless-stopped
