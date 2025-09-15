@@ -18,9 +18,9 @@
 
 ## Build Status
 
-[![Memory Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-memory)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
-[![OCR Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-ocr)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
-[![Web-Crawler Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-web-crawler)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
+[![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
+[![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
+[![Web-Crawler Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
 
 ---
 
