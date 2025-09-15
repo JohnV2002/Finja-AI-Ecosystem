@@ -1,0 +1,19 @@
+# .github/workflows/web-crawler-build.yml
+name: Web-Crawler Build Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image for Web-Crawler
+        working-directory: ./finja-Open-Web-UI/finja-web-crawler
+        run: docker build . --file Dockerfile --tag finja-web-crawler:latest
