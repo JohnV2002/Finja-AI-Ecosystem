@@ -16,7 +16,11 @@
 
 ---
 
-[![Docker Security Scan](https://github.com/JohnV2002/Finja-AI-Ecosystem/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/finja-Open-Web-UI/actions/workflows/docker-scan.yml)
+## Security Status
+
+[![Finja-Memory](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-Memory/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)  
+[![Finja-OCR](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-ocr/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)  
+[![Finja-Web-Crawler](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-web-crawler/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)
 
 ---
 
