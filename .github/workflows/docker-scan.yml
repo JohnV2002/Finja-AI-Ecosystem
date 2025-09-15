@@ -7,59 +7,54 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  # --- 1. Snyk Security Scan für alle 3 Projekte ---
-  snyk-scan:
+  # Definiere alle Services nur EINMAL in einer Matrix
+  scan-and-build:
     runs-on: ubuntu-latest
-    name: Snyk Container Scan (Memory, OCR, Crawler)
+    
+    strategy:
+      fail-fast: false # Lässt andere Jobs weiterlaufen, auch wenn einer fehlschlägt
+      matrix:
+        service:
+          - name: Memory
+            path: finja-Open-Web-UI/finja-Memory
+            tag: finja-memory
+          - name: OCR
+            path: finja-Open-Web-UI/finja-ocr
+            tag: finja-ocr
+          - name: Web-Crawler
+            path: finja-Open-Web-UI/finja-web-crawler
+            tag: finja-web-crawler
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
-
-      - name: Authenticate with Snyk
+      # --- 1. Snyk Security Scan ---
+      - name: Install Snyk and Authenticate
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk auth $SNYK_TOKEN
-
-      - name: Scan Finja-Memory
-        working-directory: ./finja-Memory
+        run: |
+          npm install -g snyk
+          snyk auth $SNYK_TOKEN
+      
+      - name: Run Snyk Scan for ${{ matrix.service.name }}
+        working-directory: ./${{ matrix.service.path }}
         run: snyk container test --file=Dockerfile --severity-threshold=high
 
-      - name: Scan Finja-OCR
-        working-directory: ./finja-ocr
-        run: snyk container test --file=Dockerfile --severity-threshold=high
+      # --- 2. Docker Build ---
+      - name: Build image for ${{ matrix.service.name }}
+        working-directory: ./${{ matrix.service.path }}
+        run: docker build . --file Dockerfile --tag ${{ matrix.service.tag }}:latest
+      
+      - name: Print success message for ${{ matrix.service.name }}
+        run: echo "✅ ${{ matrix.service.tag }}:latest image built successfully"
 
-      - name: Scan Finja-Web-Crawler
-        working-directory: ./finja-web-crawler
-        run: snyk container test --file=Dockerfile --severity-threshold=high
-
-    # --- 2. Docker Build (läuft NUR, wenn Snyk-Schritt erfolgreich war) ---
-  docker-build:
-    needs: snyk-scan  # 👈 WICHTIG: Läuft nur, wenn snyk-scan erfolgreich war!
+  # Optionaler Job am Ende, um alle gebauten Images aufzulisten
+  list-images:
     runs-on: ubuntu-latest
-    name: Build Docker Images
+    needs: scan-and-build # Läuft nur, wenn ALLE Builds erfolgreich waren
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Finja-Memory Image
-        working-directory: ./finja-Memory
-        run: |
-          docker build . --file Dockerfile --tag finja-memory:latest
-          echo "✅ Finja-Memory image built successfully"
-
-      - name: Build Finja-OCR Image
-        working-directory: ./finja-ocr
-        run: |
-          docker build . --file Dockerfile --tag finja-ocr:latest
-          echo "✅ Finja-OCR image built successfully"
-
-      - name: Build Finja-Web-Crawler Image
-        working-directory: ./finja-web-crawler
-        run: |
-          docker build . --file Dockerfile --tag finja-web-crawler:latest
-          echo "✅ Finja-Web-Crawler image built successfully"
-
-      - name: List built images
-        run: docker images
+      - name: List all Docker images (Just for verification)
+        # In this separate job, the images are not available unless you push them to a registry.
+        # This step is more illustrative to show the structure.
+        run: echo "Alle Service-Images wurden erfolgreich gebaut."
