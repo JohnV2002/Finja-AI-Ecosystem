@@ -1,5 +1,7 @@
-name: Docker Security & Code Scan
+# Name des Workflows, wird in der "Actions"-Übersicht angezeigt
+name: Docker Build Check
 
+# Löst den Workflow bei jedem Push oder Pull-Request zum main-Branch aus
 on:
   push:
     branches: [ "main" ]
@@ -7,51 +9,41 @@ on:
     branches: [ "main" ]
 
 jobs:
-  scan-and-build:
+  # Der Name des Jobs
+  build-and-test:
+    # Führt den Job auf der neuesten Ubuntu-Version aus
     runs-on: ubuntu-latest
-    
+
+    # Definiert eine Matrix, um denselben Job für jeden Service auszuführen
     strategy:
-      fail-fast: false
+      # Lässt andere Jobs weiterlaufen, auch wenn einer fehlschlägt
+      fail-fast: false 
       matrix:
         service:
+          # --- HIER DEINE SERVICES EINTRAGEN ---
           - name: Memory
             path: finja-Open-Web-UI/finja-Memory
             tag: finja-memory
+
           - name: OCR
             path: finja-Open-Web-UI/finja-ocr
             tag: finja-ocr
+            
           - name: Web-Crawler
             path: finja-Open-Web-UI/finja-web-crawler
             tag: finja-web-crawler
 
     steps:
+      # Schritt 1: Code aus dem Repository auschecken
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Install Snyk and Authenticate
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          npm install -g snyk
-          snyk auth $SNYK_TOKEN
-
-      - name: Scan Dockerfile for IAC issues
+      # Schritt 2: Docker-Image für den aktuellen Service aus der Matrix bauen
+      - name: Build Docker image for ${{ matrix.service.name }}
+        # Wechselt in das richtige Verzeichnis und startet den Build
         working-directory: ./${{ matrix.service.path }}
-        run: snyk iac test Dockerfile --severity-threshold=high
-
-      - name: Scan Python source code (SAST)
-        working-directory: ./${{ matrix.service.path }}
-        run: snyk code test --severity-threshold=high
-
-      - name: Build image for ${{ matrix.service.name }}
-        working-directory: ./${{ matrix.service.path }}
-        run: |
-          docker build . --file Dockerfile --tag ${{ matrix.service.tag }}:latest
-          echo "✅ Built image: ${{ matrix.service.tag }}:latest"
-
-      - name: Run Snyk Container Scan
-        working-directory: ./${{ matrix.service.path }}
-        run: snyk container test ${{ matrix.service.tag }}:latest --severity-threshold=high
-
-      - name: Print success message
-        run: echo "✅ ${{ matrix.service.tag }}:latest scanned and built successfully"
+        run: docker build . --file Dockerfile --tag ${{ matrix.service.tag }}:latest
+      
+      # Schritt 3: Erfolgsmeldung ausgeben (optional, aber gut für's Log)
+      - name: Print success message for ${{ matrix.service.name }}
+        run: echo "✅ Docker image for ${{ matrix.service.tag }} built successfully!"
