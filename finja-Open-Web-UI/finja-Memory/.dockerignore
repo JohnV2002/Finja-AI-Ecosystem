@@ -1,6 +1,9 @@
 # .dockerignore
-.git
-.env.example
-README.md
-*.log
 __pycache__
+*.pyc
+.env
+.git
+.gitignore
+README.md
+tests/
+venv/
