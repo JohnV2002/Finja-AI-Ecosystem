@@ -1,5 +1,5 @@
 # =====================================================================
-#  Project: Adaptive Memory v4.1 - Dockerfile: v4.1.2 
+#  Project: Finja Cloud Memory - Dockerfile: v4.1.3 (Fix)
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
 #  Inspired by: gramanoid (diligent_chooser)
 #  License: Apache License 2.0
@@ -13,32 +13,35 @@
 #   + Added a non-root user for enhanced security (container runs unprivileged).
 #   + Removed insecure COPY of .env file; configuration is now passed in at runtime.
 #   + Optimized layer caching by copying requirements.txt first.
+#   + ✅ FIXED: Now copies both site-packages AND binaries (uvicorn, etc.)
 # =====================================================================
 
 # Stage 1: Build Stage
-# Hier installieren wir die Dependencies, um den Build-Cache optimal zu nutzen.
 FROM python:3.12-alpine AS builder
 
 WORKDIR /app
 
-# Upgrade pip und installiere nur die Dependencies
+# Install system dependencies needed for pip (optional but recommended)
+RUN apk add --no-cache gcc linux-headers musl-dev  
+
+# Upgrade pip und installiere alle Dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Final Stage
-# Jetzt erstellen wir das finale, saubere Image ohne Build-Tools.
 FROM python:3.12-alpine
 
 WORKDIR /app
 
-# Erstelle einen dedizierten User und eine Gruppe, um nicht als root zu laufen (Security Best Practice)
+# Erstelle einen dedizierten User (Security Best Practice)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Kopiere die installierten Pakete aus der Build-Stage
+# 💡 WICHTIG: Kopiere BEIDE – die Python-Pakete UND die Binaries!
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Kopiere den App-Code
+# Kopiere den App-Code (nachdem die Tools vorhanden sind)
 COPY memory-server.py .
 
 # Wechsle zum neuen User
@@ -46,5 +49,5 @@ USER appuser
 
 EXPOSE 8000
 
-# Starte die App
+# Starte die App – jetzt funktioniert uvicorn!
 CMD ["uvicorn", "memory-server:app", "--host", "0.0.0.0", "--port", "8000"]
