@@ -16,11 +16,11 @@
 
 ---
 
-## Security Status
+## Build Status
 
-[![Finja-Memory](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-Memory/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)  
-[![Finja-OCR](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-ocr/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)  
-[![Finja-Web-Crawler](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml/badge.svg?event=push&path=finja-web-crawler/Dockerfile)](https://github.com/JohnV2002/finja-Open-Web-UI/actions/workflows/docker-scan.yml)
+[![Memory Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-memory)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
+[![OCR Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-ocr)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
+[![Web-Crawler Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml/badge.svg?branch=main&job=build-web-crawler)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/docker-build-check.yml)
 
 ---
 
