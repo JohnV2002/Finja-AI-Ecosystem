@@ -1,4 +1,4 @@
-name: Docker Security Scan & Build
+name: Docker Security & Code Scan
 
 on:
   push:
@@ -7,12 +7,11 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # Definiere alle Services nur EINMAL in einer Matrix
   scan-and-build:
     runs-on: ubuntu-latest
     
     strategy:
-      fail-fast: false # Lässt andere Jobs weiterlaufen, auch wenn einer fehlschlägt
+      fail-fast: false
       matrix:
         service:
           - name: Memory
@@ -29,32 +28,30 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # --- 1. Snyk Security Scan ---
       - name: Install Snyk and Authenticate
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           npm install -g snyk
           snyk auth $SNYK_TOKEN
-      
-      - name: Run Snyk Scan for ${{ matrix.service.name }}
-        working-directory: ./${{ matrix.service.path }}
-        run: snyk container test --file=Dockerfile --severity-threshold=high
 
-      # --- 2. Docker Build ---
+      - name: Scan Dockerfile for IAC issues
+        working-directory: ./${{ matrix.service.path }}
+        run: snyk iac test Dockerfile --severity-threshold=high
+
+      - name: Scan Python source code (SAST)
+        working-directory: ./${{ matrix.service.path }}
+        run: snyk code test --severity-threshold=high
+
       - name: Build image for ${{ matrix.service.name }}
         working-directory: ./${{ matrix.service.path }}
-        run: docker build . --file Dockerfile --tag ${{ matrix.service.tag }}:latest
-      
-      - name: Print success message for ${{ matrix.service.name }}
-        run: echo "✅ ${{ matrix.service.tag }}:latest image built successfully"
+        run: |
+          docker build . --file Dockerfile --tag ${{ matrix.service.tag }}:latest
+          echo "✅ Built image: ${{ matrix.service.tag }}:latest"
 
-  # Optionaler Job am Ende, um alle gebauten Images aufzulisten
-  list-images:
-    runs-on: ubuntu-latest
-    needs: scan-and-build # Läuft nur, wenn ALLE Builds erfolgreich waren
-    steps:
-      - name: List all Docker images (Just for verification)
-        # In this separate job, the images are not available unless you push them to a registry.
-        # This step is more illustrative to show the structure.
-        run: echo "Alle Service-Images wurden erfolgreich gebaut."
+      - name: Run Snyk Container Scan
+        working-directory: ./${{ matrix.service.path }}
+        run: snyk container test ${{ matrix.service.tag }}:latest --severity-threshold=high
+
+      - name: Print success message
+        run: echo "✅ ${{ matrix.service.tag }}:latest scanned and built successfully"
