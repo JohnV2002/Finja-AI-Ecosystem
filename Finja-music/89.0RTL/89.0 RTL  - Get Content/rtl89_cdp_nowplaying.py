@@ -8,7 +8,12 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: JohnV2002 (J. Apps / Sodakiller1)
-  Version: 1.0.0 (89.0 RTL Modul)
+  Version: 1.0.1 (89.0 RTL Modul)
+
+----------------------------------------------------------------------
+    Updates: 1.0.1:
+ ----------------------------------------------------------------------
+    - Added path validation to restrict output file writes to user/home directories
 
 ----------------------------------------------------------------------
 
@@ -166,6 +171,12 @@ def ws_call(ws, ctr, method, **params):
         if obj.get("id") == ctr['id']:
             return obj
 
+def validate_ws_url(url):
+    """Stellt sicher, dass nur localhost-Verbindungen erlaubt sind"""
+    if not url.startswith("ws://127.0.0.1:") and not url.startswith("ws://localhost:"):
+        raise ValueError("Nur localhost WebSocket-Verbindungen erlaubt")
+    return url
+
 def scrape_once(port=9222, debug=False):
     j = requests.get(f"http://127.0.0.1:{port}/json").json()
     targets = pick_target(j, debug=debug)
@@ -203,6 +214,14 @@ def scrape_once(port=9222, debug=False):
                 if ws is not None: ws.close()
             except Exception: pass
     return ""
+
+def validate_output_path(path):
+    """Beschränkt Schreibzugriff auf bestimmte Verzeichnisse"""
+    allowed_dirs = [os.path.expanduser("~"), os.getcwd()]
+    abs_path = os.path.abspath(path)
+    if not any(abs_path.startswith(os.path.abspath(d)) for d in allowed_dirs):
+        raise ValueError("Unerlaubtes Ausgabeverzeichnis")
+    return abs_path
 
 def main():
     ap = argparse.ArgumentParser(description="89.0 RTL NowPlaying (via Chrome CDP, stabilisiert)")
