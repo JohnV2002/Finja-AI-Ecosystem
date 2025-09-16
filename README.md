@@ -56,7 +56,7 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 | &nbsp;&nbsp;└─ TruckersFM   |  Stabil   | Snyk false Positive |
 | **finja-Open-Web-UI**       |  Stabil   | Snyk false Positive |
 | &nbsp;&nbsp;└─ finja-Memory |  Stabil   | snyk false Positive |
-| &nbsp;&nbsp;└─ finja-ocr    |  Stabil   | Funktioniert stabil |
+| &nbsp;&nbsp;└─ finja-ocr    |  Broken   | Docker Fail |
 | &nbsp;&nbsp;└─ finja-stable-diffusion |  Stabil | Setup abgeschlossen, keine Tests |
 | &nbsp;&nbsp;└─ finja-tts    | ⚠ WIP      | Noch nicht implementiert |
 | &nbsp;&nbsp;└─ finja-web-crawler |  Stabil | Kein Rate-Limit! Security-Review OK |
