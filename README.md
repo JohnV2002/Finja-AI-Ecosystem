@@ -24,6 +24,13 @@
 
 ---
 
+## Links / Badges
+
+* **Watch FINJA in Action Streaming every  Saturday on Twitch!**
+[![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
+
+---
+
 # ✨ Finja AI Ecosystem
 
 Dein Hybrid-KI-Buddy fürs Streaming – mit Chatbot, Musikengine, Memories, Mods und einem geheimen LLM-Core.
@@ -43,7 +50,7 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 
 ## 📊 Projektstatus-Übersicht
 
-*Stand: 14.09.2025*
+*Stand: 17.09.2025*
 
 | Hauptkomponente             | Status     | Bemerkungen |
 |-----------------------------|------------|-------------|
@@ -56,13 +63,15 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 | &nbsp;&nbsp;└─ TruckersFM   |  Stabil   | Snyk false Positive |
 | **finja-Open-Web-UI**       |  Stabil   | Snyk false Positive |
 | &nbsp;&nbsp;└─ finja-Memory |  Stabil   | snyk false Positive |
-| &nbsp;&nbsp;└─ finja-ocr    |  Broken   | Docker Fail |
+| &nbsp;&nbsp;└─ finja-ocr    |  Stabil   | Funktioniert einwandfrei |
 | &nbsp;&nbsp;└─ finja-stable-diffusion |  Stabil | Setup abgeschlossen, keine Tests |
 | &nbsp;&nbsp;└─ finja-tts    | ⚠ WIP      | Noch nicht implementiert |
 | &nbsp;&nbsp;└─ finja-web-crawler |  Stabil | Kein Rate-Limit! Security-Review OK |
 | **VPet-Simulator Mods**     | ⚠ WIP      | Aktuell geplant, noch leer |
 | &nbsp;&nbsp;└─ Chat Commands | ⚠ WIP      | In Planung |
 | &nbsp;&nbsp;└─ Dance zu Liked Music | ⚠ WIP | In Planung |
+
+**One week break! To gather thoughts and new Ideas then im back to Working on this Projekt!**
 
 ---
 
