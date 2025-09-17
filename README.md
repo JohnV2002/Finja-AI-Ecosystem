@@ -27,7 +27,8 @@
 ## Links / Badges
 
 * **Watch FINJA in Action Streaming every  Saturday on Twitch!**
-[![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
+
+* [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
 
 ---
 
