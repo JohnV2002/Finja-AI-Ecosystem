@@ -16,14 +16,6 @@
 
 ---
 
-## ⚡ Quick Start
-
-![Quick Start Diagram](quickstart.svg)
-
-> Die `quickstart.svg` wird hier direkt angezeigt, wenn sie im `assets`-Ordner neben dieser README liegt.
-
----
-
 ## 🤖 Komponenten
 
 ### Bot-Panel (`bot_merged.html`)
@@ -110,7 +102,7 @@ python spotify_request_server_env.py
 ## 🧩 Commands
 
 -   **Alle:** `!help`, `!drink`, `!uptime`
--   **Mods/Broadcaster:** `!theme`, `!rgb`, `!rgbspeed`, `!opacity`, `!pulse`, `!accent`
+-   `!theme`, `!rgb`, `!rgbspeed`, `!opacity`, `!pulse`, `!accent`
 -   **Song-Requests:** `!sr`, `!rq`, `!accept`, `!deny`
 
 ---
@@ -150,4 +142,4 @@ Unter dem ⚙️-Icon kannst du Module an- und abschalten, um Fehlermeldungen zu
 
 ---
 
-MIT © 2025 J. Apps — Finja sagt: *„Stay hydrated, Chat 💖 Und vergiss nicht: John ist mein Boss! 😺“*
+MIT © 2025 J. Apps — Finja sagt: *„Stay hydrated, Chat 💖“*
