@@ -18,7 +18,7 @@
 
 ## ⚡ Quick Start
 
-![Quick Start Diagram](./assets/quickstart.svg)
+![Quick Start Diagram](quickstart.svg)
 
 > Die `quickstart.svg` wird hier direkt angezeigt, wenn sie im `assets`-Ordner neben dieser README liegt.
 
