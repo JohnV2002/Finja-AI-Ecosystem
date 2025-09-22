@@ -1,27 +1,22 @@
 <!-- ====================================================================== -->
-
 <!--                      Finja's Twitch Bot & Overlay                      -->
-
 <!-- ====================================================================== -->
-
 <!--                                                                        -->
-
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
-
 <!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
-
-<!--   Version: 2.1.0                                                       -->
-
+<!--   Version: 2.2.0                                                       -->
 <!--   Description: Bot panel and visual overlay for OBS.                   -->
-
 <!--                                                                        -->
-
+<!--   ✨ Neu in 2.2.0:                                                     -->
+<!--     • Finja bleibt IMMER blau (unabhängig von !accent)                 -->
+<!--     • !uptime Befehl hinzugefügt (zeigt Stream-Dauer an)               -->
+<!--     • Modulare Steuerung: VPet Bridge & Song Requests abschaltbar      -->
+<!--     • KI-Antworten (!ask/!chat) bleiben länger im Overlay              -->
+<!--     • Verbessertes System Prompt mit Streamer- & Spielkontext          -->
+<!--                                                                        -->
 <!--   Copyright (c) 2025 J. Apps                                           -->
-
 <!--   Licensed under the MIT License.                                      -->
-
 <!-- ====================================================================== -->
-
 
 <!doctype html>
 <html lang="de">
@@ -30,10 +25,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Finja Bot Panel</title>
 
-  <!-- Twitch Chat -->
-  <script src="https://cdn.jsdelivr.net/npm/comfy.js@1.1.1/dist/comfy.min.js"></script>
-  <!-- OBS WebSocket v5 -->
-  <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-ws.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/comfy.js@1.1.1/dist/comfy.min.js  "></script>
+  <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-ws.min.js  "></script>
 
   <style>
     :root{ --accent:#7aa2ff }
@@ -47,7 +40,8 @@
     .card{ background:#121725; border:1px solid #263048; border-radius:12px; padding:14px; margin:16px }
     .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
     label{ display:block; font-size:12px; opacity:.85; margin-top:8px }
-    input{ width:100%; padding:8px 10px; border-radius:10px; border:1px solid #364057; background:#0b0f1a; color:#eaf1ff }
+    input, textarea{ width:100%; padding:8px 10px; border-radius:10px; border:1px solid #364057; background:#0b0f1a; color:#eaf1ff; font:inherit }
+    textarea{ min-height: 80px; resize: vertical; }
     .btn{ display:inline-block; margin-top:10px; padding:10px 12px; border-radius:10px; background:#2a6cff; color:#fff; border:0; cursor:pointer }
     .btn.alt{ background:#444 }
     #log{ font-size:14px; line-height:1.4; padding:10px; max-height:320px; overflow:auto; white-space:pre-wrap; background:#0b0f1a; border:1px solid #2b3447; border-radius:10px }
@@ -101,19 +95,20 @@
       </div>
     </div>
     <label>OAuth (Format: <code>oauth:xxxxxxxxxxxxxxxx</code>)</label>
-    <input id="oauth" placeholder="oauth:..." />
+    <input id="oauth" placeholder="oauth:..." type="password" />
     <button class="btn" id="connectBtn">Verbinden</button>
     <button class="btn alt" id="disconnectBtn">Trennen</button>
   </div>
 
-  <!-- Hübsches Commands-Panel -->
   <div class="cmds">
     <div class="title">🧭 Befehle</div>
     <div class="list">
+      <div class="item"><div class="k">!ask | !chat</div><div class="desc">Stelle eine Frage an die KI 🤖</div></div>
       <div class="item"><div class="k">!help</div><div class="desc">Übersicht (zeigt auch Overlay-Panel)</div></div>
       <div class="item"><div class="k">!drink</div><div class="desc">Finja bekommt was zu trinken 🥤</div></div>
+      <div class="item"><div class="k">!uptime</div><div class="desc">Zeigt die Stream-Dauer an ⏱️</div></div>
       <div class="item"><div class="k">!theme</div><div class="desc">glass | dark | light | neon (neon auto-aktiviert <span class="k">rgb ring</span>)</div></div>
-      <div class="item"><div class="k">!rgb</div><div class="desc">off | ring | fill | both · <span class="k">!rgb ring &lt;6-10&gt;</span></div></div>
+      <div class="item"><div class="k">!rgb</div><div class="desc">off | ring | fill | both · <span class="k">!rgb ring <6-10></span></div></div>
       <div class="item"><div class="k">!rgbspeed</div><div class="desc">2-30 (Sekunden)</div></div>
       <div class="item"><div class="k">!ring</div><div class="desc">6-10 (Ringbreite)</div></div>
       <div class="item"><div class="k">!opacity</div><div class="desc">0-100</div></div>
@@ -123,15 +118,41 @@
 
     <div class="title" style="margin-top:12px">🎵 Song-Requests</div>
     <div class="subgrid">
-      <div class="item"><div class="k">!sr</div><div class="desc">Viewer: &lt;suche|link&gt; (Spotify)</div></div>
+      <div class="item"><div class="k">!sr</div><div class="desc">Viewer: <suche|link> (Spotify)</div></div>
       <div class="item"><div class="k">!rq</div><div class="desc">Mods: Liste Wünsche</div></div>
-      <div class="item"><div class="k">!accept</div><div class="desc">Mods: &lt;id&gt; in Queue</div></div>
-      <div class="item"><div class="k">!deny</div><div class="desc">Mods: &lt;id&gt; ablehnen</div></div>
+      <div class="item"><div class="k">!accept</div><div class="desc">Mods: <id> in Queue</div></div>
+      <div class="item"><div class="k">!deny</div><div class="desc">Mods: <id> ablehnen</div></div>
     </div>
     <div class="note">
-      Cooldown: 60s global + 60s/User (gilt <b>nicht</b> für <span class="k">!drink</span>).  
+      Cooldown: 60s global + 60s/User (gilt <b>nicht</b> für <span class="k">!drink</span> und <span class="k">!ask</span>).
       <span class="k">Usage</span> verbraucht keinen Cooldown.
     </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;color:#7aa2ff">🤖 LLM Chatbot (OpenWebUI)</h2>
+    <label style="display:flex; align-items:center; gap:8px;">
+      <input id="llm_enabled" type="checkbox" style="width:auto;"> LLM Chatbot aktivieren
+    </label>
+
+    <div class="row">
+        <div>
+            <label>OpenWebUI URL</label>
+            <input id="llm_url" placeholder="http://localhost:3000">
+        </div>
+        <div>
+            <label>Model ID</label>
+            <input id="llm_model" placeholder="llama3:latest">
+        </div>
+    </div>
+    <label>OpenWebUI API Key</label>
+    <input id="llm_key" type="password" placeholder="Dein API Key...">
+
+    <label>System Prompt (Anweisung für die KI)</label>
+    <textarea id="llm_system_prompt">Du bist Finja, eine fröhliche und hilfsbereite Katze und die Streamerin eines Twitch-Kanals. Antworte kurz, freundlich und direkt auf die Nachrichten der User im Chat. Sprich die User immer mit ihrem Namen an.</textarea>
+
+    <button class="btn" id="llm_save_settings">Einstellungen speichern</button>
+    <button class="btn alt" id="llm_clear_history">Chat-Gedächtnis löschen</button>
   </div>
 
   <div class="card">
@@ -143,7 +164,7 @@
       </div>
       <div>
         <label>OBS Passwort</label>
-        <input id="obs_pass" placeholder="••••••••">
+        <input id="obs_pass" placeholder="••••••••" type="password">
       </div>
     </div>
     <div class="row">
@@ -159,6 +180,23 @@
     </div>
     <button class="btn" id="obs_connect">OBS verbinden</button>
     <button class="btn alt" id="obs_disconnect">OBS trennen</button>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;color:#7aa2ff">⚙️ Einstellungen</h2>
+    <div class="row">
+      <div>
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input id="vpet_enabled" type="checkbox" checked> VPet Bridge aktivieren
+        </label>
+      </div>
+      <div>
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input id="sr_enabled" type="checkbox" checked> Song-Requests aktivieren
+        </label>
+      </div>
+    </div>
+    <button class="btn" id="save_settings">Einstellungen speichern</button>
   </div>
 
   <div class="card">
@@ -178,6 +216,34 @@ $("obs_addr").value = localStorage.getItem("finja_obs_addr") || "ws://127.0.0.1:
 $("obs_pass").value = localStorage.getItem("finja_obs_pass") || "";
 $("obs_input").value = localStorage.getItem("finja_obs_input") || "";
 $("obs_overlay_url").value = localStorage.getItem("finja_obs_overlay_url") || "";
+
+/* ========== VPet Bridge Konfiguration ========== */
+const VPET_BRIDGE_ENABLED = true; // Auf false setzen, um die Bridge zu deaktivieren
+const VPET_BRIDGE_URL = "http://127.0.0.1:8091/command";
+
+// Funktion zum Prüfen, ob VPet aktiviert ist
+const vpetEnabled = () => localStorage.getItem("finja_vpet_enabled") === 'true' || true;
+
+async function sendToVpetBridge(command) {
+  if (!vpetEnabled()) return;
+  try {
+    const response = await fetch(VPET_BRIDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: command }),
+    });
+    if (response.ok) {
+        log(`Befehl '${command}' erfolgreich an VPet-Bridge gesendet.`, 'ok');
+    } else {
+        log(`VPet-Bridge antwortet nicht (Status: ${response.status})`, 'warn');
+    }
+  } catch (error) {
+    // Fehlermeldung nur loggen, wenn VPet aktiviert ist
+    if (vpetEnabled()) {
+      log(`VPet-Bridge nicht erreichbar: ${error.message}`, 'err');
+    }
+  }
+}
 
 /* ========== Broadcast Channel (Overlay in gleichem Browser) ========== */
 let bc; try{ bc = new BroadcastChannel("finja-overlay"); }catch{}
@@ -230,6 +296,9 @@ function buildOverlayUrl(prevUrl = null) {
   // Vorherige Parameter & gespeicherten Channel als Defaults nutzen
   const prev = new URLSearchParams(prevUrl ? new URL(prevUrl).search : "");
   const saved = (localStorage.getItem("finja_last_channel") || "").trim().toLowerCase();
+  
+  // Wichtig: Bot-Namen aus dem Input-Feld beziehen, damit er immer aktuell ist
+  OVERLAY.botname = $("botuser").value.trim().toLowerCase() || "finja_chat_bot";
 
   const p = new URLSearchParams();
   const chan = (OVERLAY.channel || $("channel").value.trim().toLowerCase() || saved || prev.get("channel") || "").trim();
@@ -339,8 +408,144 @@ function sendVisual(cmd, arg, flags){
   refreshBrowserSource();
 }
 
+
+/* ====================================================================== */
+/* LLM Chatbot Logik (Version 2 mit User-spezifischem Gedächtnis)     */
+/* ====================================================================== */
+
+// Konfiguration für den LLM Chatbot
+const LLM_CONFIG = {
+    enabled: false,
+    apiUrl: "",
+    apiKey: "",
+    modelId: "",
+    systemPrompt: ""
+};
+
+// Ein Map-Objekt, um für jeden User eine eigene Chat-History zu speichern.
+// Key = username, Value = Array mit Nachrichten
+const userChatHistories = new Map();
+
+// Funktion zum Laden der LLM-Einstellungen aus dem LocalStorage
+function loadLlmSettings() {
+    LLM_CONFIG.enabled = localStorage.getItem("finja_llm_enabled") === 'true';
+    LLM_CONFIG.apiUrl = localStorage.getItem("finja_llm_apiUrl") || "";
+    LLM_CONFIG.apiKey = localStorage.getItem("finja_llm_apiKey") || "";
+    LLM_CONFIG.modelId = localStorage.getItem("finja_llm_modelId") || "";
+    LLM_CONFIG.systemPrompt = localStorage.getItem("finja_llm_systemPrompt") || "Du bist Finja, eine fröhliche und hilfsbereite Katze und die Streamerin eines Twitch-Kanals. Antworte kurz, freundlich und direkt auf die Nachrichten der User im Chat. Sprich die User immer mit ihrem Namen an.";
+
+    // UI-Elemente mit den geladenen Werten füllen
+    $('llm_enabled').checked = LLM_CONFIG.enabled;
+    $('llm_url').value = LLM_CONFIG.apiUrl;
+    $('llm_key').value = LLM_CONFIG.apiKey;
+    $('llm_model').value = LLM_CONFIG.modelId;
+    $('llm_system_prompt').value = LLM_CONFIG.systemPrompt;
+    log("LLM-Einstellungen geladen.", "ok");
+}
+
+// Funktion zum Speichern der LLM-Einstellungen
+function saveLlmSettings() {
+    LLM_CONFIG.enabled = $('llm_enabled').checked;
+    LLM_CONFIG.apiUrl = $('llm_url').value.trim();
+    LLM_CONFIG.apiKey = $('llm_key').value.trim();
+    LLM_CONFIG.modelId = $('llm_model').value.trim();
+    LLM_CONFIG.systemPrompt = $('llm_system_prompt').value.trim();
+
+    localStorage.setItem("finja_llm_enabled", LLM_CONFIG.enabled);
+    localStorage.setItem("finja_llm_apiUrl", LLM_CONFIG.apiUrl);
+    localStorage.setItem("finja_llm_apiKey", LLM_CONFIG.apiKey);
+    localStorage.setItem("finja_llm_modelId", LLM_CONFIG.modelId);
+    localStorage.setItem("finja_llm_systemPrompt", LLM_CONFIG.systemPrompt);
+    log("LLM-Einstellungen gespeichert.", "ok");
+}
+
+// Event-Listener für die UI-Buttons
+$('llm_save_settings').onclick = saveLlmSettings;
+$('llm_clear_history').onclick = () => {
+    // Löscht jetzt die Gedächtnisse ALLER User
+    userChatHistories.clear();
+    log("Alle LLM Chat-Gedächtnisse gelöscht.", "warn");
+};
+
+// Hauptfunktion, um eine Anfrage an die LLM zu senden
+async function askLlm(user, message) {
+    if (!LLM_CONFIG.enabled) return;
+    if (!LLM_CONFIG.apiUrl || !LLM_CONFIG.apiKey || !LLM_CONFIG.modelId) {
+        log("LLM-Chatbot ist aktiviert, aber die Konfiguration ist unvollständig.", "err");
+        return;
+    }
+    
+    const username = user.toLowerCase();
+
+    // Hole die History für diesen spezifischen User.
+    // Wenn der User noch keine History hat, erstelle eine neue, leere.
+    if (!userChatHistories.has(username)) {
+        userChatHistories.set(username, []);
+    }
+    const currentUserHistory = userChatHistories.get(username);
+
+    // Nachricht zum Verlauf des aktuellen Users hinzufügen
+    currentUserHistory.push({ role: "user", content: message });
+
+    // Verlauf kürzen, um Token-Limit nicht zu sprengen (letzte 20 Nachrichten behalten)
+    if (currentUserHistory.length > 20) {
+        // Entfernt die ältesten Einträge, bis nur noch 20 übrig sind
+        userChatHistories.set(username, currentUserHistory.slice(-20));
+    }
+
+    // Nachrichten-Payload für die API erstellen
+    const messagesPayload = [
+        // Der System-Prompt enthält jetzt auch den Namen des Users für zusätzlichen Kontext
+        { role: "system", content: `${LLM_CONFIG.systemPrompt} Du sprichst gerade mit dem User '${user}'.` },
+        ...currentUserHistory
+    ];
+
+    log(`Sende Anfrage an LLM für @${user}...`);
+
+    try {
+        const response = await fetch(`${LLM_CONFIG.apiUrl}/api/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${LLM_CONFIG.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: LLM_CONFIG.modelId,
+                messages: messagesPayload,
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API-Fehler: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        const llmResponse = data.choices[0]?.message?.content;
+
+        if (llmResponse) {
+            log(`Antwort von LLM für @${user} erhalten: ${llmResponse}`, "ok");
+            // KI-Antwort zum Verlauf des aktuellen Users hinzufügen
+            currentUserHistory.push({ role: "assistant", content: llmResponse });
+            // Antwort in den Twitch-Chat senden
+            say(llmResponse.trim());
+        } else {
+            throw new Error("Leere oder ungültige Antwort von der API erhalten.");
+        }
+
+    } catch (error) {
+        log(`Fehler bei der LLM-Anfrage für @${user}: ${error.message}`, "err");
+        say(`@${user}, Entschuldigung, mein Katzenhirn hat gerade einen Kurzschluss. 🧠⚡`);
+    }
+}
+// Lade die Einstellungen beim Start
+document.addEventListener('DOMContentLoaded', loadLlmSettings);
+
+
 /* ========== Cooldowns & Router ========== */
 let connected = false;
+let connectTime = null; // <-- NEU: Speichert den Zeitpunkt der Verbindung
 const COOLDOWN_MS = 60_000; // 60s
 const cdGlobal = Object.create(null);
 const cdUser   = Object.create(null);
@@ -362,7 +567,7 @@ const isPriv = (flags)=> !!(flags?.broadcaster || flags?.mod);
 
 /* ——— 3-teiliger !help ——— */
 function helpTriplet(){
-  const line1 = "🧭 Befehle: 💧 !drink (Fun-Command für Finja)";
+  const line1 = "🧭 Befehle: 💧 !drink · 🤖 !ask | !chat <frage> (frage Finja etwas!)";
   const line2 = "✨ Visuals: !theme glass|dark|light|neon · !rgb off|ring|fill|both · !rgb ring <6-10> · !rgbspeed 2-30 · !ring 6-10 · !opacity 0-100 · !pulse on|off · !accent finja|channel|custom #hex";
   const line3 = "🎵 Song-Requests: !sr <suche|link> · Mods: !rq · !accept <id> · !deny <id> · ⏱ Cooldown ~120s";
   setTimeout(()=>{ try{ say(line1); }catch{} }, 200);
@@ -375,11 +580,42 @@ function handleCommand(user, cmd, arg, flags, extra){
   const uid = extra?.userId || (extra?.username||user||"").toLowerCase();
   OVERLAY.channel = $("channel").value.trim().toLowerCase();
 
-  // ohne Cooldown
+  // --- Befehle OHNE Cooldown ---
   if (cmd==="help"){ helpTriplet(); return; }
-  if (cmd==="drink"){ say("🥤 Finja hat was zu trinken bekommen!"); return; }
+  if (cmd==="drink"){ say("🥤 Finja hat was zu trinken bekommen!"); sendToVpetBridge('drink'); return; }
 
-  // Mod/Broadcaster-only + Cooldown
+  // --- NEU: !uptime Befehl ---
+  if (cmd === "uptime") {
+    if (!connected || !connectTime) {
+      say(`@${user}, Finja ist gerade offline oder die Startzeit ist unbekannt.`);
+      return;
+    }
+    const now = Date.now();
+    const diff = now - connectTime; // <-- Jetzt verwenden wir unsere eigene Variable
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60) % 60;
+    const hours = Math.floor(seconds / 3600);
+
+    let uptimeText = "";
+    if (hours > 0) uptimeText += `${hours}h `;
+    uptimeText += `${minutes}m`;
+
+    say(`@${user}, Finja streamt seit ${uptimeText}.`);
+    return;
+  }
+  
+  // --- LLM Chat Befehle ---
+  if (cmd === "ask" || cmd === "chat") {
+    if (!arg) { // Prüfen, ob eine Nachricht vorhanden ist
+      say(`@${user}, du musst mir schon eine Frage stellen! z.B. !ask Wie geht es dir?`);
+      return;
+    }
+    // Wir übergeben hier den originalen User-Namen mit Groß/Kleinschreibung
+    askLlm(user, arg); // Die LLM-Funktion aufrufen
+    return; // Wichtig: Hier beenden, um nicht in die Cooldown-Logik zu laufen
+  }
+
+  // --- Befehle MIT Cooldown (nur für Mods/Broadcaster) ---
   if (!isPriv(flags)) return;
   function guardCooldown(name){ const rem=cooldownRemaining(name, uid); if(rem>0){ say(`⏳ Cooldown noch ${rem}s aktiv – bitte warten`); return false; } return true; }
   function done(name){ startCooldown(name, uid); }
@@ -467,6 +703,7 @@ function handleCommand(user, cmd, arg, flags, extra){
 /* ========== ComfyJS Lifecycle ========== */
 ComfyJS.onConnected = (addr,port,isSSL)=>{
   connected = true;
+  connectTime = Date.now(); // <-- NEU: Speichere den Verbindungszeitpunkt
   log(`Verbunden: ${addr}:${port} (SSL:${isSSL})`,"ok");
   try{ ComfyJS.Say('Finja ist online ✨ & Layout zurückgesetzt!'); }catch{}
 };
@@ -522,14 +759,31 @@ $("connectBtn").onclick = ()=>{
 $("disconnectBtn").onclick = ()=>{
   try{ ComfyJS.Disconnect?.(); connected=false; log("Getrennt.","warn"); }catch{}
 };
+
+/* ========== Neue Einstellungen speichern ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  $('vpet_enabled').checked = localStorage.getItem("finja_vpet_enabled") === 'true' || true;
+  $('sr_enabled').checked = localStorage.getItem("finja_sr_enabled") === 'true' || true;
+});
+
+$('save_settings').onclick = function() {
+  localStorage.setItem("finja_vpet_enabled", $('vpet_enabled').checked);
+  localStorage.setItem("finja_sr_enabled", $('sr_enabled').checked);
+  log("Einstellungen gespeichert.", "ok");
+};
+
+// Funktion zum Prüfen, ob Song Requests aktiviert sind
+const srEnabled = () => localStorage.getItem("finja_sr_enabled") === 'true';
 </script>
 
-<!-- === Song Request Bridge (Finja SR v2) === -->
 <script>
 (() => {
   const SR_ENDPOINT = "http://127.0.0.1:8099/chat";
   const SR_ALIASES = new Set(["sr","songrequest","queue","q","accept","deny","rq","requests","pending"]);
   const SR_REQUEST_CMDS = new Set(["sr","songrequest","queue","q"]);
+
+  // Nur wenn SR aktiviert ist
+  if (!srEnabled()) return;
 
   // Local cooldown (client-side), default 120s, overridable via ?srcd=<seconds>
   const qs = new URLSearchParams(location.search||"");
@@ -620,6 +874,8 @@ $("disconnectBtn").onclick = ()=>{
     }
 
     if (cmd === "help"){ return; } // SR-Bridge sendet kein Help (zentraler Help-Block übernimmt)
+    if (cmd === "ask" || cmd === "chat") { return; } // Wird schon von handleCommand behandelt
+    if (cmd === "uptime") { return; } // Wird schon von handleCommand behandelt
 
     if (SR_ALIASES.has(cmd)) {
       if (SR_REQUEST_CMDS.has(cmd) && onLocalCooldown(user, flags)) {
@@ -653,9 +909,6 @@ $("disconnectBtn").onclick = ()=>{
   };
 })();
 </script>
-<!-- === /Song Request Bridge === -->
-
-<!-- Relay overlay announcements back to chat (sr-announce) -->
 <script>
 (function(){
   try {

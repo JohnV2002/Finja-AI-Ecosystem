@@ -1,197 +1,153 @@
 # 💬 Finja Chat System
- *OBS Chat-Overlay + Bot-Panel + Song-Requests – cute, fast, Gen‑Z approved.*
+*OBS Chat-Overlay + Bot-Panel + Song-Requests – cute, fast, Gen‑Z approved. 💙*
 
-> **Kurzfassung**:  
-> - Starte `start_static_server.bat` → öffne `http://127.0.0.1:8088/`  
-> - Overlay (DEV): `http://127.0.0.1:8088/index_merged.html?channel=DEINCHANNEL&dev=1`  
-> - Bot-Panel: `http://127.0.0.1:8088/bot_merged.html` → Twitch **OAuth** eintragen → **Verbinden**  
-> - (Optional) Song-Requests: `spotify_request_server_env.py` starten → `!sr` im Chat benutzen
+> **✨ Neu in v2.2.0:**
+> - Finja bleibt **IMMER blau** – egal was passiert!
+> - `!uptime` zeigt dir die Stream-Dauer an.
+> - VPet Bridge & Song Requests sind jetzt **abschaltbar** im Bot-Panel.
+> - KI-Antworten bleiben **länger im Overlay** sichtbar.
+> - Verbessertes **System Prompt** mit Streamer- & Spielkontext.
+
+> **Kurzfassung (TL;DR):**
+> 1. Starte `start_static_server.bat` → öffne `http://127.0.0.1:8088/`.
+> 2. **Overlay (DEV):** `http://127.0.0.1:8088/index_merged.html?channel=DEINCHANNEL&dev=1`
+> 3. **Bot-Panel:** `http://127.0.0.1:8088/bot_merged.html` → Twitch **OAuth** eintragen → **Verbinden**.
+> 4. **(Optional) Song-Requests:** `spotify_request_server_env.py` starten → `!sr` im Chat benutzen.
 
 ---
 
 ## ⚡ Quick Start
 
-![Quick Start Diagram](./quickstart.svg)
+![Quick Start Diagram](./assets/quickstart.svg)
 
-> Leg die `quickstart.svg` einfach neben diese README (gleicher Ordner), dann rendert sie hier direkt.
+> Die `quickstart.svg` wird hier direkt angezeigt, wenn sie im `assets`-Ordner neben dieser README liegt.
 
 ---
 
 ## 🤖 Komponenten
 
-- **Bot-Panel (`bot_merged.html`)**
-  - Verbindet sich mit deinem Twitch-Chat (ComfyJS)
-  - Führt **Commands** aus (`!theme`, `!rgb`, `!opacity`, `!pulse`, `!accent`, `!drink`)
-  - Steuert per **OBS WebSocket v5** deine Browser-Quelle (Overlay-URL & Refresh)
-  - Optional: BroadcastChannel → Overlay im gleichen Browserfenster
+### Bot-Panel (`bot_merged.html`)
+-   Verbindet sich mit deinem Twitch-Chat via ComfyJS.
+-   Führt **Commands** aus (`!theme`, `!rgb`, `!uptime` etc.).
+-   Steuert per **OBS WebSocket v5** deine Browser-Quelle (Overlay-URL & Refresh).
+-   **Neu:** Enthält Checkboxen, um die VPet Bridge & Song Requests zu deaktivieren und so Fehlermeldungen zu vermeiden.
 
-- **Overlay (`index_merged.html`)**
-  - Zeigt Chat-Nachrichten hübsch an (Themes, RGB, Glas-Textur, Badges, Emotes)
-  - **DEV-Mode** mit Einstellungs-Panel: `?dev=1`
-  - 7TV / BTTV / FFZ Emotes werden automatisch geladen
+### Overlay (`index_merged.html`)
+-   Zeigt Chat-Nachrichten hübsch an (Themes, RGB, Glas-Textur, Badges, Emotes).
+-   Verfügt über einen **DEV-Mode** (`?dev=1`) mit Einstellungs-Panel.
+-   7TV / BTTV / FFZ Emotes werden automatisch geladen.
+-   **Neu:** Nachrichten von Finja (KI-Antworten) bleiben **länger sichtbar**.
 
-- **Song-Request-Server (`spotify_request_server_env.py`)**
-  - Moderiertes `!sr` System (Viewer → pendend, Mods `!accept` / `!deny`)
-  - **.env**: `SPOTIPY_CLIENT_ID`, `SPOTIPY_CLIENT_SECRET`, `SPOTIPY_REDIRECT_URI`
-  - Endpunkte: `/health`, `/pending`, `/devices`, `POST /chat`
+### Song-Request-Server (`spotify_request_server_env.py`)
+-   Ein moderiertes `!sr`-System (Viewer stellen Anfragen, Mods genehmigen/ablehnen).
+-   Benötigt Spotify API-Keys in einer `.env`-Datei.
+-   Stellt eine lokale API für die Anfragen bereit.
 
 ---
 
 ## 🛠️ Setup
 
-### 1) Lokalen Webserver starten
-- Windows: `start_static_server.bat` (liefert `http://127.0.0.1:8088/`)
-- Manuell (Beispiel):  
-  ```bash
-  python -m http.server 8088
-  ```
+**1. Lokalen Webserver starten**
+-   **Windows:** Führe `start_static_server.bat` aus. Dies startet einen einfachen Webserver auf `http://127.0.0.1:8088/`.
+-   **Manuell:**
+    ```bash
+    python -m http.server 8088
+    ```
 
-### 2) Overlay aufrufen (DEV-Ansicht)
-- **URL**:  
-  `http://127.0.0.1:8088/index_merged.html?channel=DEINCHANNEL&dev=1`
-- `?dev=1` blendet ein kleines ⚙️-Panel ein (rechts unten), um live zu tunen:
-  - Theme, Opacity, Accent (Finja/Channel/Custom), RGB Style/Speed/Ring px
-  - Font/Emote-Size, Message-Width, Stack (top/bottom), Badges, Timestamps
-  - Glas-Textur URL
+**2. Overlay aufrufen (Entwickler-Ansicht)**
+-   Öffne folgende URL im Browser, um das Overlay mit dem Live-Tuning-Panel (⚙️) zu sehen:
+    `http://127.0.0.1:8088/index_merged.html?channel=DEINCHANNEL&dev=1`
 
-### 3) Bot-Panel öffnen & verbinden
-- **URL**: `http://127.0.0.1:8088/bot_merged.html`
-- **Twitch OAuth holen**: <https://twitchtokengenerator.com> → Login mit **Bot-Account**  → Scopes: chat:read, chat:edit Bitte AUF AKTIVIEREN
-  Token-Format: `oauth:xxxxxxxxxxxxxxxx` → ACCESS TOKEN = xxxxxx
-- Im Panel eintragen:
-  - Channel (dein Twitch-Login, klein geschrieben)
-  - Bot Username (z. B. `finja_chat_bot`)
-  - OAuth Token
-- **Verbinden** klicken → unten im Log siehst du Statusmeldungen
+**3. Bot-Panel öffnen & verbinden**
+-   **URL:** `http://127.0.0.1:8088/bot_merged.html`
+-   **Twitch OAuth Token holen:**
+    1. Gehe zu [twitchtokengenerator.com](https://twitchtokengenerator.com).
+    2. Logge dich mit deinem **Bot-Account** ein.
+    3. Wähle die Scopes `chat:read` und `chat:edit`.
+    4. Kopiere den generierten **Access Token** (nur der Teil ohne `oauth:`).
+-   **Im Panel eintragen:** Channel-Name, Bot-Username und den OAuth Token.
+-   Klicke auf **Verbinden**.
 
-### 4) OBS koppeln (optional, empfehlenswert)
-- OBS → Tools → WebSocket Server → aktivieren (Port **4455**)
-- Im Bot-Panel unter **OBS Sync**:
-  - Adresse: `ws://127.0.0.1:4455`
-  - Passwort eintragen
-  - Browser-Quelle-Name (z. B. „Finja Overlay“)
-  - Basis-Overlay-URL: `http://127.0.0.1:8088/index_merged.html`
-- **OBS verbinden** → Finja kann jetzt die Quelle aktualisieren & refreshen
+**4. OBS koppeln (Optional, empfohlen)**
+-   Aktiviere in OBS unter `Tools → WebSocket Server` den Server (Port `4455`) und setze ein Passwort.
+-   Trage im Bot-Panel unter **OBS Sync** die Daten ein (`ws://127.0.0.1:4455`, Passwort, Name der Browser-Quelle).
+-   Klicke auf **OBS verbinden**.
 
 ---
 
 ## 🎵 Song-Requests (Spotify)
 
-> **Spotify Voraussetzung (WICHTIG!)**  
-> - Du brauchst einen **Spotify Account** *(Premium empfohlen für volle API-Playback-Control)*.  
-> - Du brauchst eine **Spotify Developer App**: <https://developer.spotify.com/dashboard> → App erstellen → **Client ID/Secret** notieren → **Redirect URI** setzen (z. B. `http://localhost:8080/callback`) und **Save** klicken.  
-> - Beim **Annehmen eines Requests** (`!accept <id>`) oder beim **sofortigen Abspielen** muss ein **aktives Spotify-Playback-Gerät** vorhanden sein (Desktop-App, Mobile-App oder Web Player).  
-> - Wenn **kein aktives Gerät** vorhanden ist, wirft die API einen Fehler → Finja sagt dir das im Chat. Öffne Spotify und **starte kurz einen Song**, dann klappt’s.  
+> **Spotify Voraussetzungen (WICHTIG!)**
+> - Du benötigst einen **Spotify Account** (Premium empfohlen).
+> - Du brauchst eine **Spotify Developer App**: Erstelle sie im [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), notiere **Client ID/Secret** und setze die **Redirect URI** auf z.B. `http://localhost:8080/callback`.
+> - Ein **aktives Spotify-Gerät** (Desktop, Handy etc.) muss laufen. Wenn nicht, kann die API keine Songs zur Warteschlange hinzufügen.
 
+**1. `.env`-Datei anlegen:**
+```env
+SPOTIPY_CLIENT_ID=deinClientID
+SPOTIPY_CLIENT_SECRET=deinSecret
+SPOTIPY_REDIRECT_URI=http://localhost:8080/callback
+SR_COOLDOWN_SECS=120
+SR_FORCE_NOW=false
+```
 
-1. `.env` anlegen (im selben Ordner wie das Script):
-   ```env
-   SPOTIPY_CLIENT_ID=deinClientID
-   SPOTIPY_CLIENT_SECRET=deinSecret
-   SPOTIPY_REDIRECT_URI=http://localhost:8080/callback
-   SR_COOLDOWN_SECS=120
-   SR_FORCE_NOW=false
-   # Optional: bevorzugtes Gerät
-   SPOTIFY_DEVICE_NAME=
-   SPOTIFY_DEVICE_ID=
-   ```
-2. Abhängigkeiten:
-   ```bash
-   pip install fastapi uvicorn spotipy python-dotenv
-   ```
-3. Starten:
-   ```bash
-   python spotify_request_server_env.py
-   ```
-4. Im Chat:
-   - Viewer: `!sr <suche|spotify-link>`
-   - Mods: `!rq` (Liste), `!accept <id>`, `!deny <id>`
+**2. Abhängigkeiten installieren:**
+```bash
+pip install fastapi uvicorn spotipy python-dotenv
+```
 
-> Wenn kein aktives Spotify-Gerät vorhanden ist, sagt Finja dir das im Chat. Öffne Spotify & starte kurz einen Song, dann klappt’s.
+**3. Server starten:**
+```bash
+python spotify_request_server_env.py
+```
+
+**4. Commands im Chat:**
+-   **Viewer:** `!sr <Songsuche oder Spotify-Link>`
+-   **Mods:** `!rq` (Liste ansehen), `!accept <id>`, `!deny <id>`
 
 ---
 
 ## 🧩 Commands
 
-**Alle:**
-- `!help` → schickt eine dreiteilige Übersicht
-- `!drink` → Finja bekommt was zu trinken 🥤
-
-**Mods/Broadcaster (mit globalem + user Cooldown ~60s):**
-- `!theme glass|dark|light|neon`
-- `!rgb off|ring|fill|both` · `!rgb ring <6-10>`
-- `!rgbspeed 2-30`
-- `!ring 6-10`
-- `!opacity 0-100`
-- `!pulse on|off`
-- `!accent finja|channel|custom [#hex]`
-
-**Song-Requests:**
-- Viewer: `!sr <suche|link>`
-- Mods: `!rq` · `!accept <id>` · `!deny <id>`
+-   **Alle:** `!help`, `!drink`, `!uptime`
+-   **Mods/Broadcaster:** `!theme`, `!rgb`, `!rgbspeed`, `!opacity`, `!pulse`, `!accent`
+-   **Song-Requests:** `!sr`, `!rq`, `!accept`, `!deny`
 
 ---
 
-## 😎 7TV Emotes – Schritt für Schritt (Case‑Sensitive!)
+## 😎 7TV Emotes – Schritt für Schritt
 
-Damit Emotes im OBS-Chat erscheinen, braucht’s ein korrekt eingerichtetes 7TV-Set **mit exakt gleichen Namen wie in Twitch**:
+Damit deine 7TV-Emotes im OBS-Chat angezeigt werden:
+1.  Gehe zu **7tv.app** und logge dich ein.
+2.  Füge das gewünschte Emote zu deinem aktiven Emote-Set hinzu.
+3.  **WICHTIG:** Benenne das Emote in 7TV **exakt** so, wie es in Twitch heißt (Groß-/Kleinschreibung beachten!).
+4.  Aktiviere das Set in deinem 7TV-Profil.
+5.  Refreshe zur Sicherheit die OBS-Browserquelle.
 
-1. Gehe zu **https://7tv.app** und logge dich ein.
-2. **Erstelle ein Emote-Set** (oder nutze dein vorhandenes).
-3. **Suche dein Emote** (z. B. „Creeper“).  
-   Klicke **„Add to…“** und wähle dein Set.
-4. **WICHTIG: Umbenennen auf den GENAUEN Twitch‑Emote‑Namen** (inkl. Groß/Kleinschreibung).  
-   *Beispiel:* Wenn es im Twitch-Chat als `Ssssss` geschrieben wird, muss der 7TV‑Name **exakt** `Ssssss` lauten.
-5. Öffne dein **7TV‑Profil → Active Emotes** und **aktiviere** das Set (falls nicht aktiv).
-6. Testen:
-   - Chatbot trennen & Seite aktualisieren
-   - In OBS die Browserquelle **refreshen**
-   - Zur Not Emote im Set einmal **deaktivieren/aktivieren**
-7. Profit 🎉 — Emote sollte jetzt auch im OBS‑Chat korrekt angezeigt werden.
+---
 
-**Hinweise**  
-- Namen sind **case‑sensitive** (A ≠ a).  
-- 7TV, BTTV & FFZ werden automatisch geladen (sofern für den Kanal verfügbar).  
-- Wenn nichts erscheint: Channel‑Name in Overlay‑URL checken (`?channel=...`).
+## ⚙️ Einstellungen im Bot-Panel
+
+Unter dem ⚙️-Icon kannst du Module an- und abschalten, um Fehlermeldungen zu vermeiden, wenn du sie nicht nutzt:
+-   **VPet Bridge:** Deaktivieren, wenn keine VPet-Anbindung läuft.
+-   **Song-Requests:** Deaktivieren, wenn der Spotify-Server nicht läuft.
 
 ---
 
 ## 🔐 Sicherheit
 
-- **Leake niemals** deinen Twitch‑OAuth‑Token oder `.env`‑Secrets in Repos/Streams.  
-- Token regelmäßig rotieren, wenn du unsicher bist.
+-   Behandle deinen Twitch OAuth Token und deine Spotify-Secrets wie Passwörter. Lade sie **niemals** auf öffentliche Repositories hoch!
+-   Füge `.env`-Dateien immer zu deiner `.gitignore`-Datei hinzu.
 
 ---
 
 ## 🧯 Troubleshooting
 
-- **Overlay leer?** → URL korrekt? `?channel=deinlogin` gesetzt? DEV‑UI mit `?dev=1` sichtbar?  
-- **7TV zeigt nix?** → Namen exakt? Set aktiv? Browser‑Quelle refresht?  
-- **OBS‑Steuerung klappt nicht?** → WebSocket 4455 aktiv + Passwort korrekt? Quellen‑Name stimmt?  
-- **Spotify „kein Gerät“** → Spotify öffnen, irgendeinen Song kurz starten, dann erneut `!accept`/Queue.
+-   **Overlay leer?** → Ist `?channel=deinlogin` in der URL gesetzt?
+-   **7TV geht nicht?** → Name exakt identisch? Set aktiv? OBS-Quelle refresht?
+-   **OBS-Steuerung klappt nicht?** → WebSocket (Port 4455) aktiv & Passwort korrekt?
+-   **Spotify "kein Gerät"?** → Öffne Spotify, starte kurz einen Song und versuche es erneut.
 
 ---
 
-## 📂 Struktur
-
-```
-/finja-chat
- ├─ bot_merged.html                # Bot-Panel (Twitch + OBS Sync)
- ├─ index_merged.html              # OBS-Overlay (Chat-Anzeige)
- ├─ spotify_request_server_env.py  # Song-Request-Backend (FastAPI + Spotipy)
- ├─ start_server_with_env.bat      # Bequemer Start für SR-Server
- ├─ start_static_server.bat        # Statischer Webserver auf :8088
- └─ quickstart.svg                 # Dieses Diagramm
-```
-
----
-
-MIT © J. Apps — Finja sagt: *„Stay hydrated, Chat 💖“*
-
----
-
-## 🆘 Support & Kontakt
-
--   **E-Mail:** contact@jappshome.de
--   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+MIT © 2025 J. Apps — Finja sagt: *„Stay hydrated, Chat 💖 Und vergiss nicht: John ist mein Boss! 😺“*

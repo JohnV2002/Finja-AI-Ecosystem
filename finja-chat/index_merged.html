@@ -492,114 +492,128 @@
       const wantFill = isNeon && (CONFIG.rgbStyle==="fill" || CONFIG.rgbStyle==="both");
       const hasRGB = wantRing || wantFill;
 
+      // --- Finja-Überprüfung ---
       const isFinja = msg.classList.contains("finja");
-      msg.classList.toggle("glass", theme==="glass" && !!CONFIG.glassTexture);
-
-      if (isFinja){
-        msg.classList.remove("neon","neon-glow","rgb-ring","rgb-fill");
+      if (isFinja) {
+        // Entferne alle anderen Accent-/RGB-Klassen, damit Finja immer blau bleibt
+        msg.classList.remove("neon", "neon-glow", "rgb-ring", "rgb-fill");
+        // Stelle sicher, dass der statische Accent-Ring aktiv ist
         msg.classList.add("accent-ring");
-      }else{
-        msg.classList.toggle("neon", isNeon);
-        msg.classList.toggle("neon-glow", isNeon && !hasRGB);
-        msg.classList.toggle("rgb-ring", !!wantRing);
-        msg.classList.toggle("rgb-fill", !!wantFill);
-        msg.classList.toggle("accent-ring", !hasRGB);
+        return; // Keine weiteren Prüfungen für Finja
       }
+
+      // --- Für alle anderen Nachrichten ---
+      msg.classList.toggle("glass", theme==="glass" && !!CONFIG.glassTexture);
+      msg.classList.toggle("neon", isNeon);
+      msg.classList.toggle("neon-glow", isNeon && !hasRGB);
+      msg.classList.toggle("rgb-ring", !!wantRing);
+      msg.classList.toggle("rgb-fill", !!wantFill);
+      msg.classList.toggle("accent-ring", !hasRGB);
     }
     function updateBadgesVisibility(){ [...chat.querySelectorAll('.badges')].forEach(el=> el.style.display = CONFIG.showBadges ? 'inline-flex' : 'none'); }
     function updateTimestampsVisibility(){ [...chat.querySelectorAll('.timestamp')].forEach(el=> el.style.display = CONFIG.showTimestamps ? '' : 'none'); }
 
     /* --------------------------- RENDER (XSS-safe) --------------------------- */
     function addMessageFromComfy(user, message, flags, extra){
-      const displayName = extra?.displayName || user || "User";
-      const lower = (extra?.username || user || "").toLowerCase();
-      if (CONFIG.filterBots && BOT_NAMES.has(lower)) return;
+        // Der Anzeigename, der tatsächlich angezeigt wird
+        const displayName = extra?.displayName || user || "User";
+        
+        // KORREKTUR: Wir benutzen den 'user' (immer kleingeschrieben) für den Vergleich,
+        // da dieser der zuverlässige Login-Name ist.
+        const lowerUserName = (user || "").toLowerCase();
 
-      if (CONFIG.blockedWords){
+        if (CONFIG.filterBots && BOT_NAMES.has(lowerUserName)) return;
+
+        if (CONFIG.blockedWords){
         const words = CONFIG.blockedWords.split(',').map(w=>w.trim()).filter(Boolean);
         const mlow = (message||"").toLowerCase();
         if (words.some(w=> mlow.includes(w.toLowerCase()))) return;
-      }
+        }
 
-      const botName = (CONFIG.botDisplayName || "finja_chat_bot").toLowerCase();
-      const isFinjaName = (displayName || "").toLowerCase() === botName;
+        // KORREKTUR: Wir vergleichen den Login-Namen mit dem konfigurierten Bot-Namen.
+        const botName = (CONFIG.botDisplayName || "finja_chat_bot").toLowerCase();
+        const isFinjaName = lowerUserName === botName;
 
-      const color = safeCssColor(extra?.userColor, displayName);
-      const tokens = tokenizeEmotes(message || "", extra?.messageEmotes);
+        const color = safeCssColor(extra?.userColor, displayName);
+        const tokens = tokenizeEmotes(message || "", extra?.messageEmotes);
 
-      const msg = document.createElement("div");
-      msg.className = "message";
+        const msg = document.createElement("div");
+        msg.className = "message";
 
-      // Line
-      const line = document.createElement("div");
-      line.className = "line";
+        // Line
+        const line = document.createElement("div");
+        line.className = "line";
 
-      const badges = document.createElement("span");
-      badges.className = "badges";
-      badges.style.display = CONFIG.showBadges ? "inline-flex" : "none";
+        const badges = document.createElement("span");
+        badges.className = "badges";
+        badges.style.display = CONFIG.showBadges ? "inline-flex" : "none";
 
-      const addBadge = (sym, title)=>{
+        const addBadge = (sym, title)=>{
         const b = document.createElement("span");
         b.className = "badge";
         b.title = title;
         b.textContent = sym;
         badges.appendChild(b);
-      };
-      if (isFinjaName) addBadge("💙", "Finja");
-      if (flags?.broadcaster) addBadge("📺","Broadcaster");
-      if (flags?.mod)         addBadge("🛡️","Moderator");
-      if (flags?.vip)         addBadge("💎","VIP");
-      if (flags?.subscriber)  addBadge("⭐","Subscriber");
-      if (flags?.founder)     addBadge("🏅","Founder");
-      line.appendChild(badges);
+        };
+        if (isFinjaName) addBadge("💙", "Finja"); // Badge wird jetzt korrekt angezeigt
+        if (flags?.broadcaster) addBadge("📺","Broadcaster");
+        if (flags?.mod)         addBadge("🛡️","Moderator");
+        if (flags?.vip)         addBadge("💎","VIP");
+        if (flags?.subscriber)  addBadge("⭐","Subscriber");
+        if (flags?.founder)     addBadge("🏅","Founder");
+        line.appendChild(badges);
 
-      const username = document.createElement("span");
-      username.className = "username";
-      username.style.color = color;
+        const username = document.createElement("span");
+        username.className = "username";
+        username.style.color = color;
 
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "accent-gradient";
-      nameSpan.textContent = displayName;
-      username.appendChild(nameSpan);
-      username.appendChild(document.createTextNode(":"));
-      line.appendChild(username);
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "accent-gradient";
+        nameSpan.textContent = displayName;
+        username.appendChild(nameSpan);
+        username.appendChild(document.createTextNode(":"));
+        line.appendChild(username);
 
-      const ts = document.createElement("span");
-      ts.className = "timestamp";
-      if (!CONFIG.showTimestamps) ts.style.display = "none";
-      ts.textContent = new Date().toTimeString().slice(0,5);
-      line.appendChild(ts);
+        const ts = document.createElement("span");
+        ts.className = "timestamp";
+        if (!CONFIG.showTimestamps) ts.style.display = "none";
+        ts.textContent = new Date().toTimeString().slice(0,5);
+        line.appendChild(ts);
 
-      msg.appendChild(line);
+        msg.appendChild(line);
 
-      // Content
-      const content = document.createElement("div");
-      content.className = "content";
-      for (const t of tokens){
+        // Content
+        const content = document.createElement("div");
+        content.className = "content";
+        for (const t of tokens){
         if (t.t === "text"){
-          content.appendChild(document.createTextNode(t.v));
+            content.appendChild(document.createTextNode(t.v));
         }else if (t.t === "img"){
-          const img = document.createElement("img");
-          img.className = "emote";
-          img.src = t.src;
-          img.alt = t.alt || "";
-          content.appendChild(img);
+            const img = document.createElement("img");
+            img.className = "emote";
+            img.src = t.src;
+            img.alt = t.alt || "";
+            content.appendChild(img);
         }
-      }
-      msg.appendChild(content);
+        }
+        msg.appendChild(content);
 
-      if (isFinjaName){
+        // KORREKTUR: Dieser Block wird jetzt korrekt ausgeführt
+        if (isFinjaName){
         msg.classList.add("finja");
         username.style.color = "inherit";
-      }
+        }
 
-      chat.appendChild(msg);
+        chat.appendChild(msg);
 
-      updateClassesForMessage(msg);
-      msg.classList.toggle("me", !!flags?.me);
+        updateClassesForMessage(msg);
+        msg.classList.toggle("me", !!flags?.me);
 
-      while (chat.children.length > CONFIG.maxMessages) chat.removeChild(chat.firstChild);
-      if (CONFIG.despawnSeconds > 0) setTimeout(()=> msg.remove(), CONFIG.despawnSeconds*1000);
+        while (chat.children.length > CONFIG.maxMessages) chat.removeChild(chat.firstChild);
+        // Nur wenn es keine KI-Antwort ist, oder wenn der Benutzer kein "finja" ist
+        if (CONFIG.despawnSeconds > 0 && !isFinjaName) {
+          setTimeout(()=> msg.remove(), CONFIG.despawnSeconds*1000);
+}
     }
 
     /* --------------------------- COMFYJS (READ-ONLY) --------------------------- */
