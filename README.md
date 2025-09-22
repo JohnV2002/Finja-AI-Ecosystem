@@ -54,7 +54,7 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 | Hauptkomponente             | Status     | Bemerkungen |
 |-----------------------------|------------|-------------|
 | **assets**                  |  Stabil   | Keine bekannten Probleme |
-| **finja-chat**              |  Stabil   | Funktioniert einwandfrei |
+| **finja-chat**              |  Stabil   | Added LLM Support, Made it more Modular |
 | **finja-music**             |  Stabil   | Snyk false Positive |
 | &nbsp;&nbsp;└─ 89.0RTL      |  Stabil   | Snyk false Positive |
 | &nbsp;&nbsp;└─ MDR          |  Stabil   | Keine Probleme |
@@ -70,7 +70,7 @@ Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die voll
 | &nbsp;&nbsp;└─ Chat Commands | ⚠ WIP      | In Planung |
 | &nbsp;&nbsp;└─ Dance zu Liked Music | ⚠ WIP | In Planung |
 
-**One week break! To gather thoughts and new Ideas then im back to Working on this Projekt!**
+**Im BACK! Working on Stuff.**
 
 ---
 
