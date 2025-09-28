@@ -28,6 +28,7 @@
 
 * **Schau dir Finja live an jeden Samstag auf Twitch**&nbsp;&nbsp;&nbsp;[![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
 * **Schau auf Discord vorbei für Mehr Projekte**&nbsp;&nbsp;&nbsp;[![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
+* **Schau gerne auf Meiner Website vorbei**&nbsp;&nbsp;&nbsp;[![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
 
 ---
 
