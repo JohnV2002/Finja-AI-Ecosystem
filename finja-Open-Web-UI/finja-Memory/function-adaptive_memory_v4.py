@@ -28,26 +28,26 @@
 ----------------------------------------------------------------------
  Updates 4.2:
  ---------------------------------------------------------------------
+  + **Server-Verbindungs-Check:** Das Plugin prüft beim Start, ob der
+    Memory-Server erreichbar ist. Falls nicht, wird eine klare Fehlermeldung
+    mit Link zur Anleitung direkt im Chat angezeigt.
+
   + **Prompt-Feintuning:** Der Prompt zur Extraktion wurde gehärtet. Er
     generalisiert nun von einmaligen Ereignissen zu dauerhaften Fakten
-    (z.B. "Ich aß gestern Pizza" -> "User mag Pizza"), was zu qualitativ
-    hochwertigeren Erinnerungen führt.
+    (z.B. "Ich aß gestern Pizza" -> "User mag Pizza").
 
   + **Duales Fallback-System:** Lokales Embedding als Fallback für die
     Relevanz-Prüfung (Phase 1) und die Extraktion (Phase 2) implementiert.
-    Das Plugin bleibt damit auch bei einem OpenAI-Ausfall funktionsfähig.
 
   + **"Local Only"-Modus:** Neue Einstellung `processing_mode` hinzugefügt,
     damit das Plugin auf Wunsch komplett ohne OpenAI betrieben werden kann.
 
   + **Verbessertes User-Feedback:** Das Plugin gibt dem User jetzt klare und
-    freundliche Statusmeldungen im Chat aus (z.B. bei der Analyse, beim
-    Speichern oder wenn ein Duplikat gefunden wurde).
+    freundliche Statusmeldungen für alle Aktionen im Chat aus.
 
   + **Robuste Logik & Refactoring:** Die zentrale `inlet`-Methode wurde 
-    grundlegend überarbeitet, um die verschiedenen Modi (OpenAI, Local Only, 
-    Fallback) sauber, fehlerresistent und verständlich zu steuern.
-
+    grundlegend überarbeitet, um alle Modi sauber und fehlerresistent zu steuern.
+    
 ----------------------------------------------------------------------
  Roadmap:
  ---------------------------------------------------------------------
@@ -427,6 +427,26 @@ class Filter:
     ) -> Dict[str, Any]:
          # --- 1. SETUP: Grundlegende Daten vorbereiten ---
         _log("inlet: received batch")
+
+        try:
+            # Wir nutzen einen leichten Endpunkt wie /memory_stats für den Check.
+            # Wichtig: Wir brauchen hier ein eigenes Timeout, um nicht ewig zu warten.
+            s = await self._session_get()
+            async with s.get(self._mem_url("memory_stats"), timeout=aiohttp.ClientTimeout(total=5)) as r:
+                if r.status != 200:
+                    # Wenn der Server zwar da ist, aber einen Fehler meldet.
+                    raise ConnectionError(f"Server responded with status {r.status}")
+        except Exception as e:
+        # Wenn der Server gar nicht antwortet (Timeout, Connection refused etc.).
+            error_message = (
+                "🚨 **Memory-Server nicht erreichbar!**\n\n"
+                "Bitte stelle sicher, dass der externe Server korrekt gestartet wurde. "
+                "Die Anleitung findest du hier: [GitHub-Anleitung](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-Open-Web-UI/finja-Memory)"
+            )
+            await self._emit_status(__event_emitter__, error_message)
+            _log(f"inlet: connection to memory server failed. Aborting. Error: {e}")
+            return body # Wichtig: Wir brechen hier ab, ohne das System abstürzen zu lassen.
+
 
         # 1) user_id # !snyk FALSE Positiv! 
 
