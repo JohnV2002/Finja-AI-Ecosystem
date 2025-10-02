@@ -2,40 +2,6 @@
 
 Eine Übersicht der geplanten Features für den Finja Memory-Service und das OpenWebUI-Plugin, sortiert nach Priorität.
 
----
-
-## 🔴 Prio 1.0: Lokaler Embedding-Fallback & Schema-Erweiterung
-
-### Lokaler Embedding-Fallback beim Upload
-
--   **Warum:** Stellt sicher, dass das Speichern von Erinnerungen auch dann intelligent funktioniert, wenn die OpenAI-API ausfällt oder ein Timeout hat. Der Abruf relevanter Erinnerungen bleibt weiterhin OpenAI-basiert.
--   **Flow beim Upload:**
-    1.  Versuche, eine neue Erinnerung via **OpenAI-Extraktion** zu verarbeiten.
-    2.  **Bei Erfolg:** Normale Pipeline (Spam-Filter → Duplikat-Check → Speichern).
-    3.  **Bei Fehler (Fallback):**
-        -   Nutze **lokale Embeddings** (z.B. `all-MiniLM-L6-v2`) direkt im OpenWebUI-Plugin.
-        -   Prüfe die Relevanz der neuen Erinnerung gegen die bereits vorhandenen (`/get_memories`).
-        -   Speichere nur, wenn der Cosine-Similarity-Score einen Schwellenwert (`MIN_RELEVANCE_ON_UPLOAD`) überschreitet.
--   **Wichtig:** Der Memory-Server selbst speichert oder verarbeitet **keine Vektoren**. Dies geschieht ausschließlich im Plugin.
--   **User-Feedback (Status-Events im Plugin):**
-    -   `⚠️ OpenAI nicht erreichbar – Fallback auf lokale Embeddings.`
-    -   `✅ Embedding-Analyse erfolgreich: 'mag sushi' ist relevant (Score: 0.95) – gespeichert.`
-    -   `❌ Embedding-Score zu niedrig – nicht gespeichert.`
-
-### Schema-Erweiterung (MemoryItem)
-
-Die Struktur einer Erinnerung wird um folgende Felder erweitert:
-
-```python
-{
-  "bank": "General",
-  "vector": None, # Nur temporär im Plugin genutzt, nicht im Server gespeichert
-  "expires_at": None, # Optionales Ablaufdatum (siehe Prio 0.1)
-  "meta": {} # Für lose Metadaten, z.B. {"source": "voice", "audio_url": "..."}
-}
-```
-
----
 
 ## 🟠 Prio 0.6: Verbesserte Filter & Voice-Input
 

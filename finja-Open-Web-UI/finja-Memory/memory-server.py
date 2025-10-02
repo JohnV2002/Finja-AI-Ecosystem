@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 1.0.1
+  Version: 1.0.2
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -24,11 +24,11 @@
   • Vollständige Entkopplung vom lokalen Vektor-Store
   • Dedupe-Mechanismus & Sicherheitsprüfungen serverseitig
   • Unterstützt parallele Clients mit Locking-System
-
-----------------------------------------------------------------------
- Updates 1.0.1:
- ---------------------------------------------------------------------
   • Keys Werden jetzt per .env geladen = snyk happy + keine hardcoded keys mehr!
+----------------------------------------------------------------------
+ Updates 1.0.2:
+ ---------------------------------------------------------------------
+  • Optionale Memory-Items hinzugefügt, Für später vorbereitung.
 
 ----------------------------------------------------------------------
  Roadmap:
@@ -53,7 +53,7 @@
 
 from fastapi import FastAPI, HTTPException, Body, Request
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 import uuid, time, json, threading, os
 from dotenv import load_dotenv
 
@@ -94,6 +94,11 @@ class MemoryItem(BaseModel):
 
     text: str                   # Inhalt der Erinnerung
     timestamp: float = 0        # Unix-Timestamp (wann gespeichert)
+
+    # --- NEUE OPTIONALE FELDER ---
+    bank: Optional[str] = "General"
+    expires_at: Optional[float] = None
+    meta: Optional[Dict[str, Any]] = {}
 
 class UserAction(BaseModel):
     user_id: str    # Für Backup/Prune Aktionen
