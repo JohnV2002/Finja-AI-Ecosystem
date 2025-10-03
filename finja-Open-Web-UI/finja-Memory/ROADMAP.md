@@ -11,7 +11,7 @@ Eine Übersicht der verbleibenden Features für den Finja Memory-Service und das
 -   **Speicherort:** `/backups/YYYY-MM-DD/<user_id>.tar.gz` im Docker-Volume.
 -   **Abruf:** Über einen neuen Endpoint `GET /download_backup?user_id&date=...` (später mit Passwortschutz weiterem). 
 -   **DATEIN SICHER SPEICHERN:** (EXTREM WICHTIG  | Grundgedanke --> User id + fester Salt? Admin kann die User Id nicht sehen hat also nur den Salt. datein also jsons werden encrypted hoch geladen.)
--   **Aufbewahrung (Retention):** Eine Code-Konstante `BACKUP_RETENTION_DAYS = 14` in `memory-server.py` legt fest, wie lange Backups behalten werden.
+-   **Aufbewahrung (Retention):** Eine Code-Konstante `BACKUP_RETENTION_DAYS = 14` in `memory-server.py` legt fest, wie lange Backups behalten werden. (optional anmachbar oder auschaltbar)
 -   **Endpunkte:** `POST /backup_all_now` (Admin) und eine erweiterte `POST /backup_now`-Funktion.
 
 ---

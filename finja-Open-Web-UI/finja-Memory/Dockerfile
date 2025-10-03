@@ -1,12 +1,12 @@
 # =====================================================================
-#  Project: Finja Cloud Memory - Dockerfile: v4.1.3 (Fix)
+#  Project: Finja Cloud Memory - Dockerfile: v4.1.4 (Fix)
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
 #  Inspired by: gramanoid (diligent_chooser)
 #  License: Apache License 2.0
 #  Copyright (c) 2025 J. Apps
 #
 # =====================================================================
-# Updated in v4.1.3:
+# Updated in v4.1.4:
 # =====================================================================
 #   + Switched from python:slim to python:alpine for minimal base and 3 CVEs.
 #   + Implemented a multi-stage build to keep the final image clean and small.
@@ -14,6 +14,7 @@
 #   + Removed insecure COPY of .env file; configuration is now passed in at runtime.
 #   + Optimized layer caching by copying requirements.txt first.
 #   + ✅ FIXED: Now copies both site-packages AND binaries (uvicorn, etc.)
+#   + ✅ FIXED: ADDED CHOWN for user Permissions
 # =====================================================================
 
 # Stage 1: Build Stage
@@ -43,6 +44,8 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Kopiere den App-Code (nachdem die Tools vorhanden sind)
 COPY memory-server.py .
+
+RUN chown -R appuser:appgroup /app
 
 # Wechsle zum neuen User
 USER appuser

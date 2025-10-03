@@ -5,7 +5,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3
+  Version: 4.3.1
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -622,12 +622,11 @@ class Filter:
             # Wir nutzen einen leichten Endpunkt wie /memory_stats für den Check.
             # Wichtig: Wir brauchen hier ein eigenes Timeout, um nicht ewig zu warten.
             s = await self._session_get()
-            async with s.get(self._mem_url("memory_stats"), timeout=aiohttp.ClientTimeout(total=5)) as r:
+            headers = {"X-API-Key": self.valves.memory_api_key}
+            async with s.get(self._mem_url("memory_stats"), headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as r:
                 if r.status != 200:
-                    # Wenn der Server zwar da ist, aber einen Fehler meldet.
                     raise ConnectionError(f"Server responded with status {r.status}")
         except Exception as e:
-        # Wenn der Server gar nicht antwortet (Timeout, Connection refused etc.).
             error_message = (
                 "🚨 **Memory-Server nicht erreichbar!**\n\n"
                 "Bitte stelle sicher, dass der externe Server korrekt gestartet wurde. "
@@ -850,60 +849,6 @@ class Filter:
             else:
                 await self._emit_status(__event_emitter__, "❌ Lokale Analyse fehlgeschlagen.")
 
-        return body
-
-        # =================================================================
-        # PHASE 2: NEUE ERINNERUNGEN EXTRAHIEREN
-        # Wird nur ausgeführt, wenn in Phase 1 nichts Relevantes gefunden wurde.
-        # =================================================================
-        
-        # --- Pfad 2A: Primärer OpenAI-Pfad für die Extraktion ---
-        if self.valves.processing_mode == "openai":
-            try:
-                _log("extract: trying OpenAI...")
-                await self._emit_status(__event_emitter__, "🧠 Analysiere Nachricht auf neue Fakten...")
-                new_mems = await self._extract_new_memories(last_user) # Die "intelligente" Extraktion.
-                if new_mems:
-                    added_count = await self._upload_new_dedup(user_id, new_mems)
-                    plural = "Erinnerung" if added_count == 1 else "Erinnerungen"
-                    await self._emit_status(__event_emitter__, f"✅ {added_count} neue {plural} gelernt und gespeichert.") 
-                else:
-                    _log("extract: OpenAI found no new memories to save.")
-                    await self._emit_status(__event_emitter__, "ℹ️ Nichts Neues zum Merken gefunden.")
-                return body # Wichtig: Nach diesem Pfad sind wir immer fertig, daher hier ein return.
-            except Exception as e:
-                _log(f"extract: OpenAI failed ({e}), using fallback...")
-                await self._emit_status(__event_emitter__, "⚠️ OpenAI nicht erreichbar. Wechsle auf lokale Analyse...")
-                if not self.valves.use_local_embedding_fallback:
-                    raise e
-        
-        # --- Pfad 2B: Lokaler Pfad (entweder als "local_only"-Modus oder als Fallback) ---
-        _log("extract: using local embeddings for deduplication check...")
-        await self._emit_status(__event_emitter__, "⚙️ Führe lokale Analyse durch...")
-        if not candidates: # Sonderfall: Dies ist die allererste Erinnerung für diesen User.
-            _log("fallback: No existing memories, saving new memory directly.")
-            await self._upload_new_dedup(user_id, [{"content": last_user}])
-            await self._emit_status(__event_emitter__, "✅ Erster Fakt gelernt und lokal gespeichert.")
-        else:
-            # Führe einen lokalen Duplikats-Check durch.
-            new_embedding = await self._calculate_embeddings([last_user])
-            existing_embeddings = await self._calculate_embeddings(candidates)
-            if new_embedding is not None and existing_embeddings is not None:
-                similarities = cosine_similarity(new_embedding, existing_embeddings)
-                max_similarity = np.max(similarities) # Finde die höchste Ähnlichkeit zu einer alten Erinnerung.
-                _log(f"fallback: Max similarity to existing memories is {max_similarity:.4f}")
-
-                # Nur speichern, wenn die Ähnlichkeit UNTER dem Duplikats-Schwellenwert liegt.
-                if max_similarity < self.valves.min_similarity_for_upload:
-                    await self._upload_new_dedup(user_id, [{"content": last_user}])
-                    await self._emit_status(__event_emitter__, f"✅ Neuer Fakt gelernt (Ähnlichkeit zu alten Fakten: {max_similarity:.0%}).")
-                else:
-                    await self._emit_status(__event_emitter__, f"❌ Fakt zu ähnlich, nicht erneut gespeichert (Ähnlichkeit: {max_similarity:.0%}).")
-            else:
-                _log("fallback: Failed to calculate embeddings, cannot save.")
-                await self._emit_status(__event_emitter__, "❌ Lokale Analyse fehlgeschlagen: Embeddings konnten nicht berechnet werden.")
-
-        # Der finale Return, der sicherstellt, dass die Funktion immer ein Dictionary zurückgibt und den Fehler behebt.
         return body
 
     async def outlet(
