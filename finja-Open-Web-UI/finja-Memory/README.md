@@ -1,142 +1,87 @@
-# 📚 Finja Cloud Memory
+# 📚 Finja Cloud Memory v1.2.0
 
-Ein leichtgewichtiger, blitzschneller **Memory-Service** für Finja & AI-Projekte 🚀  
-Speichert Erinnerungen (`memories`) **pro Benutzer** und verbindet sich nahtlos mit **OpenWebUI** via dem `adaptive_memory_v4` Plugin.
+Ein leichtgewichtiger, blitzschneller und externer **Memory-Service**, der als Langzeitgedächtnis für KI-Projekte wie Finja dient. Dieses System ist für die nahtlose Integration mit **OpenWebUI** über das `adaptive_memory_v4` Plugin konzipiert.
+
+---
+
+## 🚨 Wichtiger Hinweis: Externer Server Zwingend Erforderlich!
+
+Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und dem **Plugin**. Das Plugin funktioniert **NICHT** ohne den hier beschriebenen Memory-Server.
+
+> Bitte folge zuerst der Setup-Anleitung, um den Server via Docker zu starten, bevor du das Plugin in OpenWebUI installierst.
+
+---
+
+## ✨ Features
+
+### Server (`memory-server.py`)
+-   **Intelligenter RAM-Cache:** Hält aktive User-Daten im Arbeitsspeicher für blitzschnelle Lesezugriffe und gibt den Speicher nach einer Zeit der Inaktivität automatisch wieder frei.
+-   **Persistente Speicherung:** Sichert alle Erinnerungen als portable JSON-Dateien pro Benutzer in einem Docker-Volume.
+-   **Voice-Memory-Gerüst:** Bietet API-Endpunkte zur Annahme von Sprachdateien (`/add_voice_memory`) und zum Caching von Sprachausgaben (`/get_or_create_speech`), vorbereitet für STT/TTS-Modelle.
+-   **Datenkontrolle:** Enthält einen API-Endpunkt (`/delete_user_memories`), der es dem Plugin ermöglicht, alle Daten eines Benutzers auf Anfrage sicher und vollständig zu löschen.
+-   **Sicherheit:** Der Zugriff wird über einen `X-API-Key` in einer `.env`-Datei abgesichert.
+
+### Plugin (`adaptive_memory_v4.py`)
+-   **Intelligente Extraktion:** Nutzt konfigurierbare LLMs (z.B. `gpt-4o-mini`), um aus Gesprächen dauerhafte Fakten zu extrahieren und dabei von einmaligen Ereignissen zu generalisieren (z.B. "Ich aß gestern Pizza" -> "User mag Pizza").
+-   **Performance & Kosten-Optimierung:**
+    -   Ein **"Themen-Cache"** vermeidet unnötige API-Anfragen, solange das Gesprächsthema gleich bleibt.
+    -   Eine **lokale Vor-Filterung** reduziert die Anzahl der an OpenAI gesendeten Erinnerungen drastisch.
+-   **Robuste Duplikats-Erkennung:** Verwendet eine mehrstufige Prüfung (Cosine Similarity & Levenshtein-Distanz), um doppelte Erinnerungen zu blockieren.
+-   **"Local Only"-Modus & Fallback:** Funktioniert dank lokaler Embedding-Modelle auch komplett ohne OpenAI oder als Fallback bei API-Fehlern.
+-   **Benutzerfreundlichkeit:**
+    -   Ein **Server-Verbindungs-Check** gibt beim Start eine klare Fehlermeldung, falls der Server nicht erreichbar ist.
+    -   **Klares User-Feedback** im Chat informiert über alle Aktionen des Plugins.
+    -   Eine **Zwei-Stufen-Bestätigung** per Chat-Befehl ermöglicht dem User, die Löschung seiner Daten selbst zu steuern.
+
+---
+
+## 🚀 Setup mit Docker Compose (Empfohlen)
+
+Dies ist die einfachste und sicherste Methode, den Server zu starten.
+
+**1. Konfigurationsdatei erstellen**
+
+Erstelle im Hauptverzeichnis eine `.env`-Datei. Hier werden deine geheimen API-Keys gespeichert.
+```ini
+# .env
+MEMORY_API_KEY="dein-super-sicherer-key-12345"
+OPENAI_API_KEY="sk-dein-openai-key-falls-benoetigt" # Ab jetzt Optional :3
+```
+> ⚠️ **Wichtig:** Füge die `.env`-Datei unbedingt zu deiner `.gitignore`-Datei hinzu, damit deine API-Keys niemals auf GitHub landen!
+
+**2. Server starten**
+
+1.  **Berechtigungen korrigieren (einmalig):** Führe im Projektordner `sudo chown -R $(id -u):$(id -g) .` aus, um Berechtigungsprobleme mit Docker zu vermeiden.
+2.  **Container starten:** Führe den folgenden Befehl im Terminal aus:
+    ```bash
+    docker-compose up -d --build
+    ```
+    -   `up`: Startet den Service.
+    -   `-d`: Startet den Container im Hintergrund (detached mode).
+    -   `--build`: Baut das Docker-Image neu, falls es Änderungen gab.
+
+**3. API testen**
+
+Nachdem der Container läuft, kannst du die API testen. Die erwartete Antwort bei einem leeren Server ist `[]`.
+
+-   **Mit PowerShell:**
+    ```powershell
+    Invoke-WebRequest -Uri "http://localhost:8000/get_memories?user_id=test" -Headers @{"X-API-Key" = "dein-super-sicherer-key-12345"}
+    ```
+-   **Mit cURL:**
+    ```bash
+    curl -X GET "http://localhost:8000/get_memories?user_id=test" -H "X-API-Key: dein-super-sicherer-key-12345"
+    ```
 
 ---
 
 ## 🛣️ Roadmap
 
-[➡️ **Unsere vollständige und aktuelle Roadmap findest du hier in der `ROADMAP.md`**](./ROADMAP.md)
+Die vollständige und aktuelle Roadmap wird jetzt in der Datei `ROADMAP.md` gepflegt, um diese README übersichtlich zu halten.
 
-Hier ist ein kurzer Auszug der aktuellen Planung:
-
-> -   [ ] **Feinabstimmung:** Weitere Optimierungen der Erkennungslogik & Relevanzfilter.
-> -   [ ] **Validierung:** Strengere Überprüfung der extrahierten Fakten vor dem Speichern.
-> -   [ ] **Logging:** Erweiterte Logs, inklusive der coolen Terminal-Animationen aus früheren Versionen.
-> -   [ ] **Zukünftige Ideen:** Platz für neue Features.
-
-
-## 🖥️ Der Memory-Server
-
-Der Kern des Systems ist ein kleiner, in Python geschriebener Server, der die Erinnerungen verwaltet.
-
-### Was ist neu im Dockerfile? (v4.1.1)
-Das `Dockerfile` wurde optimiert, um es sicherer und effizienter zu machen:
--   **Sicheres Basis-Image**: Umstieg auf `python:3.12-alpine`. Obwohl dieses Image aktuell 3 bekannte Sicherheitslücken (CVEs) ohne verfügbaren Fix aufweist, wird es als sicherer gegenüber der `slim-bookworm`-Version eingestuft, die eine kritische Sicherheitslücke enthielt.
--   **Stabile Abhängigkeiten**: Alle Python-Bibliotheken werden jetzt über eine `requirements.txt`-Datei verwaltet. Das sorgt für nachvollziehbare und stabile Builds.
--   **Optimierter Build-Prozess**: Durch die richtige Reihenfolge der `COPY`-Befehle und die Verwendung von `--no-cache-dir` wird der Docker-Build-Cache besser genutzt und das finale Image ist kleiner.
-
-### `memory-server.py`
-Der eigentliche Server-Code bietet eine REST-API mit folgenden Funktionen:
--   Speichert Erinnerungen als **JSON-Dateien pro Benutzer**.
--   Bietet Endpunkte zum Hinzufügen, Abrufen, Löschen und Sichern von Erinnerungen.
--   Sichert den Zugriff über einen `X-API-Key` ab.
--   Läuft extrem ressourcenschonend und ist ideal für kleine V-Server oder Docker-Umgebungen.
-
-
-### Setup mit Docker Compose (Empfohlen)
-Die einfachste und sicherste Methode, den Server zu starten, ist mit Docker Compose.
-
-**1. Konfigurationsdatei erstellen**
-Erstelle im Hauptverzeichnis eine `.env`-Datei, falls noch nicht geschehen. Hier wird dein geheimer API-Key gespeichert.
-```ini
-# .env
-MEMORY_API_KEY=dein-super-sicherer-production-key-12345
-```
-> ⚠️ **Wichtig:** Füge die `.env`-Datei unbedingt zu deiner `.gitignore`-Datei hinzu, damit dein API-Key niemals auf GitHub landet!
-
-**2. Server per Kommandozeile starten**
-Dies ist der schnellste und direkteste Weg.
-1.  Stelle sicher, dass du eine `docker-compose.yml`-Datei im Hauptverzeichnis hast.
-2.  Öffne ein Terminal im Projektverzeichnis und führe folgenden Befehl aus:
-    ```bash
-    docker compose up -d --build
-    ```
-    -   `docker compose up`: Startet den Service.
-    -   `-d`: Startet den Container im Hintergrund (detached mode).
-    -   `--build`: Baut das Docker-Image neu, falls es Änderungen gab.
-
-### API testen
-Nachdem der Container läuft, kannst du die API testen:
-```bash
-curl -X GET "http://localhost:8000/get_memories?user_id=test" \
-  -H "X-API-Key: dein-super-sicherer-production-key-12345"
-```
-
--   **Was es macht:** Es nutzt ein schlankes Python 3.12 Image, installiert die nötigen Bibliotheken (`FastAPI`, `Uvicorn`, `Pydantic`, `python-dotenv`), kopiert den Code und startet den Server auf Port `8000`.
-
-### `memory-server.py`
-
-Der eigentliche Server-Code bietet eine REST-API mit folgenden Funktionen:
-
--   Speichert Erinnerungen als **JSON-Dateien pro Benutzer**.
--   Bietet Endpunkte zum Hinzufügen, Abrufen, Löschen und Sichern von Erinnerungen.
--   Sichert den Zugriff über einen `X-API-Key` ab.
--   Läuft extrem ressourcenschonend und ist ideal für kleine V-Server oder Docker-Umgebungen.
-
-### Konfiguration via `.env`
-
-Erstelle eine `.env`-Datei im Hauptverzeichnis des Projekts, um den Server zu konfigurieren.
-
-```bash
-# .env Datei
-MEMORY_API_KEY=dein-super-sicherer-api-key-hier
-# Optional: Weitere Einstellungen
-# MAX_RAM_MEMORIES=5000
-# BACKUP_INTERVAL=600
-```
-
-**Option B (sicherer für Produktion):** Der Key wird als Umgebungsvariable übergeben.
-```bash
-docker run -d \
-  -p 8000:8000 \
-  -v $(pwd)/user_memories:/app/user_memories \
-  -e MEMORY_API_KEY="dein-production-key" \
-  --name finja-memory-server \
-  finja-memory-server
-```
-**Tipp:** Mit `-v` bindest du den Ordner `user_memories` an deinen Host. So bleiben die Daten auch nach einem Löschen des Containers erhalten und sind leicht zu sichern.
-
-**4. API testen**
-```bash
-curl -X GET "http://localhost:8000/get_memories?user_id=test" \
-  -H "X-API-Key: dein-super-sicherer-production-key-12345"
-```
+[➡️ **Zur vollständigen Roadmap (ROADMAP.md)**](./ROADMAP.md)
 
 ---
-
-## 🤖 Das OpenWebUI Plugin: `adaptive_memory_v4`
-
-Das Plugin ist die Brücke zwischen OpenWebUI und deinem Memory-Server.
-
-### Was es macht
-
--   **Erinnerungen abrufen:** Holt vor jeder Antwort die relevanten Erinnerungen vom Memory-Server.
--   **Relevanzprüfung:** Ein LLM (z.B. OpenAI) bewertet, ob gespeicherte Fakten zur aktuellen Frage des Nutzers passen.
--   **Kontext-Injektion:** Nur die als relevant markierten Erinnerungen werden dem System-Prompt hinzugefügt, sodass die KI "sich erinnert".
--   **Erinnerungen extrahieren:** Erkennt und speichert neue, langfristig relevante Fakten aus den Antworten des Nutzers (z.B. Name, Hobbys, Vorlieben).
--   **Filter:** Ignoriert irrelevante Nachrichten (z.B. "Hallo", "Wie geht's?") und verhindert doppelte Einträge.
-
-### Vorteile
-
--   **Personalisierte Gespräche:** Die KI kann sich an Details aus früheren Chats erinnern.
--   **Skalierbar:** Trennt die Erinnerungen für jeden Benutzer sauber.
--   **Flexibel:** Der Memory-Server kann lokal oder auf einem externen Server laufen.
-
----
-
-## ⚠️ Sicherheitshinweise
-
--   **API Key Management:** Schreibe API-Keys **niemals** direkt in den Code. Nutze immer `.env`-Dateien oder Umgebungsvariablen und rotiere die Keys regelmäßig.
--   **.gitignore Eintrag:**
-    ```gitignore
-    # .gitignore
-    .env
-    *.env.local
-    user_memories/
-    __pycache__/
-    ```
 
 ## 💖 Credits & Lizenz
 
@@ -145,7 +90,7 @@ Ein großes Dankeschön geht an **gramanoid (aka diligent_chooser)**, dessen Arb
 -   [Original Reddit-Post](https://www.reddit.com/r/OpenWebUI/comments/1kd0s49/adaptive_memory_v30_openwebui_plugin/)
 -   [Open WebUI Plugin-Seite](https://openwebui.com/f/alexgrama7/adaptive_memory_v2)
 
-Dieses Projekt steht unter der **[Apache License 2.0](./LICENSE)**.  
+Dieses Projekt steht unter der **[Apache License 2.0](./LICENSE)**.
 Copyright © 2025 J. Apps
 
 > ⚠️ **Hinweis:** Die Lizenz gilt nur für dieses Memory-Projekt. Alle anderen Module des Finja-Ökosystems bleiben unter der MIT-Lizenz.
