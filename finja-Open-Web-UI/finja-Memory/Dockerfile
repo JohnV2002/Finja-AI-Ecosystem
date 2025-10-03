@@ -1,12 +1,12 @@
 # =====================================================================
-#  Project: Finja Cloud Memory - Dockerfile: v4.1.4 (Fix)
+#  Project: Finja Cloud Memory - Dockerfile: v4.1.5 (Fix)
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
 #  Inspired by: gramanoid (diligent_chooser)
 #  License: Apache License 2.0
 #  Copyright (c) 2025 J. Apps
 #
 # =====================================================================
-# Updated in v4.1.4:
+# Updated in v4.1.5:
 # =====================================================================
 #   + Switched from python:slim to python:alpine for minimal base and 3 CVEs.
 #   + Implemented a multi-stage build to keep the final image clean and small.
@@ -38,6 +38,8 @@ WORKDIR /app
 # Erstelle einen dedizierten User (Security Best Practice)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
+RUN mkdir -p user_memories user_audio tts_cache
+
 # 💡 WICHTIG: Kopiere BEIDE – die Python-Pakete UND die Binaries!
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
@@ -45,7 +47,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Kopiere den App-Code (nachdem die Tools vorhanden sind)
 COPY memory-server.py .
 
-RUN chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app user_memories user_audio tts_cache
 
 # Wechsle zum neuen User
 USER appuser

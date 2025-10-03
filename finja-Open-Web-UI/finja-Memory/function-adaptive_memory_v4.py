@@ -5,7 +5,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3.1
+  Version: 4.3.2
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -98,7 +98,7 @@ class Filter:
     class Valves(BaseModel):
         # --- LLM / OpenAI ---
         llm_api_endpoint_url: str = Field(default="https://api.openai.com/v1/chat/completions")
-        llm_model_name: str = Field(default="gpt-4o")
+        llm_model_name: str = Field(default="gpt-4o-mini")
         llm_api_key: str = Field(default="changeme-openai-key")
 
         # --- Memory Server ---
@@ -147,26 +147,29 @@ class Filter:
         # WICHTIG: Für Memory-Identifikation, nicht für Chat
         memory_identification_prompt: str = Field(
             default=(
-                "You are an automated JSON data extraction system. Your ONLY function is to identify "
-                "user-specific, persistent facts, preferences, goals, relationships, or interests from the "
-                "user's messages and output them STRICTLY as a JSON array of operations.\n\n"
-                "ABSOLUTE OUTPUT REQUIREMENT:\n"
-                "- Your ENTIRE response MUST be ONLY a valid JSON array starting with `[` and ending with `]`.\n"
-                "- Each element MUST be: {\"operation\": \"NEW\", \"content\": \"...\", \"tags\": [\"...\"], \"memory_bank\": \"...\"}\n"
-                "- EXTRACT ALL DISTINCT FACTS. If a message contains a name AND a preference, create an object for EACH fact.\n"
-                "- GENERALIZE FROM SINGLE EVENTS. If a user says 'I ate pizza yesterday', extract the persistent preference 'User likes pizza', not the one-time event.\n"
-                "- If NO relevant user-specific memories are found, output ONLY []\n"
-                "- DO NOT include ANY text before/after the JSON array. No notes, no markdown.\n\n"
+                "You are an automated JSON data extraction system. Your SOLE function is to identify "
+                "user-specific, persistent facts from user messages and output them STRICTLY as a JSON array.\n\n"
+                "ABSOLUTE RULES:\n"
+                "1. OUTPUT MUST BE A VALID JSON ARRAY. It must start with `[` and end with `]`. NO OTHER TEXT.\n"
+                "2. A SINGLE FACT MUST BE WRAPPED IN AN ARRAY. e.g., `[{\"operation\": ...}]`.\n"
+                "3. IF NO FACTS ARE FOUND, an empty array `[]` is the ONLY valid output.\n"
+                "4. EXTRACT ALL DISTINCT FACTS. If a message contains multiple facts (e.g., a name AND a preference), create a separate JSON object for EACH fact inside the array.\n"
+                "5. GENERALIZE FROM SINGLE EVENTS. If a user says 'I ate pizza yesterday', extract the persistent preference 'User likes pizza', not the one-time event.\n\n"
                 "ALLOWED TAGS: [\"identity\",\"behavior\",\"preference\",\"goal\",\"relationship\",\"possession\"]\n"
                 "MEMORY BANKS: \"General\", \"Personal\", \"Work\"\n\n"
-                "EXAMPLE OF CORRECT BEHAVIOR:\n"
-                "USER MESSAGE: \"Mein Name ist Peter und ich mag das Spiel Satisfactory.\"\n"
-                "YOUR OUTPUT MUST BE:\n"
+                "--- EXAMPLES ---\n"
+                "USER MESSAGE 1: \"Mein Name ist Peter und ich mag das Spiel Satisfactory.\"\n"
+                "CORRECT OUTPUT 1:\n"
                 "[\n"
                 "  {\"operation\": \"NEW\", \"content\": \"User's name is Peter\", \"tags\": [\"identity\"], \"memory_bank\": \"Personal\"},\n"
                 "  {\"operation\": \"NEW\", \"content\": \"User likes the game Satisfactory\", \"tags\": [\"preference\", \"behavior\"], \"memory_bank\": \"Personal\"}\n"
                 "]\n\n"
-                "Now, analyze the following user message(s) and output ONLY the JSON array."
+                "USER MESSAGE 2: \"Ich komme aus Deutschland.\"\n"
+                "CORRECT OUTPUT 2:\n"
+                "[\n"
+                "  {\"operation\": \"NEW\", \"content\": \"User is from Germany\", \"tags\": [\"identity\"], \"memory_bank\": \"Personal\"}\n"
+                "]\n\n"
+                "Now, analyze the following user message(s) and provide ONLY the JSON array output."
             )
         )
         # WICHTIG: Für Relevanz-Check, nicht für Chat
