@@ -5,7 +5,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3.2
+  Version: 4.3.3
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -14,6 +14,13 @@
   Support: https://buymeacoffee.com/J.Apps
 
 ----------------------------------------------------------------------
+ Updates 4.3.3:
+ ---------------------------------------------------------------------
+  + **Stabilitäts-Verbesserungen:**
+      - Das Timeout für externe Anfragen ist nun konfigurierbar.
+      - Der Parser für OpenAI-Antworten wurde gehärtet und kann nun auch
+        fehlerhafte Formate (einzelnes Objekt statt Liste) selbst korrigieren.
+
  Updates 4.3:
  ---------------------------------------------------------------------
   + **Datenschutz & Benutzerkontrolle (Memory-Löschung):**
@@ -41,6 +48,19 @@
 
   + **Robuste Logik & Refactoring:** Die zentrale `inlet`-Methode wurde 
     grundlegend überarbeitet, um alle Modi sauber und fehlerresistent zu steuern.
+      
+  + **Performance & Kosten-Optimierung:**
+      - Ein "Themen-Cache" vermeidet jetzt unnötige API-Anfragen komplett,
+        indem der Kontext wiederverwendet wird, solange das Thema gleich bleibt.
+      - Eine lokale Vor-Filterung reduziert die Anzahl der an OpenAI
+        gesendeten Erinnerungen drastisch, was Token und Kosten spart.
+
+  + **Duplicate-Killer 2.0 (Intelligente Duplikats-Erkennung):**
+      - Die Duplikats-Prüfung nutzt eine Kombination aus Cosine-Similarity
+        (via OpenAI oder lokal) und Levenshtein-Distanz für höchste Genauigkeit.
+
+  + **Erweiterter Content-Filter:** Neue, konfigurierbare Filter blockieren
+    zu kurze oder Spam-Erinnerungen bereits vor der Verarbeitung.
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
@@ -98,7 +118,7 @@ class Filter:
     class Valves(BaseModel):
         # --- LLM / OpenAI ---
         llm_api_endpoint_url: str = Field(default="https://api.openai.com/v1/chat/completions")
-        llm_model_name: str = Field(default="gpt-4o-mini")
+        llm_model_name: str = Field(default="gpt-4.1-mini")
         llm_api_key: str = Field(default="changeme-openai-key")
 
         # --- Memory Server ---
@@ -142,6 +162,8 @@ class Filter:
         local_embedding_model: str = Field(default="all-MiniLM-L6-v2", description="Modell für lokale Embeddings.")
         min_similarity_for_upload: float = Field(default=0.95, description="Minimale Ähnlichkeit, um ein Duplikat beim Fallback zu erkennen.")
 
+        http_client_timeout: int = Field(default=180, description="Timeout in Sekunden für alle externen Anfragen (OpenAI, Memory-Server).")
+
 
         # --- System Prompts ---
         # WICHTIG: Für Memory-Identifikation, nicht für Chat
@@ -150,22 +172,19 @@ class Filter:
                 "You are an automated JSON data extraction system. Your SOLE function is to identify "
                 "user-specific, persistent facts from user messages and output them STRICTLY as a JSON array.\n\n"
                 "ABSOLUTE RULES:\n"
-                "1. OUTPUT MUST BE A VALID JSON ARRAY. It must start with `[` and end with `]`. NO OTHER TEXT.\n"
-                "2. A SINGLE FACT MUST BE WRAPPED IN AN ARRAY. e.g., `[{\"operation\": ...}]`.\n"
-                "3. IF NO FACTS ARE FOUND, an empty array `[]` is the ONLY valid output.\n"
-                "4. EXTRACT ALL DISTINCT FACTS. If a message contains multiple facts (e.g., a name AND a preference), create a separate JSON object for EACH fact inside the array.\n"
-                "5. GENERALIZE FROM SINGLE EVENTS. If a user says 'I ate pizza yesterday', extract the persistent preference 'User likes pizza', not the one-time event.\n\n"
-                "ALLOWED TAGS: [\"identity\",\"behavior\",\"preference\",\"goal\",\"relationship\",\"possession\"]\n"
-                "MEMORY BANKS: \"General\", \"Personal\", \"Work\"\n\n"
+                "1. YOUR ENTIRE OUTPUT MUST BE A VALID JSON ARRAY, STARTING WITH `[` AND ENDING WITH `]`. THIS IS THE MOST IMPORTANT RULE. A single JSON object without the array brackets `[]` is INVALID.\n"
+                "2. EXTRACT ALL DISTINCT FACTS. If a message contains multiple facts (e.g., a name AND a preference), create a separate JSON object for EACH fact inside the array.\n"
+                "3. GENERALIZE FROM SINGLE EVENTS. If a user says 'I ate pizza yesterday', extract the persistent preference 'User likes pizza', not the one-time event.\n"
+                "4. IF NO FACTS ARE FOUND, an empty array `[]` is the ONLY valid output.\n\n"
                 "--- EXAMPLES ---\n"
                 "USER MESSAGE 1: \"Mein Name ist Peter und ich mag das Spiel Satisfactory.\"\n"
-                "CORRECT OUTPUT 1:\n"
+                "CORRECT OUTPUT 1 (Array with multiple objects):\n"
                 "[\n"
                 "  {\"operation\": \"NEW\", \"content\": \"User's name is Peter\", \"tags\": [\"identity\"], \"memory_bank\": \"Personal\"},\n"
                 "  {\"operation\": \"NEW\", \"content\": \"User likes the game Satisfactory\", \"tags\": [\"preference\", \"behavior\"], \"memory_bank\": \"Personal\"}\n"
                 "]\n\n"
                 "USER MESSAGE 2: \"Ich komme aus Deutschland.\"\n"
-                "CORRECT OUTPUT 2:\n"
+                "CORRECT OUTPUT 2 (Array with a single object):\n"
                 "[\n"
                 "  {\"operation\": \"NEW\", \"content\": \"User is from Germany\", \"tags\": [\"identity\"], \"memory_bank\": \"Personal\"}\n"
                 "]\n\n"
@@ -253,7 +272,8 @@ class Filter:
     # --------------------------
     async def _session_get(self) -> aiohttp.ClientSession: 
         if self._session is None or self._session.closed: 
-            self._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60))
+             timeout_seconds = self.valves.http_client_timeout
+             self._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout_seconds))
         return self._session
     
     def _get_user_id(self, __user__: Optional[dict]) -> str:
@@ -464,14 +484,20 @@ class Filter:
         raw = await self._openai_json([sys, usr])
 
         # parse flexible: dict OR list; then filter
+        arr = []
         try:
-            arr = json.loads(raw)
-        except Exception:
-            arr = []
+            parsed_json = json.loads(raw)
+            
+            if isinstance(parsed_json, list):
+                # Der Idealfall: Die KI hat eine Liste geliefert.
+                arr = parsed_json
+            elif isinstance(parsed_json, dict):
+                # Der Fehlerfall: Die KI hat nur ein Objekt geliefert. Wir packen es selbst in eine Liste!
+                _log("parser: OpenAI returned a single object, wrapping it in a list.")
+                arr = [parsed_json]
 
-        if isinstance(arr, dict):
-            arr = [arr]
-        if not isinstance(arr, list):
+        except json.JSONDecodeError:
+            _log("parser: Failed to decode JSON from OpenAI response.", {"raw": raw[:200]})
             arr = []
 
         out = []
@@ -668,12 +694,14 @@ class Filter:
             # Sicherheits-Timeout: Anfrage verfällt nach 2 Minuten (120s)
             if time.time() - self._pending_deletions[user_id] > 120:
                 del self._pending_deletions[user_id]
+                # Sende eine Status-Nachricht, aber lass die LLM normal antworten.
                 await self._emit_status(__event_emitter__, "ℹ️ Zeit für die Lösch-Bestätigung ist abgelaufen.")
-                return body # Abbrechen und normal weiter
+                # WICHTIG: Kein 'return' hier, damit die Nachricht normal verarbeitet wird.
 
             # Prüfe, ob die Nachricht die exakte Bestätigung ist.
-            elif last_user.strip() == self.valves.delete_confirmation_phrase:
+            elif last_user.strip().lower() == self.valves.delete_confirmation_phrase.lower():
                 _log("delete: User confirmed deletion.", {"user_id": user_id})
+                
                 # Sende den Lösch-Befehl an den Server
                 try:
                     s = await self._session_get()
@@ -682,15 +710,34 @@ class Filter:
                     async with s.post(url, headers=headers, json={"user_id": user_id}) as r:
                         if r.status == 200:
                             await self._emit_status(__event_emitter__, "✅ Alle deine Erinnerungen wurden unwiderruflich gelöscht.")
+                            
+                            # --- DEINE GENIALE IDEE HIER ---
+                            # Wir geben der LLM eine klare Anweisung für eine sanfte, neue Antwort.
+                            system_prompt_after_delete = (
+                                "System Instruction: You have just successfully confirmed to the user that all their memories have been deleted. "
+                                "Your ONLY task now is to provide a brief, friendly, and forward-looking response. "
+                                "For example: 'Alles klar, ist erledigt. Fangen wir neu an. Worüber möchtest du sprechen?' or 'Verstanden. Dein Gedächtnis ist nun leer.' "
+                                "Keep it short and positive. Do not ask for context again."
+                            )
+                            
+                            # Wir ersetzen den Verlauf mit der neuen Anweisung und der letzten User-Nachricht.
+                            body["messages"] = [
+                                {"role": "system", "content": system_prompt_after_delete},
+                                # Wir behalten die Bestätigungs-Nachricht des Users als Kontext für die LLM
+                                {"role": "user", "content": last_user} 
+                            ]
+                            # -----------------------------
+
                         else:
                             await self._emit_status(__event_emitter__, f"🔥 Server-Fehler: Deine Erinnerungen konnten nicht gelöscht werden (Status: {r.status}).")
+                            body["messages"] = [] # Bei Fehler die LLM trotzdem stoppen
                 except Exception as e:
                     _log(f"delete: server call failed: {e}")
                     await self._emit_status(__event_emitter__, "🔥 Verbindungs-Fehler: Keine Verbindung zum Memory-Server.")
+                    body["messages"] = [] # Bei Fehler die LLM trotzdem stoppen
 
-                # Setze den Status zurück und blockiere die weitere Verarbeitung dieser Nachricht.
+                # Setze den Status für die Lösch-Anfrage zurück
                 del self._pending_deletions[user_id]
-                body["messages"] = [] # Leere die Nachrichten, damit die LLM nicht auf die Bestätigung antwortet.
                 return body
 
             # Wenn der User etwas anderes schreibt, wird die Anfrage abgebrochen.
@@ -698,30 +745,35 @@ class Filter:
                 _log("delete: User aborted deletion.", {"user_id": user_id})
                 await self._emit_status(__event_emitter__, "ℹ️ Löschvorgang abgebrochen.")
                 del self._pending_deletions[user_id]
-                body["messages"] = [] # Leere auch hier die Nachrichten.
-                return body
+                # Wir lassen die Nachricht normal weiterlaufen, falls es eine normale Frage war.
 
         # --- PRÜFUNG 2: Startet der User eine neue Lösch-Anfrage? ---
         # Wir prüfen, ob eine der Trigger-Phrasen in der User-Nachricht enthalten ist.
         if any(phrase in last_user.lower() for phrase in self.valves.delete_trigger_phrases):
             _log("delete: User initiated deletion.", {"user_id": user_id})
-            # Merke dir, dass dieser User eine Bestätigung abgeben muss (setzt den Timer).
             self._pending_deletions[user_id] = time.time()
             
-            # Wir zwingen die LLM, unsere Bestätigungsfrage zu stellen.
-            confirmation_question = (
+            # Erstelle einen speziellen System-Prompt, der die LLM ANWEIST, die Frage zu stellen.
+            system_prompt_for_confirmation = (
+                "IMPORTANT: Your ONLY task is to ask the user for confirmation. "
+                "Your entire response must be ONLY the following text, without any additions: "
                 f"Bist du dir sicher, dass du alle deine Erinnerungen unwiderruflich löschen möchtest? "
                 f"Antworte bitte mit genau dem Satz: '{self.valves.delete_confirmation_phrase}'"
             )
             
-            # Erstelle eine "künstliche" Antwort vom Assistenten.
-            # Wir überschreiben den Nachrichtenverlauf, sodass die LLM gar nicht erst antworten muss.
-            body["messages"].append({"role": "assistant", "content": confirmation_question})
+            # Wir ersetzen den gesamten Nachrichtenverlauf für diese eine Anfrage.
+            # Der User-Input wird ignoriert, nur die Anweisung an die LLM zählt.
+            body["messages"] = [
+                {"role": "system", "content": system_prompt_for_confirmation},
+                {"role": "user", "content": "Proceed with system instruction."} # Ein Platzhalter, damit die LLM antwortet.
+            ]
             
-            # Wir fügen eine Status-Meldung hinzu, um es "offizieller" zu machen.
             await self._emit_status(__event_emitter__, "🔒 Eine Sicherheitsüberprüfung ist erforderlich.")
             
+            # Wichtig: Wir geben den modifizierten Body zurück.
+            # OpenWebUI schickt dies jetzt an die LLM, und die LLM wird gezwungen, unsere Frage als Antwort zu generieren.
             return body
+    
     
         # Lade alle bisherigen Erinnerungen des Users vom Server
         existing = await self._mem_get_existing(user_id)

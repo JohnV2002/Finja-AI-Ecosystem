@@ -1,7 +1,11 @@
 # =====================================================================
 #  Project: Finja Cloud Memory - Docker Compose
-#  Version: 1.0.0
+#  Version: 1.1.0
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
+# =====================================================================
+#  Updates v1.1.0:
+#  + Added volume mounts for 'user_audio' and 'tts_cache'.
+#  + Added 'user' directive to fix permission issues on Linux hosts.
 # =====================================================================
 
 version: '3.8'
@@ -20,9 +24,13 @@ services:
     # Mappt den Ordner für die Speicherdaten auf den Host, damit die Daten
     # auch nach einem Löschen des Containers erhalten bleiben
     volumes:
-      - ./user_memories:/app/user_memories
+        - ./user_audio:/app/user_audio
+        - ./tts_cache:/app/tts_cache
+        - ./user_memories:/app/user_memories
     # Leitet den Port 8000 des Hosts auf den Port 8000 im Container um
     ports:
       - "8000:8000"
+
+    user: "${UID:-1000}:${GID:-1000}"
     # Startet den Container automatisch neu, es sei denn, er wird manuell gestoppt
     restart: unless-stopped
