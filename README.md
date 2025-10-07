@@ -1,10 +1,4 @@
----
-
-📄 **README.md**
-
----
-
-```markdown
+```
 ███████╗██╗███╗   ██╗     ██╗ █████╗ 
 ██╔════╝██║████╗  ██║     ██║██╔══██╗
 █████╗  ██║██╔██╗ ██║     ██║███████║
@@ -16,21 +10,19 @@
 
 ---
 
-## Build Status
-
+### Build Status
 [![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
 [![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
 [![Web-Crawler Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
 
 ---
 
-## Links / Badges
-
-* **Schau dir Finja live an jeden Samstag auf Twitch**&nbsp;&nbsp;&nbsp;[![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
-* **Schau auf Discord vorbei für Mehr Projekte**&nbsp;&nbsp;&nbsp;[![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
-* **Schau gerne auf Meiner Website vorbei**&nbsp;&nbsp;&nbsp;[![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
-* **TESTE FINJA KOSTENLOS (OHNE MEMORY):**&nbsp;&nbsp;&nbsp;[![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)
-* **TESTE FINJA WÄREND SIE OFFLINE IST (MIT MEMORY):**&nbsp;&nbsp;&nbsp;[![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)
+### Links & Demos
+-   **Schau dir Finja live an (jeden Samstag):** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
+-   **Komm auf unseren Discord für mehr Projekte:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
+-   **Besuche meine Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
+-   **TESTE FINJA KOSTENLOS (OHNE MEMORY):** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)
+-   **TESTE FINJA, WÄHREND SIE OFFLINE IST (MIT MEMORY):** [![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)
 
 ---
 
@@ -40,94 +32,32 @@ Dein Hybrid-KI-Buddy fürs Streaming – mit Chatbot, Musikengine, Memories, Mod
 
 ---
 
-## 🤖 What’s Finja?
+## 🤖 Was ist Finja?
 
-Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**.
-Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die volle **Finja-Experience**.
+Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die volle **Finja-Experience**.
 
-* **Standalone möglich**: Musikengine, Chatbot, Crawler usw. einzeln nutzbar
-* **Full Package = Finja**: erst die Kombi formt ihre Persönlichkeit
-* **LLM bleibt geheim**: läuft nur im VPet-Simulator, nicht veröffentlicht 🫣
+-   **Standalone möglich**: Musikengine, Chatbot, Crawler usw. sind einzeln nutzbar.
+-   **Full Package = Finja**: Erst die Kombination formt ihre Persönlichkeit.
+-   **LLM bleibt geheim**: Der Sprachkern läuft nur im VPet-Simulator und ist nicht Teil dieses Repositories. 🫣
 
 ---
 
 ## 📊 Projektstatus-Übersicht
+*Stand: 17. September 2025*
 
-*Stand: 17.09.2025*
-
-| Hauptkomponente             | Status     | Bemerkungen |
-|-----------------------------|------------|-------------|
-| **assets**                  |  Stabil   | Keine bekannten Probleme |
-| **finja-chat**              |  Stabil   | Added LLM Support, Made it more Modular |
-| **finja-music**             |  Stabil   | Snyk false Positive |
-| &nbsp;&nbsp;└─ 89.0RTL      |  Stabil   | Snyk false Positive |
-| &nbsp;&nbsp;└─ MDR          |  Stabil   | Keine Probleme |
-| &nbsp;&nbsp;└─ Spotify      |  Stabil   | Snyk false Positive |
-| &nbsp;&nbsp;└─ TruckersFM   |  Stabil   | Snyk false Positive |
-| **finja-Open-Web-UI**       |  Stabil   | Snyk false Positive |
-| &nbsp;&nbsp;└─ finja-Memory |  Stabil   | snyk false Positive |
-| &nbsp;&nbsp;└─ finja-ocr    |  Stabil   | Funktioniert einwandfrei |
-| &nbsp;&nbsp;└─ finja-stable-diffusion |  Stabil | Setup abgeschlossen, keine Tests |
-| &nbsp;&nbsp;└─ finja-tts    | ⚠ WIP      | Noch nicht implementiert |
-| &nbsp;&nbsp;└─ finja-web-crawler |  Stabil | Kein Rate-Limit! Security-Review OK |
-| **VPet-Simulator Mods**     | ⚠ WIP      | Aktuell geplant, noch leer |
-| &nbsp;&nbsp;└─ Chat Commands | ⚠ WIP      | In Planung |
-| &nbsp;&nbsp;└─ Dance zu Liked Music | ⚠ WIP | In Planung |
-
-**Im BACK! Working on Stuff.**
-
----
-
-## 🧩 Projektübersicht
-
-### 💬 1. Chatbot
-
-* Integration in Twitch-Chat
-* Commands werden **ausgeführt** (`!drink`, `!theme`, `!help`)
-* Feedback im Chat: “✅ Done” oder “❌ Nope” + kleine Reaction
-* Langzeitgedächtnis für User + Stream
-
----
-
-### 🎵 2. Musik + Radio (mit Memory)
-
-* Song/Genre-Erkennung (Spotify, TruckersFM, 89.0 RTL, MDR …)
-* Merkt sich Reaktionen zu Songs/Genres
-* 600+ dynamische Reaktionen (von wholesome bis meme)
-* Kontextabhängig: Minecraft = Chill und lofi, ETS2 = Pop, Rock, vieles Mehr 
-
----
-
-### 🌐 3. OpenWebUI-Module
-
-* **3.1 Chat-Memory** – Langzeitgedächtnis für Streams, User & Facts
-* **3.2 Web Crawler** – Infosuche via TOR mit Google-Fallback
-* **3.3 OCR** – Text aus Bildern lesen
-* **3.4 Stable Diffusion** – Bilder generieren
-* **3.5 TTS (planned)** – Stimme für Finja
-
----
-
-### 🔒 4. Finja LLM (privat)
-
-* Läuft **nur im VPet-Simulator** als Mod
-* Bindet via OpenWebUI an Module an
-* Bleibt **geschlossen / nicht veröffentlicht**
-
----
-
-### 🐾 5. VPet-Simulator Integration
-
-* **5.1 Chat-Commands als echte Aktionen** (`!drink` → Finja kriegt was zu trinken)
-* **5.2 Mehr Mods** für zusätzliche Interaktionen
-
----
-
-## 🚀 Architektur – Föderiert & Hybrid
-
-* **Rule-Engines** → stabil & schnell
-* **Module** → separat oder kombiniert nutzbar
-* **LLM (privat)** → nur fürs VPet, nicht Teil des Repos
+| Hauptkomponente | Status | Bemerkungen |
+| :--- | :--- | :--- |
+| **finja-chat** | 🟢 Stabil | LLM-Support hinzugefügt, modularer gemacht |
+| **finja-music** | 🟢 Stabil | Verschiedene Versionen verfügbar |
+| &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | Empfohlene Web-UI-Version |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🟢 Stabil | Docker-Version nur für Spotify |
+| &nbsp;&nbsp;└─ finja-music-standalone | 🟢 Stabil | Klassisches modulares System |
+| **finja-Open-Web-UI** | 🟢 Stabil | Module einsatzbereit |
+| &nbsp;&nbsp;└─ finja-Memory | 🟢 Stabil | Wichtige Grundlage |
+| &nbsp;&nbsp;└─ finja-ocr | 🟢 Stabil | Funktioniert einwandfrei |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup abgeschlossen, keine Tests |
+| &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Noch nicht implementiert |
+| **VPet-Simulator Mods** | 🟡 WIP | Aktuell geplant, noch leer |
 
 ---
 
@@ -178,25 +108,15 @@ flowchart TD
 
 ---
 
-## 📂 Repo-Struktur
+## 📂 Projektstruktur & Module
 
-Die Hauptkomponenten des Finja-Ökosystems sind wie folgt organisiert:
-
-* `/finja-chat` → Der Kern-Chatbot für die Twitch-Integration.
-* `/Finja-music` → Hauptmodul für die Musik- und Radioerkennung, unterteilt nach Quellen:
-    * `/89.0RTL`
-    * `/MDR`
-    * `/Spotify`
-    * `/TruckersFM`
-* `/finja-Open-Web-UI` → Sammlung von Modulen, die mit OpenWebUI interagieren:
-    * `/finja-Memory` → Das Langzeitgedächtnis für Chats und Musik.
-    * `/finja-ocr` → Modul zur Texterkennung aus Bildern.
-    * `/finja-stable-diffsion` → Modul zur Bildgenerierung (Stable Diffusion).
-    * `/finja-tts` → Geplantes Modul für die Sprachausgabe (Text-to-Speech).
-    * `/finja-web-crawler` → Modul für die Websuche via TOR/DDG/Google.
-* `/VPet-Simulator Mods` → Spezifische Mods für den VPet-Simulator-Avatar:
-    * `/Chat Commands` → Implementierung der Chat-Befehle als Aktionen im Spiel (Geplant).
-    * `/Dance zu Liked Music` → Lässt den Avatar auf als "gemocht" erkannte Musik reagieren (Geplant).
+-   `/finja-chat` → Der Kern-Chatbot für die Twitch-Integration mit OBS-Overlay und Bot-Panel.
+-   `/Finja-music` → Enthält alle Varianten der Musik-Engine. Du wählst **eine** davon aus:
+    -   `/finja-everthing-in-once` → **(Empfohlen)** Bündelt alle Musikquellen (TruckersFM, Spotify etc.) und wird über eine komfortable Weboberfläche gesteuert.
+    -   `/finja-music-docker-spotify` → Eine spezielle Docker-Version, die nur für Spotify optimiert ist.
+    -   `/finja-music-standalone` → Das klassische, modulare System, bei dem jede Musikquelle in einem eigenen Ordner liegt und manuell per Skript gestartet wird.
+-   `/finja-Open-Web-UI` → Sammlung von Docker-Modulen für OpenWebUI (Memory, OCR, Web Crawler etc.).
+-   `/VPet-Simulator Mods` → Geplante Mods, um Aktionen im VPet-Simulator-Avatar auszulösen.
 
 ---
 
@@ -205,48 +125,32 @@ Die Hauptkomponenten des Finja-Ökosystems sind wie folgt organisiert:
 Folge diesen Schritten, um das Finja-Ökosystem von Grund auf einzurichten.
 
 ### Vorbereitung
-Stelle sicher, dass du die folgenden Werkzeuge installiert hast:
--   **Git**
--   **Python 3.9+**
--   **Docker & Docker Compose**
-
-Klone zuerst dieses Repository auf deinen Computer:
-```bash
-git clone https://github.com/DeinUsername/finja-ai-ecosystem.git
-cd finja-ai-ecosystem
-```
+Stelle sicher, dass du **Git**, **Python 3.9+** und **Docker & Docker Compose** installiert hast. Klone dann dieses Repository.
 
 ### Schritt 1: Das Fundament legen (OpenWebUI-Module)
-Die Backend-Dienste sind die Grundlage für Finjas erweiterte Fähigkeiten wie Gedächtnis und Websuche.
+Die Backend-Dienste sind die Grundlage für Finjas erweiterte Fähigkeiten.
 1.  Navigiere in das Verzeichnis `finja-Open-Web-UI/`.
-2.  Folge der dortigen `README.md`, um die Docker-Container für die gewünschten Dienste (besonders **Cloud Memory**, **Web Crawler** und **OCR**) zu starten.
-3.  Konfiguriere die Dienste in deiner OpenWebUI-Instanz.
+2.  Folge der dortigen `README.md`, um die Docker-Container (besonders **Memory**, **Web Crawler** und **OCR**) zu starten.
+3.  [➡️ **Zur Anleitung für die OpenWebUI-Module**](./finja-Open-Web-UI/README.md)
 
-[➡️ **Zur Anleitung für die OpenWebUI-Module**](./finja-Open-Web-UI/README.md)
-
-### Schritt 2: Das Musik-Gehirn erschaffen
-Das Herzstück der Musikerkennung ist eine zentrale Wissensdatenbank (`songs_kb.json`).
+### Schritt 2: Das Musik-Gehirn zum Leben erwecken
+Das Herzstück der Musikerkennung.
 1.  Navigiere in das Verzeichnis `Finja-music/`.
-2.  Folge der dortigen `README.md`, um das **TruckersFM-Modul** einzurichten. Dessen `MUSIK`-Ordner dient als unser zentrales Gehirn.
-3.  Nutze die **Spotify-Tools** in `Finja-music/TruckersFM/MUSIK/`, um aus deinen Playlist-Exporten eine umfassende `songs_kb.json` zu erstellen.
-
-[➡️ **Zur Anleitung für das Musik-System**](./Finja-music/README.md)
+2.  Hier hast du die Wahl. **Für die meisten Nutzer empfehlen wir die `finja-everthing-in-once`-Version.**
+3.  Folge der `README.md` im `finja-everthing-in-once`-Ordner, um die Weboberfläche zu starten, deine API-Keys zu konfigurieren und deine Song-Datenbank aufzubauen.
+4.  [➡️ **Zur Anleitung für die All-in-One Musik-Engine**](./Finja-music/finja-everthing-in-once/README.md)
 
 ### Schritt 3: Die Stimme geben (Chatbot)
-Jetzt, wo das Backend bereit ist, können wir die primäre Schnittstelle für die Interaktion einrichten.
+Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 1.  Navigiere in das Verzeichnis `finja-chat/`.
-2.  Folge der dortigen `README.md`, um den **OBS Chat-Overlay**, das **Bot Control Panel** und das **Song Request System** zu konfigurieren.
-3.  Hierfür benötigst du einen Twitch OAuth Token und ggf. Spotify API Keys.
-
-[➡️ **Zur Anleitung für das Chat-System**](./finja-chat/README.md)
+2.  Folge der dortigen `README.md`, um das **OBS Chat-Overlay** und das **Bot Control Panel** zu konfigurieren.
+3.  [➡️ **Zur Anleitung für das Chat-System**](./finja-chat/README.md)
 
 ### Schritt 4: Die visuelle Form (VPet-Simulator)
 Der letzte Schritt ist, Finja im VPet-Simulator zum Leben zu erwecken.
 1.  Navigiere in das Verzeichnis `VPet-Simulator Mods/`.
-2.  Folge der dortigen `README.md`, um die geplanten Mods zu verstehen, die Chat-Befehle (`!drink`) und Musik-Reaktionen in sichtbare Animationen umwandeln.
-3.  **Hinweis:** Dieses Modul ist noch stark in der Entwicklung (Work in Progress).
-
-[➡️ **Zur Anleitung für die VPet-Mods**](./VPet-Simulator%20Mods/readme.md)
+2.  Folge der dortigen `README.md`, um die geplanten Mods zu verstehen.
+3.  [➡️ **Zur Anleitung für die VPet-Mods**](./VPet-Simulator%20Mods/readme.md)
 
 ---
 
