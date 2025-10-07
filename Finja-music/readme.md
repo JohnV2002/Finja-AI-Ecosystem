@@ -1,6 +1,6 @@
-# 🎶 Finja-Music: Ein modulares Musik-System für OBS
+# 🎶 Finja Music System
 
-Willkommen beim Finja-Music-System! 💖
+Willkommen beim Finja Music System! 💖
 
 Dieses Projekt ist eine Sammlung von Modulen, die es ermöglichen, Live-Musikinformationen aus verschiedenen Quellen (Webradio, Spotify) abzurufen, intelligent zu verarbeiten und als dynamisches Overlay in dein Streaming-Setup mit OBS zu integrieren.
 
@@ -8,17 +8,85 @@ Das Herzstück ist ein zentrales "Musikgehirn", das lernt, welche Musik du magst
 
 ---
 
-## 💡 Das Kernkonzept: Ein Gehirn, viele Ohren
+## ✨ Wähle deine Version: All-in-One oder Modular?
 
-Das gesamte System basiert auf einer zweiteiligen Architektur, die für jede Musikquelle gilt:
+Dieses Projekt existiert in zwei Varianten. Wähle die, die am besten zu dir passt.
 
-1.  **Teil 1: Get Content (Die Ohren)**
-    Ein spezialisiertes Skript für jede Quelle (z.B. `truckersfm_nowplaying.py` für TruckersFM), das nur eine Aufgabe hat: den aktuell laufenden Song zu erkennen und in eine einfache Textdatei (`nowplaying.txt`) zu schreiben.
+### 🚀 All-in-One Edition (Empfohlen)
+Alles in einem Ordner, gesteuert über eine komfortable Weboberfläche.
+-   **Ideal für:** Einsteiger und die meisten Nutzer.
+-   **Vorteile:** Einfache Bedienung per Mausklick, zentrale Verwaltung aller Quellen, weniger Konsolenarbeit.
 
-2.  **Teil 2: MUSIK/Brain (Das Gehirn)**
-    Ein zentrales Skript, das die `nowplaying.txt` einer aktiven Quelle liest. Es gleicht den Song mit einer Wissensdatenbank ab, ermittelt Genres, wählt eine passende Reaktion aus und speichert Erinnerungen. Das Ergebnis wird in Dateien geschrieben, die dein OBS-Overlay anzeigt.
+### 🛠️ Modulares System (Für Fortgeschrittene)
+Jede Musikquelle befindet sich in einem eigenen, unabhängigen Ordner.
+-   **Ideal für:** Entwickler oder Nutzer, die nur eine einzige Quelle benötigen und volle manuelle Kontrolle bevorzugen.
+-   **Vorteile:** Granulare Kontrolle, Quellen können komplett unabhängig voneinander betrieben werden.
 
-**Die empfohlene Methode ist, EIN zentrales Gehirn für ALLE Quellen zu nutzen.**
+---
+
+## 🚀 All-in-One Edition (Empfohlene Methode)
+
+Diese Version bündelt alle Musik-Module in einem einzigen Ordner und wird über eine komfortable Weboberfläche gesteuert.
+
+### Features
+-   **Zentrale Steuerung:** Eine Weboberfläche (`Musik.html`) zur Verwaltung des gesamten Systems.
+-   **Multi-Quellen-Unterstützung:** Aktiviere mit einem Klick die Erkennung für TruckersFM, Spotify, 89.0 RTL oder MDR.
+-   **Intelligentes Musikgehirn:** Nutzt eine zentrale Wissensdatenbank (`songs_kb.json`), um Genres zu erkennen und dynamische Reaktionen zu generieren.
+-   **Integrierte Datenbank-Tools:** Baue und erweitere deine Song-Datenbank direkt über die Weboberfläche aus Spotify-Playlists.
+-   **Konfliktlösung:** Eine eigene Web-UI (`ArtistNotSure.html`), um unklare Künstlerzuordnungen zu korrigieren.
+
+### Ordnerstruktur
+```plaintext
+finja-everthing-in-once/
+├── config/                  # Konfigurationsdateien
+├── MDRHilfe/                # Hilfsskripte für MDR
+├── Memory/                  # Finjas Langzeitgedächtnis & Profile
+├── missingsongs/            # Logs für unbekannte Songs
+├── Nowplaying/              # Zentrale Ausgabedateien für OBS
+├── OBSHTML/                 # Alle HTML-Overlays und Steuerungs-Webseiten
+├── RTLHilfe/                # Hilfsskripte für 89.0 RTL
+├── SongsDB/                 # Die zentrale Song-Datenbank
+├── start_server.bat         # Startet den Haupt-Webserver
+└── webserver.py             # Der Code für den Webserver
+```
+
+### Einrichtung & Start
+**Schritt 1: Spotify API konfigurieren**
+1.  Öffne die Datei `finja-everthing-in-once/config/config_spotify.json`.
+2.  Trage deine `client_id`, `client_secret` und deinen `refresh_token` ein.
+> 🔴 **WICHTIG:** Diese Datei enthält sensible Zugangsdaten! Lade sie niemals auf ein öffentliches Repository hoch.
+
+**Schritt 2: Datenbank aufbauen (Optional)**
+1.  Exportiere deine Spotify-Playlists als `.csv`-Dateien.
+2.  Lege sie in den (neu zu erstellenden) Ordner `finja-everthing-in-once/exports/`.
+3.  Nutze später die Weboberfläche, um die Datenbank zu bauen.
+
+**Schritt 3: Server starten**
+Führe die Datei `start_server.bat` per Doppelklick aus. Solange das Konsolenfenster offen ist, läuft dein Server.
+
+**Schritt 4: Weboberfläche öffnen**
+Öffne deinen Browser und gehe zu: `http://localhost:8022/Musik.html`.
+
+### Benutzung der Weboberfläche
+-   **Musikquellen:** Wähle per Knopfdruck, welcher Quelle Finja "zuhören" soll. Für RTL & MDR müssen zuerst die entsprechenden "Helfer" im unteren Bereich der Seite gestartet werden.
+-   **DB und Hilfsskripte:** Nutze die Werkzeuge, um deine Song-Datenbank aus den `.csv`-Exporten zu erstellen, fehlende Song-Infos anzureichern oder Künstler-Konflikte zu lösen.
+
+### OBS-Integration
+-   **Browser-Quelle:** Füge eine Browser-Quelle in OBS hinzu und wähle als "Lokale Datei" das passende HTML-Overlay aus dem `OBSHTML`-Ordner.
+-   **Text-Quellen:** Die Overlays lesen die Daten automatisch aus dem `Nowplaying`-Ordner. Pfade müssen nicht mehr angepasst werden!
+
+---
+
+## 🛠️ Modulares System (Manuelle Einrichtung)
+
+Diese klassische Variante nutzt für jede Musikquelle einen separaten Ordner. Die Steuerung erfolgt über individuelle Skripte im Terminal.
+
+### Das Kernkonzept
+Das System besteht aus zwei Teilen:
+1.  **"Get Content" (Ohren):** Ein Skript, das den Song von einer Quelle holt.
+2.  **"MUSIK/Brain" (Gehirn):** Ein zentrales Skript, das den Song analysiert.
+
+Die empfohlene Methode ist, **EIN zentrales Gehirn für ALLE Quellen** zu nutzen, um ein konsistentes Erlebnis zu gewährleisten.
 
 ```mermaid
 flowchart TD
@@ -39,84 +107,20 @@ flowchart TD
         H[💖 OBS Overlay]
     end
 
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-    E --> F
-    F --> G
-    G --> H
+    A & B & C & D --> E --> F --> G --> H
 ```
 
----
+### Module im Detail
+Für eine detaillierte Anleitung zur Einrichtung, lies bitte die `README.md` im jeweiligen Unterordner des modularen Projekts.
 
-## 🎵 Unterstützte Musikquellen
-
-Dieses Repository enthält alles, was du für die Anbindung der folgenden Quellen benötigst:
-
-| Quelle | Abrufmethode | Status |
-| :--- | :--- | :--- |
-| **🚚 TruckersFM** | Web Scraping der offiziellen Webseite. | ✅ Einsatzbereit |
-| **🎧 Spotify** | Abfrage über die offizielle Spotify Web API. | ✅ Einsatzbereit |
-| **📻 MDR** | Hybride Abfrage (ICY-Metadaten, XML-Feed, Web-Scraping). | ✅ Einsatzbereit |
-| **📡 89.0 RTL** | Auslesen der Webseite via Chrome Debugging Protocol (CDP). | ✅ Einsatzbereit |
-
----
-
-## 🚀 Empfohlenes Setup: Schritt für Schritt
-
-Um Inkonsistenzen zu vermeiden, solltest du das System mit einem zentralen Gehirn aufbauen.
-
-1.  **Die Basis schaffen (TruckersFM):**
-    Beginne mit der Einrichtung des **TruckersFM-Moduls**. Der `MUSIK`-Ordner in diesem Verzeichnis dient als unser zentrales Gehirn. Richte hier deine `songs_kb.json`, `reactions.json` und `contexts.json` vollständig ein.
-
-2.  **Deine Musik-Datenbank aufbauen:**
-    Nutze die **Spotify-Tools** im `TruckersFM/MUSIK`-Ordner (z.B. `build_spotify_kb_only.py`), um deine `songs_kb.json` aus deinen Spotify-Playlists zu erstellen. Dies ist die Wissensgrundlage für alle Module.
-
-3.  **Weitere Quellen hinzufügen (z.B. Spotify):**
-    -   Richte den **Teil 1 (Get Content)** des Spotify-Moduls gemäß seiner eigenen README ein.
-    -   Folge dann den Anweisungen in der **Teil 2 README** für die **empfohlene Methode (🅑)**, bei der du die Konfigurationsdatei so anpasst, dass sie auf das zentrale Gehirn im TruckersFM-Ordner verweist.
-
-4.  **Wiederholen:**
-    Wiederhole Schritt 3 für alle weiteren Quellen, die du nutzen möchtest (MDR, 89.0 RTL).
-
----
-
-## 📂 Module im Detail
-
-Jedes Modul befindet sich in einem eigenen Unterordner und enthält eine oder mehrere detaillierte `README.md`-Dateien mit spezifischen Anweisungen.
-
-### 🚚 TruckersFM
-Der Grundbaustein des Systems. Holt Song-Infos durch direktes Auslesen der TruckersFM-Webseite. Der `MUSIK`-Ordner hier ist als zentrales Gehirn vorgesehen.
-
-[➡️ **Zur ausführlichen Anleitung für das TruckersFM-Modul...**](./TruckersFM/README.md)
-
-### 🎧 Spotify
-Bindet deinen Spotify-Account über die offizielle API an. Erfordert eine einmalige Authentifizierung.
-
-[➡️ **Zur ausführlichen Anleitung für das Spotify-Modul...**](./Spotify/README.md)
-
-### 📻 MDR (MDR Sachsen-Anhalt)
-Ein robustes Skript, das mehrere Quellen (Stream-Metadaten, XML, Webseite) prüft, um den aktuellen Song von MDR zuverlässig zu erkennen.
-
-[➡️ **Zur ausführlichen Anleitung für das MDR-Modul...**](./MDR/README.md)
-
-### 📡 89.0 RTL
-Nutzt das Chrome Debugging Protocol, um den Songtitel direkt aus dem Webplayer von 89.0 RTL auszulesen. Erfordert eine laufende Instanz von Google Chrome.
-
-[➡️ **Zur ausführlichen Anleitung für das 89.0 RTL-Modul...**](./RTL/README.md)
+-   **🚚 TruckersFM:** Der Grundbaustein. Holt Song-Infos durch Web-Scraping. Der `MUSIK`-Ordner hier dient als **zentrales Gehirn**.
+-   **🎧 Spotify:** Bindet deinen Spotify-Account über die offizielle API an.
+-   **📻 MDR:** Ein robustes Skript, das mehrere Quellen (ICY, XML, Webseite) prüft.
+-   **📡 89.0 RTL:** Nutzt das Chrome Debugging Protocol, um den Songtitel direkt aus dem Webplayer auszulesen.
 
 ---
 
 ## 📜 Lizenz
 
-Alle Module in diesem Projekt stehen unter der **MIT-Lizenz**.  
-*Gebaut mit 💖, Mate und einer Prise Chaos ✨*
-
----
-
-## 🆘 Support & Kontakt
-
--   **E-Mail:** contact@jappshome.de
--   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+Alle Module in diesem Projekt stehen unter der **MIT-Lizenz**.
+*Gebaut mit 💖, Mate und einer Prise Chaos.*

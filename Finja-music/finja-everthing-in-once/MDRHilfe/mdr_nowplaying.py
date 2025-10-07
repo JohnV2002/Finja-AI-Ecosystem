@@ -1,14 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 ======================================================================
-                Finja's Brain & Knowledge Core - MDR
+                Finja's Brain & Knowledge Core - MDR Scraper
 ======================================================================
 
   Project: Finja - Twitch Interactivity Suite
   Author: JohnV2002 (J. Apps / Sodakiller1)
-  Version: 1.0.0 (MDR RTL Modul)
+  Version: 1.0.0 (MDR Modul)
+
+----------------------------------------------------------------------
+ Features:
+ ---------------------------------------------------------------------
+  • Ruft den aktuellen Song von MDR Sachsen-Anhalt über eine robuste Hybrid-Methode ab.
+  • Prüft nacheinander: ICY-Stream-Metadaten, offizielle XML-Feeds und als Fallback die HTML-Webseite.
+  • Filtert automatisch Inhalte wie Werbung, Nachrichten und Jingles heraus.
+  • Schreibt den erkannten Song in `nowplaying.txt` und die genutzte Quelle (icy, xml, html) in `now_source.txt`.
+  • Verhindert das Flackern bei instabilen oder kurzzeitigen Titeländerungen.
 
 ----------------------------------------------------------------------
 
@@ -17,7 +23,6 @@
 
 ======================================================================
 """
-
 import os, re, time, datetime as dt, requests, unicodedata
 from contextlib import closing
 from bs4 import BeautifulSoup
@@ -25,25 +30,27 @@ from defusedxml import ElementTree as ET
 from bs4.element import Tag
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-NOW_FILE = os.path.join(ROOT, "nowplaying.txt")
-SRC_FILE = os.path.join(ROOT, "now_source.txt")
+# Gehe ein Verzeichnis höher und dann in Nowplaying
+NOWPLAYING_DIR = os.path.join(os.path.dirname(ROOT), "Nowplaying")
+NOW_FILE = os.path.join(NOWPLAYING_DIR, "nowplaying.txt") # <-- Geändert
+SRC_FILE = os.path.join(NOWPLAYING_DIR, "now_source.txt") # <-- Geändert
 
 # --- Streams (ICY) ---
 STREAM_URL = os.environ.get("MDR_STREAM_URL",
-  "https://mdr-284290-1.sslcast.mdr.de/mdr/284290/1/mp3/high/stream.mp3"
+  "https://mdr-284290-1.sslcast.mdr.de/mdr/284290/1/mp3/high/stream.mp3  "
 )
 
 # --- XML-Kandidaten (Regionen/Varianten) ---
 XML_BASES = [
-  os.environ.get("MDR_XML_URL") or "https://www.mdr.de/XML/titellisten/mdr1_sa_2.xml",
-  "https://www.mdr.de/XML/titellisten/mdr1_sa_0.xml",
-  "https://www.mdr.de/XML/titellisten/mdr1_sa_1.xml",
-  "https://www.mdr.de/XML/titellisten/mdr1_sa_3.xml",
+  os.environ.get("MDR_XML_URL") or "https://www.mdr.de/XML/titellisten/mdr1_sa_2.xml  ",
+  "https://www.mdr.de/XML/titellisten/mdr1_sa_0.xml  ",
+  "https://www.mdr.de/XML/titellisten/mdr1_sa_1.xml  ",
+  "https://www.mdr.de/XML/titellisten/mdr1_sa_3.xml  ",
 ]
 
 # --- HTML-Fallback ---
 HTML_URL = os.environ.get("MDR_HTML_URL",
-  "https://www.mdr.de/mdr-sachsen-anhalt/titelliste-mdr-sachsen-anhalt--102.html"
+  "https://www.mdr.de/mdr-sachsen-anhalt/titelliste-mdr-sachsen-anhalt--102.html  "
 )
 
 POLL_EVERY_SEC = int(os.environ.get("MDR_POLL_S", "10"))

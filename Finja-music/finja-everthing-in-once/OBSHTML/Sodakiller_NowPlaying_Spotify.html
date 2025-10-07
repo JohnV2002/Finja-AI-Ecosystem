@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spotify Now Playing</title>
+<style>
+  html, body { margin:0; background:transparent; }
+  :root{
+    --x: 24px;         /* Position feinjustierbar */
+    --y: 24px;
+    --maxw: 820px;     /* max Breite */
+    --bg: rgba(10,12,20,.55);
+    --txt: #eaf9ff;
+    --accent: #1DB954; /* Spotify Grün */
+  }
+
+  .card{
+    position: fixed; left: var(--x); top: var(--y);
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--bg);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 28px rgba(0,0,0,.35);
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "logo head"
+      "logo title"
+      "logo chips"
+      "logo react";
+    grid-column-gap: 12px;
+    grid-row-gap: 8px;
+    align-items: start;
+    max-width: min(88vw, var(--maxw));
+  }
+
+  .logo{
+    grid-area: logo;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(29,185,84,.9);
+    align-self: start;
+  }
+
+  .head{ grid-area: head; display:flex; align-items:center; gap:10px; }
+  .sub{
+    opacity:.85;
+    font: 700 13px/1 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    letter-spacing:.08em; text-transform:uppercase;
+    color:#a0ffc7;
+    text-shadow: 0 0 8px rgba(0,0,0,.6);
+    white-space:nowrap;
+  }
+
+  .title{
+    grid-area: title;
+    color: var(--txt);
+    font: 700 24px/1.25 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    text-shadow: 0 0 8px rgba(0,0,0,.6);
+    word-break: break-word; overflow-wrap: anywhere;
+  }
+
+  .chips{
+    grid-area: chips;
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-top: 2px;
+  }
+  .chip{
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.18);
+    color:#eaf7ff;
+    font: 800 14px/1.2 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    text-shadow: 0 0 10px rgba(0,0,0,.35);
+    user-select:none;
+  }
+  /* SPECIAL-Versionen: bewusst weiß & umrissen */
+  .chip--special{
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.9);
+    color: #ffffff;
+    box-shadow: none;
+    font-weight: 800;
+  }
+
+  .react{
+    grid-area: react;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(160, 122, 255, .25);
+    color: #fff;
+    font: 800 16px/1.35 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    text-shadow: 0 0 10px rgba(0,0,0,.35);
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    max-width: min(70ch, 80vw);
+    white-space: normal;
+    overflow-wrap: anywhere; word-break: break-word;
+    transition: opacity .35s ease;
+  }
+  .react[hidden]{ display:none; }
+  .fade-out{ opacity: 0; }
+
+  @media (max-width: 520px){
+    .title{ font-size:20px; }
+    .chip{ font-size:13px; padding:5px 8px; }
+    .react{ font-size:14px; }
+  }
+</style>
+
+<div class="card" id="card">
+  <div class="logo"></div>
+  <div class="head"><div class="sub">Spotify</div></div>
+  <div class="title" id="np">Loading…</div>
+  <div class="chips" id="genres"></div>
+  <div class="react" id="react" hidden></div>
+</div>
+
+<script>
+  // Hash-Params: #x=24&y=24&maxw=820
+  (function initPos(){
+    const p = new URLSearchParams(location.hash.replace(/^#/,''));
+    if(p.get('x')) document.documentElement.style.setProperty('--x', p.get('x')+'px');
+    if(p.get('y')) document.documentElement.style.setProperty('--y', p.get('y')+'px');
+    if(p.get('maxw')) document.documentElement.style.setProperty('--maxw', p.get('maxw')+'px');
+  })();
+
+  async function read(path){
+    try{
+      const r = await fetch(path + (path.includes('?')?'&':'?') + 'ts=' + Date.now());
+      if(!r.ok) throw 0;
+      return (await r.text()).trim();
+    }catch{ return ""; }
+  }
+
+  function splitParts(s){
+    return (s||"").split(/•|,|\|/g).map(x=>x.trim()).filter(Boolean);
+  }
+  const SPECIAL_RX = /^(nightcore|speed\s*up|sped\s*up|speedup|tiktok|tik\s*tok|radio\s*edit|radio\s*mix)$/i;
+
+  function renderGenres(text){
+    const box = document.getElementById('genres');
+    box.innerHTML = "";
+    if(!text) return;
+    const parts = splitParts(text);
+    for(const p of parts){
+      const div = document.createElement('div');
+      div.className = 'chip' + (SPECIAL_RX.test(p) ? ' chip--special' : '');
+      div.textContent = p;
+      box.appendChild(div);
+    }
+  }
+
+  let lastReact="", lastNP="", lastGenres="";
+
+  async function tick(){
+    // Lies die gleichen Pfade wie 'update', also aus dem übergeordneten 'Nowplaying'-Ordner
+    const np = await read('../Nowplaying/nowplaying.txt');
+    if(np && np !== lastNP){
+      document.getElementById('np').textContent = np;
+      lastNP = np;
+    }else if(!np && lastNP !== "—"){ // Behalte das 'else if' für den Leer-Status
+      document.getElementById('np').textContent = "—";
+      lastNP = "—";
+    }
+
+    // Lies Genres aus dem gleichen Ordner
+    const g = await read('../Nowplaying/obs_genres.txt'); // Korrigierter Pfad
+    if(g !== lastGenres){ renderGenres(g); lastGenres = g; }
+
+    // Lies Reaktion aus dem gleichen Ordner
+    const r = await read('../Nowplaying/obs_react.txt'); // Korrigierter Pfad
+    const el = document.getElementById('react');
+    if(!r){
+      el.hidden = true; // Verwende 'hidden' wie in der originalen tick-Funktion
+      lastReact = "";
+    }else if(r !== lastReact){ // Behalte das 'else if'
+      el.hidden = false; // Verwende 'hidden' wie in der originalen tick-Funktion
+      el.classList.add('fade-out'); // Behalte den 'fade-out'-Stil
+      setTimeout(()=>{
+        el.textContent = "Finjas Antwort: " + r;
+        el.classList.remove('fade-out'); // Entferne den Stil nach der Anzeige
+        lastReact = r;
+      }, 120); // Behalte die Verzögerung von 120ms
+    }
+  }
+
+  tick();
+  setInterval(tick, 3000);
+</script>

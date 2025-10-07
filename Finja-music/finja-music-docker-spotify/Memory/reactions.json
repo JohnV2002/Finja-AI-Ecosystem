@@ -1,0 +1,163 @@
+{
+  "version": 2,
+  "sets": {
+    "like": [
+      "Starker Track! 🔥",
+      "Das klingt echt gut ✨",
+      "Richtig gute Vibes 😍",
+      "Großartiger Song 🎶",
+      "Yesss, {title} von {artist}! 🔥",
+      "{artist} liefert wieder ab ✅",
+      "Killer Drop 💥",
+      "Unskippable. Punkt. ✔️",
+      "Banger aus einer anderen Galaxie 🌌",
+      "Der Groove ist illegal gut 😏"
+    ],
+    "neutral": [
+      "Solide Vibes.",
+      "Okay, passt. {genres}",
+      "Ganz chillig.",
+      "Kann man laufen lassen 👍",
+      "Läuft im Hintergrund 🎶",
+      "Angenehm 🎵",
+      "Ganz nett 👌",
+      "Passt schon 😏",
+      "Hab schon Schlimmeres gehört 😂",
+      "Standard, aber okay."
+    ],
+    "dislike": [
+      "Uff, nicht so meins.",
+      "Mmmh, skippen? 😅",
+      "Geht so…",
+      "Nope nope nope 🙈",
+      "Aua, meine Ohren 😵",
+      "Ganz ehrlich? Nein.",
+      "Das killt meine Stimmung.",
+      "Uff, cringe Song.",
+      "Bitte leiser 🙉",
+      "Mute-Knopf bitte."
+    ]
+  },
+  "fallback": {
+    "like": "LOVE IT! 😍",
+    "neutral": "Okay.",
+    "dislike": "Nope."
+  },
+  "weights": {
+    "like": 2.0,
+    "neutral": 1.0,
+    "dislike": 2.0,
+    "tag_like": 1.0,
+    "tag_dislike": 1.0,
+    "artist_like": 2.0,
+    "artist_dislike": 2.0
+  },
+  "bias": {
+    "like_tags": [],
+    "dislike_tags": [],
+    "like_artists": [],
+    "dislike_artists": []
+  },
+  "unknown_policy": {
+    "enabled": true,
+    "like": 0.35,
+    "neutral": 0.40,
+    "dislike": 0.25
+  },
+  "explore": {
+    "enabled": true,
+    "chance": 0.20,
+    "weights": {
+      "like": 0.45,
+      "neutral": 0.35,
+      "dislike": 0.20
+    }
+  },
+  "artist_preferences": {},
+  "special": [
+    {
+      "title_contains": ["never gonna give you up"],
+      "artist_contains": ["rick astley"],
+      "react": "ACHTUNG RICKROLL! 😂🎣",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["sandstorm"],
+      "artist_contains": ["darude"],
+      "react": "IS THIS… SANDSTORM?! 🏜️⚡",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["shooting stars"],
+      "artist_contains": ["bag raiders"],
+      "react": "Ohhh MEME TIME 🌌😂",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["astronomia"],
+      "artist_contains": ["tony igy","vicetone"],
+      "react": "COFFIN DANCE ALERT ⚰️💃",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["crab rave"],
+      "artist_contains": ["noisestorm"],
+      "react": "🦀🦀 CRAB RAVE TIME 🦀🦀",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["all star"],
+      "artist_contains": ["smash mouth"],
+      "react": "SOMEBODY once told meeee 🎤😆",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["gangnam style"],
+      "artist_contains": ["psy"],
+      "react": "OPPA GANGNAM STYLE 💃🕺",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["harlem shake"],
+      "artist_contains": ["baauer"],
+      "react": "DO THE HARLEM SHAKE 🤪🎶",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["what is love"],
+      "artist_contains": ["haddaway"],
+      "react": "Baby don’t hurt meee 🎶😂",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["barbie girl"],
+      "artist_contains": ["aqua"],
+      "react": "I’m a Barbie Girl 💖😂",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["nyan cat"],
+      "artist_contains": [],
+      "react": "Nyan nyan nyan 🌈🐱",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["baby shark"],
+      "artist_contains": [],
+      "react": "doo doo doo… 🦈😂",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["giga chad","gigachad"],
+      "artist_contains": [],
+      "react": "GIGACHAD WALK 💪😎",
+      "force_bucket": "like"
+    },
+    {
+      "title_contains": ["skibidi"],
+      "artist_contains": [],
+      "react": "Skibidi vibes 🚽🕺😂",
+      "force_bucket": "like"
+    }
+  ]
+}

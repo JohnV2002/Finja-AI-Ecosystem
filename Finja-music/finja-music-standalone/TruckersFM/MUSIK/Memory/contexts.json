@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "default_profile": "neutral",
+  "source": {
+    "type": "file",
+    "path": "Memory/game_state.txt",
+    "map": {
+      "default": "neutral",
+      "just chatting": "justchatting",
+      "justchatting": "justchatting",
+      "jc": "justchatting"
+    }
+  },
+  "profiles": {
+    "neutral": {
+      "bucket_bias": { "like": 0.0, "neutral": 0.0, "dislike": 0.0 },
+      "tag_weights": {},
+      "artist_weights": {}
+    },
+
+    "justchatting": {
+      "bucket_bias": {
+        "like": 0.10,
+        "neutral": 0.15,
+        "dislike": -0.10
+      },
+      "tag_weights": {
+        "lofi": 0.8,
+        "chill": 0.8,
+        "ambient": 0.8,
+        "instrumental": 0.7,
+        "acoustic": 0.6,
+        "piano": 0.6,
+        "jazzhop": 0.5,
+        "study": 0.6,
+        "coffeehouse": 0.5,
+        "soft pop": 0.4,
+        "indie pop": 0.3,
+
+        "hardstyle": -0.7,
+        "bass boosted": -0.6,
+        "screamo": -0.8,
+        "dubstep": -0.5,
+        "drum and bass": -0.4,
+        "aggressive trap": -0.5,
+        "edm festival": -0.3
+      },
+      "artist_weights": {}
+    }
+  }
+}

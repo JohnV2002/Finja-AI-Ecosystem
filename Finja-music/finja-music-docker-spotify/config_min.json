@@ -1,0 +1,178 @@
+{
+  "input_path": "Nowplaying/nowplaying.txt",
+  "fixed_outputs": "Nowplaying",
+  "interval_s": 2.0,
+  "init_write": true,
+
+  "genres_template": "Pop • Nightcore • Speed Up",
+  "react_template": "OMG NICE",
+  "genres_fallback": "Neuer Song :) hören wir mal rein",
+  "genres_joiner": " • ",
+
+  "songs_kb_path": "SongsDB/songs_kb.json",
+  "kb_index_cache_path": "cache/kb_index.pkl",
+
+  "show_special_version_in_genres": true,
+  "special_version_prefix": "",
+  "special_version_tags": {
+    "nightcore": ["nightcore"],
+    "speed up": ["speed up", "sped up", "speedup"],
+    "tiktok": ["tiktok", "tik tok"],
+    "radio edit": ["radio edit", "radio mix"],
+    "slowed + reverb": ["slowed + reverb", "slowed & reverb", "slowed reverb", "slow + reverb"],
+    "slowed": ["slowed", "slowed down"],
+    "reverb": ["reverb"],
+    "bass boosted": ["bass boosted", "bass-boosted", "bassboosted"],
+    "remix": ["remix", "remixed", "rmx"],
+    "daycore": ["daycore", "day core", "day-core"],
+    "updraft": ["updraft", "up draft", "up-draft"],
+    "upcore": ["upcore", "up core", "up-core"],
+    "breakcore": ["breakcore", "break core", "break-core"]
+  },
+
+  "artist_not_sure": {
+    "enabled": true,
+    "path": "missingsongs/artist_not_sure.jsonl",
+    "state_path": "missingsongs/.artist_not_sure_seen.json",
+    "dedupe_hours": 24
+  },
+
+  "mirror_legacy_gernres": true,
+  "log_every_tick": false,
+
+  "sync_guard": {
+    "enabled": true,
+    "settle_ms": 200,
+    "retries": 3
+  },
+
+  "debug_probe": {
+    "enabled": false,
+    "kb_probe_path": "kb_probe.py",
+    "open_console": false,
+    "use_idx": false
+  },
+
+  "missing_log": {
+    "enabled": true,
+    "path": "missingsongs/missing_songs_log.jsonl",
+    "log_on_init": false,
+    "dedupe_hours": 12,
+    "state_path": "missingsongs/.missing_seen.json"
+  },
+
+  "reactions": {
+    "enabled": true,
+    "path": "Memory/reactions.json",
+    "mode": "score",
+    "seed": 1337,
+    "cooldown_s": 45,
+    "debug": false,
+    "include_genres": false,
+
+    "context": {
+      "enabled": true,
+      "path": "Memory/contexts.json",
+      "refresh_s": 5
+    },
+
+    "listening": {
+      "enabled": true,
+      "text": "Listening…",
+      "delay_s": 50,
+      "random_delay": { "min_s": 40, "max_s": 60 },
+      "mid_texts": [
+        "Deep listening…", "Thinking more…", "Listening more…", "Vibing…", "Analyzing…",
+        "Still listening…", "Getting into it…", "One more sec…", "Soaking it in…",
+        "Grooving…", "Tuning in…", "Feeling the track…", "Let it sink in…", "Dialing in…",
+        "Leaning in…", "Catching details…", "Head-bobbing…", "Calibrating…", "Locking in…",
+        "Riding the wave…", "Breathing it in…", "Counting beats…", "Letting it build…",
+        "Finding groove…", "Ear-candy check…", "Savoring…", "Fine-tuning…", "On the hook…",
+        "Scanning layers…", "Zeroing in…", "Still vibing…", "Melody check…", "Bass check…"
+      ],
+      "mid_switch_after_s": 45
+    }
+  },
+
+  "memory": {
+    "enabled": true,
+    "path": "Memory/memory.json",
+    "min_confidence": 2,
+
+    "decay": {
+      "enabled": true,
+      "half_life_days": 90,
+      "floor": 0.0
+    },
+
+    "tuning": {
+      "min_seen_for_repeat": 2,
+      "min_seen_for_cross_context": 2,
+      "confidence_margin": 0.75,
+      "suppress_cross_if_dislike": true,
+      "suppress_cross_if_tie": true,
+      "show_fits_here_even_if_small": true,
+      "max_tail_segments": 2
+    },
+
+    "variants": {
+      "repeat": {
+        "like": [
+          "Immer noch geil.", "Immer noch ein Banger.", "Immer noch stark.", "Kickt immer noch.",
+          "Feier ich immer noch.", "Noch immer ein Hit.", "Geht immer noch rein.", "Immer noch top.",
+          "Immer wieder nice.", "Bleibt ein Banger.", "Bleibt ein Ohrwurm.", "Noch voll mein Ding.",
+          "Trifft mich wieder.", "Same energy, love it.", "Holt mich erneut ab.", "Wieder absolute Vibes.",
+          "Unfassbar stabil.", "Gänsehaut — schon wieder."
+        ],
+        "neutral": [
+          "Immer noch okay.", "Immer noch solide.", "Immer noch fein.", "Passt immer noch.",
+          "Geht weiterhin klar.", "Noch immer solide.", "Unverändert okay.", "Bleibt neutral.",
+          "Ist immer noch ganz nett.", "Solide wie zuvor.", "Passt weiterhin in den Flow.",
+          "Läuft einfach nebenbei.", "Stabil, nicht aufregend.", "Okay für den Moment."
+        ],
+        "dislike": [
+          "Immer noch meh.", "Immer noch nicht meins.", "Bleibt meh.",
+          "Immer noch schwierig.", "Nope, immer noch nicht.", "Weiterhin nicht mein Ding.",
+          "Unverändert meh.", "Immer noch skip.", "Noch kein Funke.", "Trifft mich weiter nicht."
+        ]
+      },
+
+      "better_other": {
+        "like": [
+          "… aber in {best} noch besser.", "… in {best} fühlt es sich am besten an.",
+          "… {best} macht’s noch geiler.", "… zu {best} passt’s maximal.",
+          "… {best} bringt’s richtig.", "… in {best} ist’s ein Brett.",
+          "… {best} setzt noch eins drauf.", "… mit {best} noch mehr Gänsehaut.",
+          "… für {best} einfach ideal.", "… in {best} hittet’s noch mehr."
+        ],
+        "neutral": [
+          "… aber in {best} passt es besser.", "… in {best} funktioniert es runder.",
+          "… {best} steht dem besser.", "… passt in {best} ein bisschen besser.",
+          "… {best} macht’s angenehmer.", "… in {best} wirkt’s stimmiger.",
+          "… {best} ist nen Tick passender.", "… in {best} leicht im Vorteil."
+        ],
+        "dislike": [
+          "… in {best} funktioniert’s interessanterweise besser.", "… in {best} geht’s eher klar.",
+          "… {best} macht’s immerhin erträglicher.", "… in {best} weniger nervig.",
+          "… {best} rettet’s ein bisschen.", "… in {best} nicht ganz so schlimm."
+        ]
+      },
+
+      "fits_here": {
+        "like": [
+          "Passt besonders zu {here}.", "Perfekt für {here}.", "Für {here} genau richtig.",
+          "In {here} kommt’s am besten.", "Für {here} absolute Vibes.", "In {here} ein Volltreffer.",
+          "Für {here} perfekt abgestimmt.", "In {here} glänzt das richtig."
+        ],
+        "neutral": [
+          "Ganz okay für {here}.", "Für {here} solide Wahl.", "In {here} ganz passabel.",
+          "Für {here} geht das klar.", "In {here} unauffällig ok.", "Für {here} kann bleiben."
+        ],
+        "dislike": [
+          "Für {here} eher nicht ideal — aber okay.", "Für {here} eher nicht so.", "In {here} schwierig.",
+          "Für {here} nicht meins.", "In {here} passt’s weniger.", "Für {here} eher Skip."
+        ]
+      }
+    }
+  }
+}

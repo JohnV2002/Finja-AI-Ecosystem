@@ -1,13 +1,13 @@
 {
-  "input_path": "C:/Users/johnv/Pictures/Streaming/MDR/nowplaying.txt",
-  "fixed_outputs": "C:/Users/johnv/Pictures/Streaming/MDR/outputs",
+  "input_path": "../RTL980/nowplaying.txt",
+  "fixed_outputs": "../RTL980/outputs",
   "interval_s": 2.0,
   "init_write": true,
   "genres_template": "Pop • Nightcore • Speed Up",
   "react_template": "OMG NICE",
   "genres_fallback": "Neuer Song :) hören wir mal rein",
   "genres_joiner": " • ",
-  "songs_kb_path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/SongsDB/songs_kb.json",
+  "songs_kb_path": "../SongsDB/songs_kb.json",
   "show_special_version_in_genres": true,
   "special_version_prefix": "",
   "special_version_tags": {
@@ -73,11 +73,11 @@
   },
   "artist_not_sure": {
     "enabled": true,
-    "path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/missingsongs/artist_not_sure.jsonl",
-    "state_path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/missingsongs/.artist_not_sure_seen.json",
+    "path": "../missingsongs/artist_not_sure.jsonl",
+    "state_path": "../missingsongs/.artist_not_sure_seen.json",
     "dedupe_hours": 24
   },
-  "kb_index_cache_path": "C:/Users/johnv/Pictures/Streaming/MUSICMDR/cache/kb_index.pkl",
+  "kb_index_cache_path": "../MUSICRTL/cache/kb_index.pkl",
   "mirror_legacy_gernres": true,
   "log_every_tick": false,
   "sync_guard": {
@@ -93,14 +93,14 @@
   },
   "missing_log": {
     "enabled": true,
-    "path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/missingsongs/missing_songs_log.jsonl",
+    "path": "../MUSICNEU/missingsongs/missing_songs_log.jsonl",
     "log_on_init": false,
     "dedupe_hours": 12,
-    "state_path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/missingsongs/.missing_seen.json"
+    "state_path": "../MUSICNEU/missingsongs/.missing_seen.json"
   },
   "reactions": {
     "enabled": true,
-    "path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/Memory/reactions.json",
+    "path": "../MUSICNEU/Memory/reactions.json",
     "mode": "score",
     "seed": 1337,
     "cooldown_s": 45,
@@ -108,7 +108,7 @@
     "include_genres": false,
     "context": {
       "enabled": true,
-      "path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/Memory/contexts.json",
+      "path": "../MUSICNEU/Memory/contexts.json",
       "refresh_s": 5
     },
     "listening": {
@@ -159,7 +159,7 @@
   },
   "memory": {
     "enabled": true,
-    "path": "C:/Users/johnv/Pictures/Streaming/MUSICNEU/Memory/memory.json",
+    "path": "../MUSICNEU/Memory/memory.json",
     "min_confidence": 2,
     "decay": {
       "enabled": true,

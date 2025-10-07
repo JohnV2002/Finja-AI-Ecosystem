@@ -1,0 +1,26 @@
+# =====================================================================
+#  Project: Finja Musik Docker Spotify - Docker Compose
+#  Version: 1.0.0
+#  Author:  JohnV2002 (J. Apps / Sodakiller1)
+#  License: MIT License (c) 2025 J. Apps
+# =====================================================================
+
+version: '3.8'
+
+services:
+  finja-musik-api:
+    build: .
+    container_name: finja-musik-api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Nowplaying:/app/Nowplaying
+      - ./Memory:/app/Memory
+      - ./SongsDB:/app/SongsDB
+      - ./cache:/app/cache
+      - ./config.json:/app/config.json
+      - ./config_min.json:/app/config_min.json
+    user: "${UID}:${GID}"
+    restart: unless-stopped
