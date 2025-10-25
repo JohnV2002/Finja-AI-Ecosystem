@@ -4,7 +4,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3.11 (Fix Status Message)
+  Version: 4.3.12 (Ollama Payload Switch)
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -12,7 +12,18 @@
   Author Website: https://jappshome.de
   Support: https://buymeacoffee.com/J.Apps
 
-----------------------------------------------------------------------
+
+ Updates 4.3.12:
+ ---------------------------------------------------------------------
+  + **Ollama Payload Format-Schalter:** Ein neues Valve (`local_llm_payload_format`)
+    hinzugefügt. Benutzer können nun wählen zwischen:
+    - `"v4_standard"` (Standard): Sendet `format: "json"` auf der obersten
+      Ebene des Payloads (moderner Ollama-Standard).
+    - `"v3_options"`: Sendet `format: "json"` und `temperature` innerhalb
+      eines `"options"`-Blocks (für Kompatibilität mit v3 oder älteren Modellen).
+  + **Fix `_local_llm_json` Payload:** Die Funktion `_local_llm_json`
+    baut den Payload nun korrekt basierend auf dem neuen Valve auf.
+
  Updates 4.3.11:
  ---------------------------------------------------------------------
   + **Fix Persistente Statusmeldung:** Eine abschließende Statusmeldung ("✅ Relevante Erinnerungen zum Kontext hinzugefügt.")
@@ -42,81 +53,24 @@
   + **Modulare lokale Embeddings:** Unterstützung für die Verwendung von Ollamas
     `/api/embeddings`-Endpunkt als Alternative zur eingebauten `sentence-transformers`-Bibliothek
     für lokale Embedding-Berechnungen hinzugefügt.
-    - Neue Valves: `local_embedding_provider` ('sentence_transformer' oder 'ollama'),
-      `ollama_embedding_api_endpoint_url`, `ollama_embedding_model_name`.
-    - Neue Funktion: `_get_ollama_embeddings` behandelt die Kommunikation mit der Ollama-API.
-    - Aktualisierte Funktion: `_calculate_embeddings` prüft jetzt das Provider-Valve
-      und ruft die entsprechende Funktion auf (SentenceTransformer oder Ollama).
 
  Updates 4.3.7:
  ---------------------------------------------------------------------
   + **Fix `traceback` Import:** `import traceback` für Fehlerprotokollierung
     in `_local_llm_json` hinzugefügt.
   + **Fix `UnboundLocalError`:** `existing_vecs_local` auf `None`
-    in `_upload_new_dedup` initialisiert, um potenzielle Fehler zu verhindern, wenn die erste
-    Embedding-Berechnung fehlschlägt.
+    in `_upload_new_dedup` initialisiert, um potenzielle Fehler zu verhindern.
 
  Updates 4.3.6:
  ---------------------------------------------------------------------
-  + **Fix Deduplizierungslogik:** Die Funktion `_upload_new_dedup` versucht nun
-    nur noch, OpenAI-Embeddings für die Duplikatsprüfung zu verwenden, wenn
-    OpenAI auch tatsächlich als `extraction_provider` oder `relevance_provider`
-    ausgewählt ist. Ansonsten wird direkt der lokale Embedding-Fallback genutzt.
+  + **Fix Deduplizierungslogik:** `_upload_new_dedup` nutzt OpenAI-Embeddings nur noch,
+    wenn OpenAI aktiv als Provider ausgewählt ist.
 
  Updates 4.3.5:
  ---------------------------------------------------------------------
-  + **LLM Provider-Auswahl:** Benutzer können nun zwischen 'openai' und 'local' (Ollama)
-    sowohl für die Extraktion von Erinnerungen (`extraction_provider`) als auch für die Relevanzprüfung
-    (`relevance_provider`) wählen.
-  + **Dedizierte Ollama-Funktion:** `_local_llm_json` für robuste Kommunikation
-    mit lokalen LLM-APIs wie Ollama hinzugefügt.
-  + **Überarbeitete Relevanz & Extraktion:** `_extract_new_memories` und
-    `_rank_relevance` aktualisiert, um den ausgewählten Provider zu verwenden.
-  + **Vereinfachter `processing_mode`:** `processing_mode` entfernt, da Provider-Auswahl
-    und `use_local_embedding_fallback` nun den Ablauf steuern.
-
- Updates 4.3.3:
- ---------------------------------------------------------------------
-  + **Stabilitäts-Verbesserungen:**
-      - Das Timeout für externe Anfragen ist nun konfigurierbar.
-      - Der Parser für OpenAI-Antworten wurde gehärtet und kann nun auch
-        fehlerhafte Formate (einzelnes Objekt statt Liste) selbst korrigieren.
-
- Updates 4.3:
- ---------------------------------------------------------------------
-  + **Datenschutz & Benutzerkontrolle (Memory-Löschung):**
-      - User können jetzt per Chat-Befehl die Löschung all ihrer
-        persönlichen Erinnerungen anfordern.
-      - Ein Zwei-Stufen-Bestätigungsprozess mit exakter Phrasen-Eingabe
-        sorgt für maximale Sicherheit und verhindert versehentliches Löschen.
-      - Der Server löscht daraufhin alle zugehörigen Daten des Users,
-        inklusive der Memory-JSON und aller Audio-Dateien.
-
- Updates 4.2:
- ---------------------------------------------------------------------
-  + **Server-Verbindungs-Check:** Das Plugin prüft beim Start, ob der
-    Memory-Server erreichbar ist und gibt eine klare Fehlermeldung aus.
-
-  + **Prompt-Feintuning:** Der Extraktions-Prompt wurde gehärtet, um
-    qualitativ hochwertigere, dauerhafte Fakten zu generieren.
-
-  + **Duales Fallback-System:** Das Plugin funktioniert dank lokaler
-    Embedding-Modelle auch bei einem Ausfall des primären LLM-Providers.
-
-  + **Verbessertes User-Feedback:** Das Plugin gibt dem User jetzt klare und
-    freundliche Statusmeldungen für alle Aktionen im Chat aus.
-
-  + **Robuste Logik & Refactoring:** Die zentrale `inlet`-Methode wurde
-    überarbeitet, um alle Modi sauber und fehlerresistent zu steuern.
-
-  + **Performance & Kosten-Optimierung:**
-      - Ein "Themen-Cache" vermeidet unnötige API-Anfragen komplett.
-      - Eine lokale Vor-Filterung reduziert die Anzahl der an LLMs
-        gesendeten Erinnerungen drastisch.
-
-  + **Duplicate-Killer 2.0:** Nutzt Cosine-Similarity und Levenshtein-Distanz.
-
-  + **Erweiterter Content-Filter:** Blockiert zu kurze oder Spam-Erinnerungen.
+  + **LLM Provider-Auswahl:** `extraction_provider` und `relevance_provider` hinzugefügt.
+  + **Dedizierte Ollama-Funktion:** `_local_llm_json` hinzugefügt.
+  + **Überarbeitete Relevanz & Extraktion:** Angepasst, um Provider-Auswahl zu nutzen.
 ----------------------------------------------------------------------
 """
 
@@ -203,17 +157,24 @@ class Filter:
 
         # --- Local LLM (Ollama) Settings (if used for extraction or relevance) ---
         local_llm_api_endpoint_url: str = Field(
-            default="http://host.docker.internal:11434/api/chat",
-            description="API endpoint for local LLM (Ollama v1 Chat Endpoint recommended)."
+            default="http://host.docker.internal:11434/api/chat", # User must provide the FULL endpoint URL now
+            description="FULL API endpoint URL for local LLM (e.g., 'http://localhost:11434/api/chat')."
         )
         local_llm_model_name: str = Field(
-            default="qwen3:8b",
-            description="Model name for local LLM (e.g., 'qwen3:8b', 'llama3:latest', 'gemma3:4b')."
+            default="qwen2:7b",
+            description="Model name for local LLM (e.g., 'qwen2:7b', 'llama3:latest')."
         )
         local_llm_api_key: Optional[str] = Field(
             default=None,
             description="API Key for local LLM (if required)."
         )
+        # --- NEW PAYLOAD SWITCH ---
+        local_llm_payload_format: Literal["v4_standard", "v3_options"] = Field(
+            default="v4_standard",
+            description="Payload format for local LLM ('v4_standard' for top-level format, 'v3_options' for format within options block for compatibility)."
+        )
+        # --- END NEW PAYLOAD SWITCH ---
+
 
         # --- Local Embedding Settings ---
         local_embedding_provider: Literal["sentence_transformer", "ollama"] = Field(
@@ -223,22 +184,22 @@ class Filter:
         # Sentence Transformer specific (if local_embedding_provider is 'sentence_transformer')
         sentence_transformer_model: str = Field(
             default="all-MiniLM-L6-v2",
-            description="Model name for sentence-transformers library (e.g., 'all-MiniLM-L6-v2', 'qwen3-embedding', 'embeddinggemma'). Ensure it's installed or downloadable."
+            description="Model name for sentence-transformers library (e.g., 'all-MiniLM-L6-v2'). Ensure it's installed or downloadable."
         )
         # Ollama Embedding specific (if local_embedding_provider is 'ollama')
         ollama_embedding_api_endpoint_url: str = Field(
-             default="http://host.docker.internal:11434/api/embeddings", # Default Ollama embedding endpoint
-             description="API endpoint for Ollama embeddings."
+             default="http://host.docker.internal:11434/api/embeddings", # User must provide the FULL endpoint URL now
+             description="FULL API endpoint URL for Ollama embeddings (e.g., 'http://localhost:11434/api/embeddings')."
         )
         ollama_embedding_model_name: str = Field(
             default="qwen2:7b-embed", # Example embedding model, adjust as needed
-            description="Model name for Ollama embeddings (e.g., 'nomic-embed-text', 'qwen3-embedding', 'embeddinggemma')."
+            description="Model name for Ollama embeddings (e.g., 'nomic-embed-text', 'qwen2:7b-embed')."
         )
 
         # --- Memory Server ---
         memory_api_base: str = Field(
             default="http://localhost:8000",
-            description="Base URL of your Memory Server (without path, http or https!)"
+            description="Base URL of your Memory Server (without path, http!)"
         )
         memory_api_key: str = Field(default="changeme-supersecretkey")
 
@@ -373,7 +334,15 @@ class Filter:
         if not texts: return None
 
         s = await self._session_get()
-        api_url = self.valves.ollama_embedding_api_endpoint_url
+        # --- Flexible URL Handling (v4.3.12 logic) ---
+        base_url = self.valves.ollama_embedding_api_endpoint_url.rstrip('/')
+        if not base_url.endswith("/api/embeddings"):
+            api_url = f"{base_url}/api/embeddings"
+            _log("ollama_embedding: Appending /api/embeddings to base URL.", {"base": base_url, "final": api_url})
+        else:
+            api_url = base_url
+            _log("ollama_embedding: Using provided URL as full endpoint.", {"url": api_url})
+        # --- End Flexible URL Handling ---
         model = self.valves.ollama_embedding_model_name
 
         if not api_url or not model:
@@ -417,7 +386,7 @@ class Filter:
                  _log(f"ollama_embedding: Partially failed, got {len(successful_embeddings)}/{len(texts)} embeddings.")
 
             # Ensure all embeddings have the same dimension before creating numpy array
-            if len(set(len(e) for e in successful_embeddings)) > 1:
+            if successful_embeddings and len(set(len(e) for e in successful_embeddings)) > 1:
                 _log("ollama_embedding: Embeddings have inconsistent dimensions.")
                 return None
 
@@ -444,13 +413,9 @@ class Filter:
                 if model:
                     loop = asyncio.get_running_loop()
                     # Execute sentence-transformer encoding in a thread pool
-                    # Wrap the lambda and its execution in a try-except block
                     try:
-                        embeddings = await loop.run_in_executor(
-                            None,
-                            lambda blocking_texts: model.encode(blocking_texts, convert_to_numpy=True),
-                            texts # Pass texts to the lambda
-                        )
+                        # Pass texts directly to the lambda
+                        embeddings = await loop.run_in_executor(None, model.encode, texts, True) # True for convert_to_numpy
                     except Exception as encode_error:
                          _log(f"embedding: SentenceTransformer encode failed: {encode_error}", {"traceback": traceback.format_exc()})
                          return None
@@ -562,7 +527,7 @@ class Filter:
              headers["Authorization"] = f"Bearer {api_key}"
         else:
              _log("openai:json API key missing or placeholder.")
-             return "[]" # Return empty if no valid key
+             raise ValueError("OpenAI API Key is missing or invalid.") # Raise error instead of returning "[]"
 
         payload = {
             "model": self.valves.openai_model_name,
@@ -584,33 +549,72 @@ class Filter:
                              _log("openai:json raw", {"first120": content[:120]})
                              return content # Return raw JSON string
                          except (json.JSONDecodeError, IndexError, KeyError) as e:
-                             _log("openai:json parse error", {"error": str(e), "raw": txt[:200]}); return "[]"
+                             _log("openai:json parse error", {"error": str(e), "raw": txt[:200]}); raise ValueError(f"OpenAI response parsing failed: {e}") # Raise error
                      else:
                          _log("openai:json API error", {"status": r.status, "resp": txt[:200]})
-                         if r.status == 401: return "[]" # No retry on auth error
+                         if r.status == 401: raise ValueError("OpenAI API Key is invalid (401 Unauthorized).") # Raise specific error
                          if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                         return "[]"
+                         raise aiohttp.ClientResponseError(r.request_info, r.history, status=r.status, message=txt[:500]) # Raise error on final failure
              except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                   _log(f"openai:json network/timeout error attempt {attempt+1}: {e}")
                   if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                  return "[]"
-             except Exception as e:
+                  raise ConnectionError(f"OpenAI connection/timeout error after retries: {e}") # Raise error
+             except Exception as e: # Catch other exceptions like ValueError from parsing
                  _log(f"openai:json unexpected error attempt {attempt+1}: {e}", {"traceback": traceback.format_exc()})
                  if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                 return "[]"
-        return "[]"
+                 raise e # Re-raise final exception
+        raise ConnectionError("OpenAI request failed after all retries.") # Should not be reached
+
 
     async def _local_llm_json(self, messages: List[dict]) -> str:
         s = await self._session_get()
         headers = {"Content-Type": "application/json"}
-        api_url = self.valves.local_llm_api_endpoint_url
+        # --- Flexible URL Handling (v4.3.12 logic) ---
+        base_url = self.valves.local_llm_api_endpoint_url.rstrip('/')
+        # Check for common chat endpoints
+        if not base_url.endswith(("/api/chat", "/v1/chat/completions")):
+            api_url = f"{base_url}/api/chat" # Default to /api/chat if missing
+            _log("local_llm: Appending /api/chat to base URL.", {"base": base_url, "final": api_url})
+        else:
+            api_url = base_url
+            _log("local_llm: Using provided URL as full endpoint.", {"url": api_url})
+        # --- End Flexible URL Handling ---
         model = self.valves.local_llm_model_name
         api_key = self.valves.local_llm_api_key
 
-        if not api_url or not model: _log("local_llm: API URL or model not configured."); return "[]"
+        if not api_url or not model:
+            _log("local_llm: API URL or model not configured.")
+            raise ValueError("Local LLM API URL or model name not configured.")
         if api_key: headers["Authorization"] = f"Bearer {api_key}"
 
-        payload = {"model": model, "messages": messages, "temperature": 0.0, "format": "json", "stream": False}
+        # --- NEW: Build payload based on format valve ---
+        payload_format = self.valves.local_llm_payload_format
+        payload = {}
+
+        if payload_format == "v3_options":
+            _log("local_llm: Using v3-style payload (params in options block).")
+            payload = {
+                "model": model,
+                "messages": messages,
+                "options": {
+                    "temperature": 0.0,
+                    # Add format here if needed, but Ollama docs say format is top-level
+                    # Let's try adding it here for v3 compatibility
+                    "format": "json"
+                },
+                "stream": False
+            }
+        else: # Default to "v4_standard"
+            _log("local_llm: Using v4-style payload (top-level format).")
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.0, # Ollama supports this top-level
+                "format": "json",    # Format at top level
+                "stream": False
+            }
+        # --- End new payload logic ---
+
         max_retries = 2; retry_delay = 1.0
 
         for attempt in range(max_retries + 1):
@@ -621,43 +625,41 @@ class Filter:
                         try:
                             data = json.loads(txt)
                             content = "[]"
-                            # Handle different response structures gracefully
-                            if "choices" in data and data["choices"] and isinstance(data["choices"][0].get("message"), dict):
-                                content = data["choices"][0]["message"].get("content", "[]")
-                            elif "message" in data and isinstance(data["message"], dict):
-                                content = data["message"].get("content", "[]")
-                            elif "response" in data: # Fallback for /api/generate
-                                content = data.get("response", "[]")
+                            # Handle different response structures
+                            if "choices" in data and data["choices"] and isinstance(data["choices"][0].get("message"), dict): content = data["choices"][0]["message"].get("content", "[]")
+                            elif "message" in data and isinstance(data["message"], dict): content = data["message"].get("content", "[]")
+                            elif "response" in data: content = data.get("response", "[]")
 
                             _log("local_llm: Raw content received", {"first120": content[:120]})
-
-                            # Validate if content looks like JSON and return as string
+                            # Validate JSON-like and return as string
                             if isinstance(content, str) and content.strip().startswith(('[', '{')) and content.strip().endswith((']', '}')):
                                 try: json.loads(content); return content
-                                except json.JSONDecodeError: pass # Fall through
-                            elif isinstance(content, (dict, list)):
-                                return json.dumps(content) # Convert back to string if already parsed
+                                except json.JSONDecodeError: pass
+                            elif isinstance(content, (dict, list)): return json.dumps(content)
 
-                            _log("local_llm: Response content not valid JSON", {"raw_content": content[:200]})
-                            return "[]"
+                            _log("local_llm: Response not valid JSON", {"raw_content": content[:200]})
+                            raise ValueError(f"Local LLM response was not valid JSON: {content[:200]}...")
 
-                        except json.JSONDecodeError: _log("local_llm: Failed to decode outer JSON", {"raw": txt[:200]}); return "[]"
+                        except json.JSONDecodeError as e: _log("local_llm: Failed decode outer JSON", {"raw": txt[:200]}); raise ValueError(f"Local LLM outer JSON decode failed: {e}")
                     else:
                         _log("local_llm: API error", {"status": r.status, "resp": txt[:200]})
+                        if r.status == 404 or ("model not found" in txt.lower()) or ("model is required" in txt.lower()): # Added "model is required"
+                             raise ValueError(f"Model '{model}' not found or invalid on Ollama server at {api_url}.")
                         if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                        return "[]"
+                        raise aiohttp.ClientResponseError(r.request_info, r.history, status=r.status, message=txt[:500])
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                  _log(f"local_llm: Network/timeout error attempt {attempt+1}: {e}")
                  if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                 return "[]"
+                 raise ConnectionError(f"Local LLM connection/timeout error after retries: {e}")
             except Exception as e:
                 _log(f"local_llm: Unexpected error attempt {attempt+1}: {e}", {"traceback": traceback.format_exc()})
                 if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
-                return "[]"
-        return "[]"
+                raise e
+        raise ConnectionError("Local LLM request failed after all retries.")
 
 
     async def _get_openai_embedding(self, text: str) -> Optional[List[float]]:
+        # ... (implementation remains the same) ...
         if not text: return None
         api_key = self.valves.openai_api_key
         if not api_key or api_key == PLACEHOLDER_OPENAI_KEY:
@@ -667,14 +669,14 @@ class Filter:
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
         payload = {"model": self.valves.openai_embedding_model, "input": text}
         api_url = self.valves.openai_embedding_endpoint_url
-        max_retries = 1; retry_delay = 0.5 # Less aggressive for embeddings
+        max_retries = 1; retry_delay = 0.5
 
         for attempt in range(max_retries + 1):
              try:
                  async with s.post(api_url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=self.valves.http_client_timeout / 3)) as r:
                      if r.status != 200:
                          _log("openai:embedding error", {"status": r.status, "resp": (await r.text())[:200]})
-                         if r.status == 401: return None # No retry on auth error
+                         if r.status == 401: return None
                          if attempt < max_retries: await asyncio.sleep(retry_delay * (2 ** attempt)); continue
                          return None
                      data = await r.json()
@@ -692,6 +694,7 @@ class Filter:
     # Relevance check
     # --------------------------
     async def _rank_relevance(self, user_msg: str, candidate_texts: List[str]) -> List[dict]:
+        # ... (implementation remains the same) ...
         if not candidate_texts: return []
         provider = self.valves.relevance_provider
         if provider not in ["openai", "local"]:
@@ -703,12 +706,12 @@ class Filter:
         try:
             if provider == "openai": raw = await self._openai_json([sys, usr])
             elif provider == "local": raw = await self._local_llm_json([sys, usr])
-        except Exception as e: _log(f"relevance: Error calling LLM provider '{provider}': {e}"); return []
+        except Exception as e: _log(f"relevance: Error calling LLM provider '{provider}': {e}"); return [] # Catch errors from LLM helpers
 
         parsed = []; out: List[dict] = []
         try:
             parsed_json = json.loads(raw)
-            if isinstance(parsed_json, dict): # Handle potential dict wrapping
+            if isinstance(parsed_json, dict):
                  for key in ["results", "relevance_scores", "memories", "candidates"]:
                      if key in parsed_json and isinstance(parsed_json[key], list): parsed = parsed_json[key]; break
                  else:
@@ -726,16 +729,19 @@ class Filter:
         except json.JSONDecodeError: _log("relevance: Failed to decode JSON.", {"raw": raw[:200]})
         return out
 
+
     # --------------------------
     # Memory extraction & upload
     # --------------------------
     def _is_blocked_for_extract(self, text: str) -> bool:
+        # ... (implementation remains the same) ...
         t = text.strip().lower();
         for pat in self._block_extract_patterns:
             if re.match(pat, t): return True
         return False
 
     async def _extract_new_memories(self, last_user_text: str) -> List[dict]:
+        # ... (implementation remains the same) ...
         if self._is_blocked_for_extract(last_user_text):
             _log("extract: blocked by guard", {"text": last_user_text[:60]}); return []
 
@@ -747,20 +753,20 @@ class Filter:
             if provider == "openai": raw = await self._openai_json([sys, usr])
             elif provider == "local": raw = await self._local_llm_json([sys, usr])
             else: _log(f"extract: Unknown provider: {provider}"); return []
-        except Exception as e: _log(f"extract: Error calling provider '{provider}': {e}"); return []
+        except Exception as e: _log(f"extract: Error calling provider '{provider}': {e}"); return [] # Catch errors
 
         arr = []
         try:
             parsed_json = json.loads(raw)
             if isinstance(parsed_json, list): arr = parsed_json
-            elif isinstance(parsed_json, dict) and 'operation' in parsed_json and 'content' in parsed_json: arr = [parsed_json] # Handle single object
+            elif isinstance(parsed_json, dict) and 'operation' in parsed_json and 'content' in parsed_json: arr = [parsed_json]
             else: _log("parser: Unexpected JSON structure.", {"raw": raw[:200]})
         except json.JSONDecodeError: _log("parser: Failed to decode JSON.", {"raw": raw[:200]})
 
         out = []
         for m in arr:
             if not isinstance(m, dict): continue
-            if m.get("operation", "NEW").upper() != "NEW": continue # Default to NEW if missing
+            if m.get("operation", "NEW").upper() != "NEW": continue
             content = (m.get("content") or "").strip()
             if not content or self._is_spam_or_too_short(content): continue
             lc = content.lower()
@@ -771,7 +777,9 @@ class Filter:
         _log("extract: parsed and filtered", {"in": len(arr), "out": len(out)})
         return out
 
+
     async def _upload_new_dedup(self, user_id: str, candidates: List[dict]) -> int:
+        # ... (implementation remains the same) ...
         if not candidates: return 0
         existing_memories = await self._mem_get_existing(user_id)
         if not existing_memories:
@@ -823,7 +831,7 @@ class Filter:
                             except Exception as e: _log(f"dedup: Error calc OpenAI cosine: {e}")
                     if is_duplicate: continue
 
-            if not is_duplicate and self.valves.use_local_embedding_fallback:
+            if not is_duplicate and self.valves.use_local_embedding_fallback: # Fallback applies to dedupe too
                 cosine_check_method = f"local_{self.valves.local_embedding_provider}"
                 _log(f"dedup: Using local embeddings ({self.valves.local_embedding_provider})...")
                 try:
@@ -833,10 +841,10 @@ class Filter:
                          if existing_vecs_local is None: existing_vecs_local = await self._calculate_embeddings(normalized_existing_texts)
 
                          if existing_vecs_local is not None:
-                             if new_vec_local.ndim == 1: new_vec_local = new_vec_local.reshape(1,-1) # Ensure 2D
-                             if existing_vecs_local.ndim == 1: existing_vecs_local = existing_vecs_local.reshape(1,-1) # Should be 2D, but safeguard
+                             if new_vec_local.ndim == 1: new_vec_local = new_vec_local.reshape(1,-1)
+                             if existing_vecs_local.ndim == 1: existing_vecs_local = existing_vecs_local.reshape(1,-1)
 
-                             if new_vec_local.shape[1] == existing_vecs_local.shape[1]: # Check matching dimensions
+                             if new_vec_local.shape[1] == existing_vecs_local.shape[1]:
                                  similarities = cosine_similarity(new_vec_local, existing_vecs_local)[0]
                                  max_sim = np.max(similarities) if similarities.size > 0 else 0.0
                                  if max_sim >= self.valves.dup_cosine_threshold:
@@ -864,7 +872,9 @@ class Filter:
         if not non_duplicates: _log("dedup: All candidates were duplicates."); return 0
         _log(f"dedup: Uploading {len(non_duplicates)} non-duplicates."); return await self._mem_add_batch_from_candidates(user_id, non_duplicates)
 
+
     async def _mem_add_batch_from_candidates(self, user_id: str, candidates: List[dict]) -> int:
+        # ... (implementation remains the same) ...
         batch = [{"user_id": user_id, "text": c.get("content","").strip()} for c in candidates if c.get("content","").strip()]
         if not batch: return 0
         ok = await self._mem_add_batch(batch)
@@ -878,6 +888,7 @@ class Filter:
     ) -> Dict[str, Any]:
         _log("inlet: received batch")
         # --- 1. SETUP & SERVER CHECK ---
+        # ... (unchanged) ...
         try:
              s = await self._session_get(); headers = {"X-API-Key": self.valves.memory_api_key}
              async with s.get(self._mem_url("memory_stats"), headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as r:
@@ -919,28 +930,39 @@ class Filter:
 
         # --- Topical Cache Check ---
         if self._context_cache and 'embedding' in self._context_cache:
+             # ... (cache check logic using _calculate_embeddings) ...
             _log("cache: checking topical cache...")
             new_embedding = await self._calculate_embeddings([last_user])
             if new_embedding is not None and self._context_cache['embedding'] is not None:
                 try:
+                    # Ensure dimensions match before comparing
                     if new_embedding.shape == self._context_cache['embedding'].shape:
                         similarity = cosine_similarity(new_embedding, self._context_cache['embedding'])[0][0]
                         if similarity >= self.valves.topical_cache_threshold:
                             _log(f"cache: HIT! Sim {similarity:.2f}. Re-injecting.")
                             body["messages"].insert(0, self._context_cache['context_message'])
-                            return body
-                        else: _log(f"cache: MISS! Sim {similarity:.2f}.")
-                    else: _log("cache: Embedding dimension mismatch.")
-                except Exception as cache_sim_error: _log(f"cache: Error calc sim: {cache_sim_error}")
-            else: _log("cache: Failed to calculate embeddings for cache check.")
+                            return body # Return early on cache hit
+                        else:
+                            _log(f"cache: MISS! Sim {similarity:.2f}.")
+                    else:
+                        _log("cache: Embedding dimension mismatch, skipping cache.")
+                except Exception as cache_sim_error:
+                    _log(f"cache: Error calculating similarity: {cache_sim_error}")
+            else:
+                _log("cache: Failed to calculate embeddings for cache check.")
 
 
         is_context_injected = False; ranked = []; llm_failed = False
+        # --- FIX: Initialize status_msg before 'if candidates:' to prevent UnboundLocalError ---
+        status_msg = "" # Initialize here!
         if candidates:
             relevance_provider = self.valves.relevance_provider
+            # status_msg = "" # Moved up
+
             # --- A) Embedding Directly ---
             if relevance_provider == "embedding":
-                _log("relevance: using local embeddings directly..."); await self._emit_status(__event_emitter__, "⚙️ Lokale Relevanz-Analyse...", done=False) # Keep status until injection
+                status_msg = "⚙️ Lokale Relevanz-Analyse..."; await self._emit_status(__event_emitter__, status_msg, done=False)
+                _log("relevance: using local embeddings directly...")
                 try:
                     new_emb = await self._calculate_embeddings([last_user]); existing_emb = await self._calculate_embeddings(candidates)
                     if new_emb is not None and existing_emb is not None:
@@ -955,8 +977,9 @@ class Filter:
             # --- B) LLM (OpenAI or Local) ---
             elif relevance_provider in ["openai", "local"]:
                 provider_name = relevance_provider.upper()
+                status_msg = f"🔍 Prüfe Relevanz ({provider_name})..."; await self._emit_status(__event_emitter__, status_msg, done=False)
                 try:
-                    _log("relevance: performing local pre-filtering..."); prefiltered_candidates = candidates
+                    _log("relevance: performing local pre-filtering..."); prefiltered_candidates = candidates # Default
                     try: # Prefiltering logic using _calculate_embeddings
                          new_emb_pre = await self._calculate_embeddings([last_user]); existing_emb_pre = await self._calculate_embeddings(candidates)
                          if new_emb_pre is not None and existing_emb_pre is not None:
@@ -972,14 +995,15 @@ class Filter:
                     except Exception as pre_e: _log(f"relevance: pre-filtering failed: {pre_e}")
 
                     if prefiltered_candidates:
-                         _log(f"relevance: using {provider_name} LLM for ranking."); await self._emit_status(__event_emitter__, f"🔍 Prüfe Relevanz ({provider_name})...", done=False) # Keep status until injection
+                         _log(f"relevance: using {provider_name} LLM for ranking.")
                          ranked = await self._rank_relevance(last_user, prefiltered_candidates)
                          if not ranked: llm_failed = True; _log(f"relevance: {provider_name} LLM call failed or returned empty.")
                     else: _log("relevance: no candidates after pre-filtering.")
-                except Exception as e: _log(f"relevance: {provider_name} LLM path failed: {e}"); llm_failed = True; await self._emit_status(__event_emitter__, f"⚠️ {provider_name} nicht erreichbar...")
+                except Exception as e: _log(f"relevance: {provider_name} LLM path failed: {e}"); llm_failed = True; await self._emit_status(__event_emitter__, f"⚠️ {provider_name} nicht erreichbar...", done=True) # Set done=True on failure
             # --- C) Embedding Fallback ---
             if llm_failed and self.valves.use_local_embedding_fallback:
-                _log("relevance: using local embeddings fallback..."); await self._emit_status(__event_emitter__, "⚙️ Lokale Fallback-Analyse...", done=False) # Keep status until injection
+                status_msg = "⚙️ Lokale Fallback-Analyse..."; await self._emit_status(__event_emitter__, status_msg, done=False)
+                _log("relevance: using local embeddings fallback...")
                 try: # Fallback logic using _calculate_embeddings
                      new_emb_fb = await self._calculate_embeddings([last_user]); existing_emb_fb = await self._calculate_embeddings(candidates)
                      if new_emb_fb is not None and existing_emb_fb is not None:
@@ -1004,7 +1028,7 @@ class Filter:
                     body["messages"].insert(0, context_message)
                     _log("context: injected", {"items": len(top)})
                     is_context_injected = True
-                    # Update cache... (try/except block)
+                    # Update cache...
                     try:
                         cur_emb = await self._calculate_embeddings([last_user])
                         if cur_emb is not None: self._context_cache = {"embedding": cur_emb, "context_message": context_message}
@@ -1012,8 +1036,12 @@ class Filter:
 
         # --- FIX: Add final status message if context was injected ---
         if is_context_injected:
-            await self._emit_status(__event_emitter__, "✅ Relevante Erinnerungen Gefunden", done=True)
+            await self._emit_status(__event_emitter__, "✅ Relevante Erinnerungen zum Kontext hinzugefügt.", done=True)
             return body
+        # --- FIX: If relevance check ran but nothing was relevant/injected, clear the status ---
+        elif status_msg: # Check if a relevance status was emitted and not cleared by injection
+            await self._emit_status(__event_emitter__, "Keine relevanten Erinnerungen gefunden.", done=True)
+
 
         # =================================================================
         # PHASE 2: EXTRACT NEW MEMORIES
@@ -1028,10 +1056,14 @@ class Filter:
             await self._emit_status(__event_emitter__, f"🧠 Analysiere Nachricht ({extraction_provider_name})...", done=False)
             new_mems_candidates = await self._extract_new_memories(last_user)
             extraction_done = True; llm_found_memories = bool(new_mems_candidates)
-        except Exception as e:
-            # Set status to 'failed' (done=True)
-            _log(f"extract: Configured LLM ({extraction_provider_name}) failed ({e}), checking fallback...", {"traceback": traceback.format_exc()})
-            await self._emit_status(__event_emitter__, f"⚠️ {extraction_provider_name} nicht erreichbar...", done=True)
+        # --- Catch specific exceptions from LLM helpers ---
+        except (ValueError, ConnectionError, aiohttp.ClientResponseError) as llm_e:
+             _log(f"extract: Configured LLM ({extraction_provider_name}) failed ({llm_e}), checking fallback...", {"traceback": traceback.format_exc()})
+             await self._emit_status(__event_emitter__, f"⚠️ {extraction_provider_name} nicht erreichbar...", done=True)
+             extraction_done = False
+        except Exception as e: # Catch any other unexpected error during extraction call
+            _log(f"extract: Unexpected error during LLM extraction ({extraction_provider_name}): {e}", {"traceback": traceback.format_exc()})
+            await self._emit_status(__event_emitter__, f"🔥 Unerwarteter Fehler bei Extraktion ({extraction_provider_name}).", done=True)
             extraction_done = False
 
 
@@ -1040,8 +1072,12 @@ class Filter:
             _log("extract: using local embeddings fallback...");
             # Set status to 'processing fallback' (done=False)
             await self._emit_status(__event_emitter__, "⚙️ Lokale Fallback-Prüfung...", done=False)
-            if self._is_blocked_for_extract(last_user) or self._is_spam_or_too_short(last_user): _log("extract: blocked raw message.")
-            elif not candidates: should_save_raw = True; _log("extract: saving first raw message.")
+            if self._is_blocked_for_extract(last_user) or self._is_spam_or_too_short(last_user):
+                _log("extract: blocked raw message.")
+                await self._emit_status(__event_emitter__, "ℹ️ Nachricht zum Merken blockiert.", done=True) # Final status
+            elif not candidates:
+                should_save_raw = True; _log("extract: saving first raw message.")
+                # Status will be set after save attempt
             else:
                  try: # Fallback similarity check using _calculate_embeddings
                       new_emb = await self._calculate_embeddings([last_user]); existing_emb = await self._calculate_embeddings(candidates)
@@ -1052,20 +1088,24 @@ class Filter:
                                sims = cosine_similarity(new_emb, existing_emb); max_sim = np.max(sims) if sims.size > 0 else 0.0
                                if max_sim < self.valves.min_similarity_for_upload:
                                     should_save_raw = True
-                                    # Status update within the condition (done=True)
+                                    # Status set here
                                     await self._emit_status(__event_emitter__, f"✅ Neuer Fakt (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
                                else:
-                                    # Status update within the condition (done=True)
+                                    # Status set here
                                     await self._emit_status(__event_emitter__, f"❌ Fakt zu ähnlich (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
                            else:
                                 _log("extract: fallback dim mismatch."); await self._emit_status(__event_emitter__, "❌ Fallback-Fehler (Dim).", done=True)
                       else:
-                           # Status update (done=True)
                            await self._emit_status(__event_emitter__, "❌ Lokale Fallback-Analyse fehlgeschlagen (Embeddings).", done=True)
                  except Exception as fb_e:
                      _log(f"extract: fallback check failed: {fb_e}"); await self._emit_status(__event_emitter__, "❌ Fehler bei Fallback-Analyse.", done=True)
-            if should_save_raw: await self._mem_add_batch_from_candidates(user_id, [{"content": last_user}])
-            # No need to set extraction_done=True here, the status messages handle completion.
+
+            if should_save_raw:
+                 # Attempt save and update status based on result
+                 save_ok = await self._mem_add_batch_from_candidates(user_id, [{"content": last_user}])
+                 # Ensure a final status is emitted even if saving raw failed, overwriting previous success message if needed
+                 if not save_ok: await self._emit_status(__event_emitter__, "🔥 Fehler beim Speichern (Fallback).", done=True)
+                 # If save was OK, the previous success status remains.
 
         # --- Upload / Final Status (only if LLM extraction was attempted) ---
         elif extraction_done: # Only handle status if LLM extraction was the primary path
@@ -1076,9 +1116,7 @@ class Filter:
             else: # LLM ran, found nothing
                 await self._emit_status(__event_emitter__, "ℹ️ Nichts Neues zum Merken gefunden.", done=True)
         # --- Handle case where LLM failed and fallback is disabled ---
-        elif not extraction_done and not self.valves.use_local_embedding_fallback:
-             # The failure status was already emitted in the except block
-             pass # No additional status needed here
+        # No extra status needed here, the failure was already emitted in the except block
 
         return body
 
@@ -1087,4 +1125,5 @@ class Filter:
 
     async def cleanup(self):
         if self._session and not self._session.closed: await self._session.close()
+
 
