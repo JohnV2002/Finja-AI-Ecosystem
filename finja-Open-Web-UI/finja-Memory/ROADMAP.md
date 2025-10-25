@@ -4,16 +4,35 @@ Eine Übersicht der verbleibenden Features für den Finja Memory-Service und das
 
 ---
 
+## 🟡 Prio 1: Security
+
+### DATEIN SICHER SPEICHERN (Verschlüsselung)
+
+- **Grundgedanke:** User-Daten at rest verschlüsseln, um sie vor unbefugtem Zugriff (auch durch den Admin) zu schützen.
+
+- **Ansätze:** Server-seitig (Master-Key oder User-spezifisch abgeleitet) vs. Client-seitig (Plugin verschlüsselt vor dem Senden).
+
+- **Herausforderung:** Schlüsselverwaltung ohne User-Passwort, Schutz vor Admin vs. Editierbarkeit.
+
+### NEED HELP with this!
+
+### Private Memory Lock (Verschlüsselung - Teil von Prio 1)
+
+- **Anwendung:** Gilt für die Memory-Bank "Secrets".
+
+- **Umsetzung:** Eine optionale Passphrase pro user_id wird genutzt, um Erinnerungen clientseitig im Plugin (via AES-GCM) zu ver- und entschlüsseln. Der Server speichert nur den verschlüsselten Ciphertext.
+
+### I NEED HELP with this!
+
+---
+
 ## 🟡 Prio 0.5: Backups & besseres User-Feedback
 
 ### Offline-Backup (Docker-integriert)
 
 -   **Speicherort:** `/backups/YYYY-MM-DD/<user_id>.tar.gz` im Docker-Volume.
--   **Abruf:** Über einen neuen Endpoint `GET /download_backup?user_id&date=...` (später mit Passwortschutz weiterem). 
--   **DATEIN SICHER SPEICHERN:** (EXTREM WICHTIG  | Grundgedanke --> User id + fester Salt? Admin kann die User Id nicht sehen hat also nur den Salt. datein also jsons werden encrypted hoch geladen.)
 -   **Aufbewahrung (Retention):** Eine Code-Konstante `BACKUP_RETENTION_DAYS = 14` in `memory-server.py` legt fest, wie lange Backups behalten werden. (optional anmachbar oder auschaltbar)
 -   **Endpunkte:** `POST /backup_all_now` (Admin) und eine erweiterte `POST /backup_now`-Funktion.
--   **Mehr Local:** Man kann Locale LLM nehmen zur extrahierung. z.b Anbindung an Ollama, dan kann man Qwen oder was auch immer Alls Api nehmen.
 
 ---
 
@@ -22,11 +41,6 @@ Eine Übersicht der verbleibenden Features für den Finja Memory-Service und das
 ### Memory-Chaining (Graph/Cluster)
 
 -   **Logik (nur im Plugin):** Beim Speichern einer neuen Erinnerung werden thematisch ähnliche "Nachbarn" (cosine ≥ 0.85) gefunden. Die IDs dieser Nachbarn werden in `meta.links` gespeichert.
-
-### Private Memory Lock (Verschlüsselung)
-
--   **Anwendung:** Gilt für die Memory-Bank `"Secrets"`.
--   **Umsetzung:** Eine optionale Passphrase pro `user_id` wird genutzt, um Erinnerungen **clientseitig im Plugin** (via AES-GCM) zu ver- und entschlüsseln. Der Server speichert nur den verschlüsselten Ciphertext.
 
 ---
 
@@ -60,6 +74,7 @@ Eine Übersicht der verbleibenden Features für den Finja Memory-Service und das
 -   **Memory-Expiry:** **(Teilweise umgesetzt)** Das `expires_at`-Feld existiert. Es fehlt die serverseitige Logik, die abgelaufene Erinnerungen automatisch löscht.
 -   **Auto-Prune:** Löscht optional unwichtige Erinnerungen (niedriger Score, keine Zugriffe) nach N Tagen.
 -   **Memory-Visualizer (Langzeitvision):** Ein Frontend, das auf den Statistik- und WebSocket-Endpunkten aufbaut.
+-   **Abruf:** Über einen neuen Endpoint `GET /download_backup?user_id&date=...` (HARD! muss wie beim Daten löschen schwer gemacht werden umsetzung uff)
 
 ---
 

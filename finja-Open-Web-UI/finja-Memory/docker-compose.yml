@@ -1,9 +1,13 @@
 # =====================================================================
 #  Project: Finja Cloud Memory - Docker Compose
-#  Version: 1.1.0
+#  Version: 1.1.1
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
 #  License: MIT
+#
 # =====================================================================
+#  Updates v1.1.1:
+#  + Added backups Folder
+#
 #  Updates v1.1.0:
 #  + Added volume mounts for 'user_audio' and 'tts_cache'.
 #  + Added 'user' directive to fix permission issues on Linux hosts.
@@ -28,6 +32,7 @@ services:
         - ./user_audio:/app/user_audio
         - ./tts_cache:/app/tts_cache
         - ./user_memories:/app/user_memories
+        - ./backups:/app/backups
     # Leitet den Port 8000 des Hosts auf den Port 8000 im Container um
     ports:
       - "8000:8000"

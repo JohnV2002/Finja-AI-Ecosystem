@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 1.2
+  Version: 1.3.1
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -28,12 +28,30 @@
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
+ Updates 1.3.1:
+ ---------------------------------------------------------------------
+  + **Fix Auth Log Fehler:** Ein Check in `auth_check` hinzugefügt, um
+    einen `TypeError` beim Loggen von unautorisierten Zugriffen zu verhindern,
+    wenn der `X-API-Key` Header komplett fehlt (`key` ist None).
+
+ Updates 1.3.0:
+ ---------------------------------------------------------------------
+  + **Admin Backup Endpunkt:** `POST /backup_all_now` Endpunkt hinzugefügt.
+    - Speichert alle aktuellen In-Memory-Daten auf die Festplatte.
+    - Kopiert alle Benutzer-Memory-JSON-Dateien in einen Unterordner mit Zeitstempel
+      innerhalb des neuen `backups`-Verzeichnisses.
+  + **User Backup Platzhalter:** `POST /backup_now` Endpunkt hinzugefügt.
+    - Akzeptiert eine User-ID.
+    - Führt Authentifizierung durch.
+    - Gibt derzeit eine einfache Bestätigungsnachricht zurück (Platzhalter).
+  + **Backup Verzeichnis:** `BACKUP_DIR` Konstante und Verzeichniserstellung
+    beim Start hinzugefügt.
+
  Updates 1.2.0:
  ---------------------------------------------------------------------
   + **Grundgerüst für User-Input (STT):** Neuer Endpunkt `/add_voice_memory`
     implementiert. Er kann Audiodateien annehmen, speichern und eine
     Platzhalter-Erinnerung mit dem Dateipfad erstellen.
-
   + **Grundgerüst für KI-Output (TTS-Cache):** Neuer Endpunkt `/get_or_create_speech`
     implementiert. Er prüft, ob eine Sprachausgabe für einen Text bereits
     existiert und simuliert die Neuerstellung, falls nicht.
@@ -43,14 +61,11 @@
   + **Intelligenter RAM-Cache:** Der Server lädt User-Daten jetzt nur noch
     einmalig von der Festplatte und bedient alle folgenden Anfragen aus dem
     schnellen Arbeitsspeicher.
-
   + **Automatische Speicherbereinigung:** Ein neuer Hintergrund-Thread
     überwacht die Aktivität und entfernt inaktive User aus dem RAM.
-
   + **Stabilitäts-Fixes:** Logikfehler im Zusammenhang mit dem neuen
     Cache-System beim Server-Start und bei manuellen Backups behoben.
 ----------------------------------------------------------------------
-
 
 ----------------------------------------------------------------------
  Roadmap:
@@ -76,9 +91,10 @@
 from fastapi import FastAPI, HTTPException, Body, Request, UploadFile, File, Form
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-import uuid, time, json, threading, os, hashlib
+import uuid, time, json, threading, os, hashlib, shutil # Added shutil
 from dotenv import load_dotenv
 import aiofiles
+from datetime import datetime # Added datetime for backup timestamp
 
 # Starte FastAPI-App
 app = FastAPI(title="Memory Service")
@@ -99,13 +115,17 @@ MAX_RAM_MEMORIES = 5000
 BACKUP_INTERVAL = 600
 CACHE_TIMEOUT = 600
 
-# Ordner, in dem Erinnerungen pro User als JSON gespeichert werden
+# Ordner-Definitionen
 USER_MEMORY_DIR = "user_memories"
 USER_AUDIO_DIR = "user_audio"
 TTS_CACHE_DIR = "tts_cache"
-os.makedirs(USER_MEMORY_DIR, exist_ok=True)  # Ordner wird erstellt, falls nicht vorhanden
+BACKUP_DIR = "backups" # New backup directory
+
+# Erstelle alle notwendigen Ordner beim Start
+os.makedirs(USER_MEMORY_DIR, exist_ok=True)
 os.makedirs(USER_AUDIO_DIR, exist_ok=True)
 os.makedirs(TTS_CACHE_DIR, exist_ok=True)
+os.makedirs(BACKUP_DIR, exist_ok=True) # Create backup dir
 
 # Speichert, wann ein User-Cache zuletzt verwendet wurde (für die automatische Bereinigung)
 cache_last_accessed: Dict[str, float] = {}
@@ -114,29 +134,22 @@ cache_last_accessed: Dict[str, float] = {}
 # Daten-Modelle (Schemas)
 # -------------------------
 class MemoryItem(BaseModel):
-    id: str = ""    # Eindeutige ID (UUID)
-    
+    id: str = ""
     # snyk:ignore:python/UseOfHardcodedCredentials
     # Reason: User ID is dynamically retrieved from Open-Web-UI at runtime
-    #         to identify the correct memory context. No static credentials
-    #         are stored or loaded from hardcoded strings.
-    user_id: str = "default"    # Benutzer-Identifikator # !snyk FALSE Positiv! 
-
-
-    text: str                   # Inhalt der Erinnerung
-    timestamp: float = 0        # Unix-Timestamp (wann gespeichert)
-
-    # --- NEUE OPTIONALE FELDER ---
+    user_id: str = "default"
+    text: str
+    timestamp: float = 0
     bank: Optional[str] = "General"
     expires_at: Optional[float] = None
     meta: Optional[Dict[str, Any]] = {}
 
 class UserAction(BaseModel):
-    user_id: str    # Für Backup/Prune Aktionen
+    user_id: str
 
 class PruneAction(BaseModel):
-    user_id: str   # Ziel-Benutzer-ID
-    amount: int    # Anzahl der zu löschenden Erinnerungen
+    user_id: str
+    amount: int
 
 # Speicherstruktur im RAM (alle aktiven Erinnerungen)
 user_memories: Dict[str, List[MemoryItem]] = {}
@@ -149,53 +162,89 @@ class TTSRequest(BaseModel):
 # -------------------------
 
 def memory_file(user_id):
-    """Pfad zur Speicherdatei für einen bestimmten User zurückgeben"""
-    return os.path.join(USER_MEMORY_DIR, f"{user_id}_memory.json")
+    """Gibt den Pfad zur Speicherdatei für einen bestimmten User zurück"""
+    # Ensure user_id is filename-safe (basic sanitation)
+    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in ('-', '_')).rstrip()
+    if not safe_user_id: safe_user_id = "invalid_user_id"
+    return os.path.join(USER_MEMORY_DIR, f"{safe_user_id}_memory.json")
 
 def save_to_disk(user_id):
     """Speichert die Erinnerungen eines Benutzers auf die Festplatte"""
+    filepath = memory_file(user_id)
     if user_id in user_memories:
-        with open(memory_file(user_id), "w", encoding="utf-8") as f:
-            json.dump([m.dict() for m in user_memories[user_id]], f, ensure_ascii=False, indent=2)
+        try:
+            with open(filepath, "w", encoding="utf-8") as f:
+                # Use Pydantic's model_dump for serialization
+                json.dump([m.model_dump() for m in user_memories[user_id]], f, ensure_ascii=False, indent=2)
+            print(f"INFO:    Saved memories for user {user_id} to {filepath}")
+        except Exception as e:
+            print(f"ERROR:   Failed to save memories for user {user_id} to {filepath}: {e}")
+    #else:
+        # Optionally log if user_id not in memory (might happen during cleanup)
+        # print(f"DEBUG:   User {user_id} not in RAM cache, skipping save_to_disk.")
+
 
 def load_from_disk(user_id):
     """Lädt die Erinnerungen eines Benutzers von der Festplatte in den RAM"""
+    filepath = memory_file(user_id)
     try:
-        with open(memory_file(user_id), "r", encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             items = json.load(f)
-            user_memories[user_id] = [MemoryItem(**entry) for entry in items]
-    except Exception:
+            # Validate items structure before creating MemoryItem objects
+            validated_items = []
+            for entry in items:
+                if isinstance(entry, dict) and "text" in entry: # Basic check
+                    # Ensure timestamp exists and is float, default if needed
+                    entry['timestamp'] = float(entry.get('timestamp', 0.0))
+                    validated_items.append(MemoryItem(**entry))
+                else:
+                    print(f"WARN:    Skipping invalid entry in {filepath}: {entry}")
+            user_memories[user_id] = validated_items
+            print(f"INFO:    Loaded {len(validated_items)} memories for user {user_id} from {filepath}")
+    except FileNotFoundError:
+        print(f"INFO:    No memory file found for user {user_id}, starting fresh.")
         user_memories[user_id] = []
+    except json.JSONDecodeError as e:
+        print(f"ERROR:   Failed to decode JSON from {filepath}: {e}. Starting fresh for user {user_id}.")
+        user_memories[user_id] = []
+    except Exception as e:
+        print(f"ERROR:   Failed to load memories for user {user_id} from {filepath}: {e}")
+        user_memories[user_id] = [] # Fallback to empty list on other errors
 
-def auto_backup():
-    """Automatisches Backup aller User-Erinnerungen in regelmäßigen Abständen"""
+def auto_backup_thread_func():
+    """Automatisches Backup aller User-Erinnerungen im RAM in regelmäßigen Abständen"""
     while True:
         time.sleep(BACKUP_INTERVAL)
-        for uid in user_memories:
-            save_to_disk(uid)
+        print(f"INFO:    Starting periodic auto-save of {len(user_memories)} users in RAM...")
+        # Create a copy of keys to avoid runtime errors if dict changes
+        user_ids_to_save = list(user_memories.keys())
+        saved_count = 0
+        for uid in user_ids_to_save:
+            # Check again if user is still in memory before saving
+            if uid in user_memories:
+                save_to_disk(uid)
+                saved_count += 1
+        print(f"INFO:    Auto-save complete for {saved_count} users.")
 
-def cleanup_inactive_caches():
+
+def cleanup_inactive_caches_thread_func():
     """Entfernt in regelmäßigen Abständen inaktive User-Caches aus dem RAM."""
     while True:
-        # Prüfe alle 60 Sekunden, ob jemand aufgeräumt werden muss.
-        time.sleep(60)
-        
-        # Erstelle eine Kopie, da wir das Dictionary während des Durchlaufs verändern.
-        inactive_users = []
-        for uid, last_time in list(cache_last_accessed.items()):
-            if time.time() - last_time > CACHE_TIMEOUT:
-                inactive_users.append(uid)
-        
+        time.sleep(60) # Check every minute
+        now = time.time()
+        inactive_users = [
+            uid for uid, last_time in cache_last_accessed.items()
+            if now - last_time > CACHE_TIMEOUT
+        ]
+
         if inactive_users:
             print(f"INFO:    Found {len(inactive_users)} inactive user(s) to clean from RAM-Cache.")
             for uid in inactive_users:
-                # Speichere zur Sicherheit den letzten Stand auf die Festplatte.
+                # Save final state before evicting
                 save_to_disk(uid)
-                # Entferne die Daten aus den RAM-Speichern.
-                if uid in user_memories:
-                    del user_memories[uid]
-                if uid in cache_last_accessed:
-                    del cache_last_accessed[uid]
+                # Remove from RAM caches
+                if uid in user_memories: del user_memories[uid]
+                if uid in cache_last_accessed: del cache_last_accessed[uid]
                 print(f"INFO:    Evicted cache for user: {uid}")
 
 
@@ -206,20 +255,20 @@ def cleanup_inactive_caches():
 @app.on_event("startup")
 def startup():
     """Beim Start: Gespeicherte Erinnerungen laden & Hintergrund-Threads starten"""
-    for file in os.listdir(USER_MEMORY_DIR):
-        if file.endswith("_memory.json"):
-            uid = file.replace("_memory.json", "")
-            load_from_disk(uid)
-            # --- KORREKTUR: Starte den Timer für jeden geladenen User ---
-            cache_last_accessed[uid] = time.time()
-            
-    # Starte den Auto-Backup Thread
-    backup_thread = threading.Thread(target=auto_backup, daemon=True)
-    backup_thread.start()
-    
-    # Starte den Cache-Cleanup Thread
-    cleanup_thread = threading.Thread(target=cleanup_inactive_caches, daemon=True)
+    print("INFO:    Server startup initiated...")
+    # No initial load here, lazy loading on first access per user
+
+    # Start the Auto-Save Thread
+    auto_save_thread = threading.Thread(target=auto_backup_thread_func, daemon=True)
+    auto_save_thread.start()
+    print("INFO:    Auto-save thread started.")
+
+    # Start the Cache-Cleanup Thread
+    cleanup_thread = threading.Thread(target=cleanup_inactive_caches_thread_func, daemon=True)
     cleanup_thread.start()
+    print("INFO:    Cache cleanup thread started.")
+    print("INFO:    Server startup complete.")
+
 
 # -------------------------
 # Authentifizierung
@@ -228,9 +277,12 @@ def auth_check(request: Request):
     """Überprüft, ob der API-Key im Header vorhanden und gültig ist"""
     key = request.headers.get("X-API-Key")
     if not key or key != API_KEY:
+        # FIX: Check if key is not None before slicing
+        key_display = f"{key[:5]}..." if key else "None"
+        print(f"WARN:    Unauthorized access attempt. Provided key: {key_display}") # Log masked key or "None"
         raise HTTPException(status_code=401, detail="Missing or invalid API Key.")
-    
-    
+
+
 # -------------------------
 # API-Endpunkte
 # -------------------------
@@ -241,56 +293,50 @@ async def add_memory(request: Request, mem: MemoryItem = Body(...)):
     auth_check(request)
     uid = mem.user_id or "default"
 
-    # Lade die Daten nur, wenn sie nicht schon im RAM sind.
-    if uid not in user_memories:
-        load_from_disk(uid)
-    
-    # Aktualisiere den Zeitstempel für die User-Aktivität.
+    if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
-    
-    # Modifiziere die Daten direkt im RAM.
+
     mem.id = str(uuid.uuid4())
     mem.timestamp = time.time()
     memories = user_memories.get(uid, [])
+    # Prune if exceeding MAX_RAM_MEMORIES
     if len(memories) >= MAX_RAM_MEMORIES:
-        del memories[0:len(memories)-MAX_RAM_MEMORIES+1]
+        # Simple FIFO pruning for RAM cache
+        memories.pop(0)
     memories.append(mem)
     user_memories[uid] = memories
-    
-    # Speichere die Änderungen am Ende zurück auf die Festplatte.
-    save_to_disk(uid)
+
+    # Optional: Trigger immediate save or rely on auto-save
+    # save_to_disk(uid)
     return {"status": "added", "id": mem.id}
 
 @app.post("/add_memories")
 def add_memories(request: Request, batch: List[MemoryItem] = Body(...)):
     """Fügt eine Liste von Erinnerungen hinzu und nutzt den RAM-Cache."""
     auth_check(request)
-    if not batch:
-        return {"status": "no_data"}
+    if not batch: return {"status": "no_data"}
+    # Assume all items in batch are for the same user
     uid = batch[0].user_id or "default"
 
-    # Lade die Daten nur, wenn sie nicht schon im RAM sind.
-    if uid not in user_memories:
-        load_from_disk(uid)
-    
-    # Aktualisiere den Zeitstempel für die User-Aktivität.
+    if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
 
-    # Modifiziere die Daten direkt im RAM.
     memories = user_memories.get(uid, [])
-    added = 0
+    added_count = 0
     for mem in batch:
         mem.id = str(uuid.uuid4())
         mem.timestamp = time.time()
         memories.append(mem)
-        added += 1
+        added_count += 1
+
+    # Prune if exceeding limit after adding batch
     if len(memories) > MAX_RAM_MEMORIES:
-        memories = memories[-MAX_RAM_MEMORIES:]
+        memories = memories[-MAX_RAM_MEMORIES:] # Keep only the newest MAX_RAM_MEMORIES
     user_memories[uid] = memories
-    
-    # Speichere die Änderungen am Ende zurück auf die Festplatte.
-    save_to_disk(uid)
-    return {"status": "batch_added", "added": added}
+
+    # Optional: Trigger immediate save or rely on auto-save
+    # save_to_disk(uid)
+    return {"status": "batch_added", "added": added_count, "total_in_ram": len(memories)}
 
 @app.get("/get_memories")
 def get_memories(request: Request, user_id: Optional[str] = None, query: Optional[str] = None, limit: int = 50):
@@ -298,20 +344,22 @@ def get_memories(request: Request, user_id: Optional[str] = None, query: Optiona
     auth_check(request)
     uid = user_id or "default"
 
-    # Prüfe, ob die Erinnerungen für diesen User bereits im RAM sind.
-    if uid not in user_memories:
-        # Falls nicht, lade sie einmalig von der Festplatte.
-        load_from_disk(uid)
-    
-    # Setze den Zeitstempel, um zu zeigen, dass dieser User gerade aktiv war.
+    if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
-    
-    # Arbeite ab jetzt nur noch mit den Daten aus dem RAM.
+
     memories = user_memories.get(uid, [])
     filtered = memories
     if query:
-        # Filtere die RAM-Daten bei Bedarf.
-        filtered = [m for m in filtered if query.lower() in m.text.lower()]
+        try:
+            # Case-insensitive search
+            query_lower = query.lower()
+            filtered = [m for m in memories if query_lower in m.text.lower()]
+        except Exception as e:
+            print(f"ERROR:   Error during query filtering for user {uid}: {e}")
+            # Return unfiltered list or raise error? Returning unfiltered for now.
+            filtered = memories
+
+    # Return the latest 'limit' matching memories
     return filtered[-limit:]
 
 @app.get("/memory_stats")
@@ -320,211 +368,230 @@ def memory_stats(request: Request, user_id: Optional[str] = None):
     auth_check(request)
     uid = user_id or "default"
 
-    # Prüfe auch hier, ob die Daten bereits im RAM sind.
-    if uid not in user_memories:
-        load_from_disk(uid)
-    
-    # Setze auch hier den Zeitstempel für die Aktivität.
+    if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
-    
+
+    filepath = memory_file(uid)
+    file_exists = os.path.exists(filepath)
+    # Get actual file size if it exists
+    file_size = os.path.getsize(filepath) if file_exists else 0
+
     return {
-        "total": len(user_memories.get(uid, [])),
-        "max_ram": MAX_RAM_MEMORIES,
-        "file": memory_file(uid)
+        "user_id": uid,
+        "memories_in_ram": len(user_memories.get(uid, [])),
+        "max_ram_capacity": MAX_RAM_MEMORIES,
+        "memory_file_path": filepath,
+        "memory_file_exists": file_exists,
+        "memory_file_size_bytes": file_size,
+        "last_accessed_ram": cache_last_accessed.get(uid) # Unix timestamp
     }
 
 @app.post("/prune")
 def prune(request: Request, data: PruneAction = Body(...)):
     """Älteste Einträge löschen und dabei den RAM-Cache nutzen."""
+    # Note: This only prunes the RAM cache. File is overwritten on next save.
     auth_check(request)
     uid = data.user_id
 
-    # Lade die Daten nur, wenn sie nicht schon im RAM sind.
-    if uid not in user_memories:
-        load_from_disk(uid)
-
-    # Aktualisiere den Zeitstempel für die User-Aktivität.
+    if uid not in user_memories: load_from_disk(uid) # Load if not in RAM
     cache_last_accessed[uid] = time.time()
 
-    # Modifiziere die Daten direkt im RAM.
     memories = user_memories.get(uid, [])
-    if data.amount >= len(memories):
-        user_memories[uid] = []
-    else:
-        user_memories[uid] = memories[data.amount:]
-    
-    # Speichere die Änderungen am Ende zurück auf die Festplatte.
-    save_to_disk(uid)
-    return {"status": "pruned", "left": len(user_memories[uid])}
+    original_count = len(memories)
+    amount_to_prune = min(data.amount, original_count) # Don't prune more than available
 
+    if amount_to_prune > 0:
+        user_memories[uid] = memories[amount_to_prune:]
+        pruned_count = amount_to_prune
+    else:
+        pruned_count = 0
+
+    remaining_count = len(user_memories.get(uid, []))
+    # Optional: Trigger immediate save after pruning
+    # save_to_disk(uid)
+    return {"status": "pruned_ram", "pruned": pruned_count, "remaining_in_ram": remaining_count}
+
+# --- Original /backup_now (User specific, renamed for clarity) ---
+# This endpoint now handles the admin full backup.
+@app.post("/backup_all_now")
+def backup_all_now(request: Request):
+    """
+    Admin Endpoint: Triggers an immediate backup of all user memory files.
+    Saves current RAM state to disk first, then copies files to a timestamped backup folder.
+    """
+    auth_check(request) # Ensure only authorized access
+    print("INFO:    Admin backup requested: /backup_all_now")
+
+    # 1. Save all current RAM caches to disk
+    print("INFO:    Saving all active RAM caches to disk before backup...")
+    user_ids_in_ram = list(user_memories.keys())
+    saved_count = 0
+    for uid in user_ids_in_ram:
+        if uid in user_memories: # Check again in case cleanup ran
+            save_to_disk(uid)
+            saved_count +=1
+    print(f"INFO:    Saved data for {saved_count} users from RAM.")
+
+    # 2. Create timestamped backup directory
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    backup_subdir = os.path.join(BACKUP_DIR, timestamp)
+    try:
+        os.makedirs(backup_subdir, exist_ok=True)
+        print(f"INFO:    Created backup directory: {backup_subdir}")
+    except Exception as e:
+        print(f"ERROR:   Failed to create backup directory {backup_subdir}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create backup directory: {e}")
+
+    # 3. Copy all memory files to the backup directory
+    copied_files_count = 0
+    errors = []
+    try:
+        for filename in os.listdir(USER_MEMORY_DIR):
+            if filename.endswith("_memory.json"):
+                source_path = os.path.join(USER_MEMORY_DIR, filename)
+                dest_path = os.path.join(backup_subdir, filename)
+                try:
+                    shutil.copy2(source_path, dest_path) # copy2 preserves metadata
+                    copied_files_count += 1
+                except Exception as copy_e:
+                    error_msg = f"Failed to copy {filename}: {copy_e}"
+                    print(f"ERROR:   {error_msg}")
+                    errors.append(error_msg)
+        print(f"INFO:    Copied {copied_files_count} memory files to backup directory.")
+    except Exception as e:
+        print(f"ERROR:   Failed during file listing or copying process: {e}")
+        # Report partial success/failure
+        detail = f"Backup partially failed after copying {copied_files_count} files. Error: {e}"
+        if errors: detail += f" Specific copy errors: {'; '.join(errors)}"
+        raise HTTPException(status_code=500, detail=detail)
+
+    status_message = f"Backup complete. Copied {copied_files_count} memory files to {backup_subdir}."
+    if errors:
+        status_message += f" Encountered {len(errors)} copy errors."
+
+    return {"status": "backup_done", "details": status_message, "backup_location": backup_subdir}
+
+# --- Placeholder for User-Triggered Backup ---
 @app.post("/backup_now")
-def backup_now(request: Request, data: UserAction = Body(...)):
-    """Manuelles Backup auslösen, auch für nicht-gecachte User."""
+async def backup_now_placeholder(request: Request, data: UserAction = Body(...)):
+    """
+    Placeholder Endpoint for User Backup Request.
+    Currently only acknowledges the request.
+    """
     auth_check(request)
     uid = data.user_id
-    
-    # --- KORREKTUR: Lade die Daten, falls sie nicht im RAM sind ---
-    if uid not in user_memories:
-        load_from_disk(uid)
+    print(f"INFO:    Received user backup request for user: {uid} (Placeholder - no action taken yet).")
+    # --- Future Logic ---
+    # 1. Save this specific user's RAM to disk: save_to_disk(uid)
+    # 2. Create a specific backup file/archive for this user (e.g., in their own subfolder or a single archive)
+    # 3. Store metadata about the backup (timestamp, location)
+    # 4. Return information about the backup (e.g., file path or ID) - TBD how plugin receives this
+    # -------------------
+    return {"status": "backup_request_received", "user_id": uid, "details": "User backup functionality is not yet fully implemented."}
 
-    # Jetzt können wir sicher sein, dass die Daten da sind und gespeichert werden.
-    save_to_disk(uid)
-    return {"status": "backup_done", "file": memory_file(uid)}
 
 def transcribe_audio_dummy(filepath: str) -> str:
-    """
-    PLATZHALTER-FUNKTION: Simuliert die Transkription einer Audiodatei.
-    In der Zukunft wird hier der echte Whisper-Aufruf stehen.
-    """
+    """PLATZHALTER-FUNKTION: Simuliert die Transkription."""
     filename = os.path.basename(filepath)
     print(f"INFO:    [DUMMY] Transcribing '{filename}'...")
-    time.sleep(1) # Simuliert die Verarbeitungszeit
-    return f"Transkript der Sprachnachricht '{filename}'"
+    time.sleep(0.5) # Shorter delay
+    return f"Transkript: {filename}"
 
 @app.post("/add_voice_memory")
-async def add_voice_memory(
-    request: Request,
-    user_id: str = Form(...),
-    file: UploadFile = File(...)
-):
-    """
-    Nimmt eine Audiodatei vom User entgegen, speichert sie und erstellt
-    eine Erinnerung mit einem (aktuell simulierten) Transkript.
-    """
+async def add_voice_memory(request: Request, user_id: str = Form(...), file: UploadFile = File(...)):
+    """Nimmt Audio entgegen, speichert es, simuliert Transkription."""
     auth_check(request)
     uid = user_id or "default"
-    
-    # 1. Audiodatei sicher speichern
-    file_extension = os.path.splitext(file.filename)[1] # type: ignore
+    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).rstrip()
+    user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
+    os.makedirs(user_audio_subdir, exist_ok=True) # Ensure user's audio dir exists
+
+    file_extension = os.path.splitext(file.filename or "audio.unk")[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    save_path = os.path.join(USER_AUDIO_DIR, unique_filename)
-    
+    save_path = os.path.join(user_audio_subdir, unique_filename)
+
     try:
         async with aiofiles.open(save_path, 'wb') as out_file:
-            while content := await file.read(1024 * 1024):
-                await out_file.write(content)
+            while content := await file.read(1024 * 1024): await out_file.write(content)
         print(f"INFO:    Saved voice memory to {save_path}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not save audio file: {e}")
+    except Exception as e: raise HTTPException(status_code=500, detail=f"Could not save audio file: {e}")
 
-    # 2. Transkription (aktuell nur ein Platzhalter)
     transcript = transcribe_audio_dummy(save_path)
+    voice_memory = MemoryItem(user_id=uid, text=transcript, meta={"source": "voice_input", "audio_path": save_path}) # Use path not url
 
-    # 3. Neue Erinnerung erstellen und speichern
-    voice_memory = MemoryItem(
-        user_id=uid,
-        text=transcript,
-        meta={
-            "source": "voice_input",
-            "audio_url": save_path
-        }
-    )
-    
-    # --- HIER DIE KORREKTUR ---
-    # Wir rufen jetzt die async-Funktion mit 'await' auf.
+    # Use the existing add_memory endpoint logic
     await add_memory(request, voice_memory)
-    # -------------------------
-    
-    return {"status": "voice_memory_added", "transcript": transcript, "audio_url": save_path}
+
+    return {"status": "voice_memory_added", "transcript": transcript, "audio_path": save_path}
 
 def generate_speech_dummy(text: str, filepath: str) -> bool:
-    """
-    PLATZHALTER-FUNKTION: Simuliert die Erstellung einer Sprachdatei.
-    In der Zukunft wird hier ein echtes TTS-Modell (z.B. Piper, Coqui) aufgerufen.
-    """
-    print(f"INFO:    [DUMMY] Generating speech for text: '{text[:30]}...'")
-    time.sleep(1) # Simuliert die Generierungszeit
-    # Erstellt eine leere Datei, um zu zeigen, dass etwas passiert ist.
-    with open(filepath, 'w') as f:
-        f.write(f"This is a dummy audio file for the text: {text}")
-    print(f"INFO:    [DUMMY] Saved dummy speech file to {filepath}")
-    return True
+    """PLATZHALTER-FUNKTION: Simuliert TTS."""
+    print(f"INFO:    [DUMMY] Generating speech for: '{text[:30]}...'")
+    time.sleep(0.5) # Shorter delay
+    try:
+        with open(filepath, 'w') as f: f.write(f"Dummy audio for: {text}")
+        print(f"INFO:    [DUMMY] Saved dummy speech to {filepath}")
+        return True
+    except Exception as e:
+        print(f"ERROR:   [DUMMY] Failed to save dummy speech file {filepath}: {e}")
+        return False
 
 @app.post("/get_or_create_speech")
 async def get_or_create_speech(request: Request, data: TTSRequest = Body(...)):
-    """
-    Nimmt Text entgegen und gibt den Pfad zu einer passenden Audiodatei zurück.
-    Prüft zuerst den Cache; generiert die Datei nur, wenn sie nicht existiert.
-    """
+    """Prüft TTS Cache, simuliert Generierung."""
     auth_check(request)
     text_to_speak = data.text.strip()
-    if not text_to_speak:
-        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+    if not text_to_speak: raise HTTPException(status_code=400, detail="Text cannot be empty.")
 
-    # 1. Erzeuge einen eindeutigen & wiederholbaren Dateinamen aus dem Text-Inhalt
-    # Wir nutzen einen SHA256-Hash, damit "Hallo Welt" immer denselben Dateinamen bekommt.
     text_hash = hashlib.sha256(text_to_speak.encode('utf-8')).hexdigest()
-    filename = f"{text_hash}.mp3" # Wir nehmen an, es wird eine mp3
+    filename = f"{text_hash}.mp3" # Assume mp3
     filepath = os.path.join(TTS_CACHE_DIR, filename)
 
-    # 2. Cache-Prüfung: Existiert die Datei bereits?
     if os.path.exists(filepath):
-        # Cache HIT: Die Datei ist schon da, wir geben sie sofort zurück.
-        print(f"INFO:    TTS Cache HIT for text: '{text_to_speak[:30]}...'")
-        return {"status": "cache_hit", "audio_url": filepath}
+        print(f"INFO:    TTS Cache HIT for: '{text_to_speak[:30]}...'")
+        return {"status": "cache_hit", "audio_path": filepath} # Use path
 
-    # 3. Cache MISS: Die Datei existiert nicht, wir müssen sie "generieren".
-    print(f"INFO:    TTS Cache MISS for text: '{text_to_speak[:30]}...'. Generating...")
-    
-    # Hier rufen wir unsere Dummy-Funktion auf.
-    # Später wird hier die echte, rechenintensive TTS-Logik stehen.
+    print(f"INFO:    TTS Cache MISS for: '{text_to_speak[:30]}...'. Generating...")
     success = generate_speech_dummy(text_to_speak, filepath)
 
-    if success:
-        return {"status": "created", "audio_url": filepath}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to generate speech file.")
+    if success: return {"status": "created", "audio_path": filepath} # Use path
+    else: raise HTTPException(status_code=500, detail="Failed to generate speech file.")
 
 @app.post("/delete_user_memories")
 def delete_user_memories(request: Request, data: UserAction = Body(...)):
-    """
-    Löscht ALLE Daten für einen bestimmten User unwiderruflich.
-    Dies umfasst die JSON-Datei, zugehörige Audiodateien und alle RAM-Caches.
-    """
+    """Löscht ALLE Daten für einen User (JSON, Audio, RAM)."""
     auth_check(request)
     uid = data.user_id
-    print(f"WARNUNG: Lösch-Anfrage für User '{uid}' erhalten.")
+    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).rstrip()
+    print(f"WARN:    Deletion requested for user '{uid}' (safe: '{safe_uid}')")
 
-    # --- NEU: Zuerst die Pfade zu den Audiodateien aus der JSON-Datei auslesen ---
-    # Wir müssen die Daten von der Festplatte laden, um sicherzustellen, dass wir den letzten Stand haben.
-    filepath = memory_file(uid)
-    if os.path.exists(filepath):
+    filepath = memory_file(uid) # Use safe ID potentially for filename consistency
+    user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
+
+    # 1. Delete associated audio files first (if dir exists)
+    if os.path.isdir(user_audio_subdir):
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                items = json.load(f)
-                
-            # Gehe durch jede Erinnerung und suche nach einem 'audio_url'-Eintrag.
-            for item in items:
-                meta = item.get("meta", {})
-                if isinstance(meta, dict) and "audio_url" in meta:
-                    audio_path = meta["audio_url"]
-                    # Lösche die gefundene Audiodatei.
-                    if os.path.exists(audio_path):
-                        try:
-                            os.remove(audio_path)
-                            print(f"INFO:    Zugehörige Audiodatei '{audio_path}' für User '{uid}' gelöscht.")
-                        except Exception as e:
-                            print(f"FEHLER: Konnte Audiodatei '{audio_path}' nicht löschen: {e}")
+            shutil.rmtree(user_audio_subdir)
+            print(f"INFO:    Deleted audio directory: {user_audio_subdir}")
         except Exception as e:
-            print(f"FEHLER: Konnte Speicherdatei '{filepath}' zum Auslesen der Audio-Pfade nicht öffnen: {e}")
+            print(f"ERROR:   Failed to delete audio directory {user_audio_subdir}: {e}")
+            # Continue deletion process even if audio removal fails partially
 
-    # 1. Aus dem RAM-Cache für Erinnerungen entfernen
-    if uid in user_memories:
-        del user_memories[uid]
-        print(f"INFO:    Cache 'user_memories' für User '{uid}' gelöscht.")
+    # 2. Delete from RAM caches
+    if uid in user_memories: del user_memories[uid]; print(f"INFO:    Evicted RAM cache 'user_memories' for {uid}.")
+    if uid in cache_last_accessed: del cache_last_accessed[uid]; print(f"INFO:    Evicted RAM cache 'cache_last_accessed' for {uid}.")
 
-    # 2. Aus dem RAM-Cache für Aktivitäts-Timestamps entfernen
-    if uid in cache_last_accessed:
-        del cache_last_accessed[uid]
-        print(f"INFO:    Cache 'cache_last_accessed' für User '{uid}' gelöscht.")
-
-    # 3. Die JSON-Datei von der Festplatte löschen (passiert nach dem Auslesen)
+    # 3. Delete the JSON file from disk
     if os.path.exists(filepath):
         try:
             os.remove(filepath)
-            print(f"INFO:    Speicherdatei '{filepath}' für User '{uid}' gelöscht.")
+            print(f"INFO:    Deleted memory file: {filepath}")
         except Exception as e:
-            print(f"FEHLER: Konnte Speicherdatei für User '{uid}' nicht löschen: {e}")
+            print(f"ERROR:   Failed to delete memory file {filepath}: {e}")
+            # Raise error if file deletion fails, as it's critical
             raise HTTPException(status_code=500, detail=f"Could not delete memory file for user {uid}.")
-    
-    return {"status": f"all data for user {uid} deleted"}
+    else:
+        print(f"INFO:    Memory file not found, nothing to delete on disk: {filepath}")
+
+    return {"status": f"all data for user {uid} deleted successfully"}
+

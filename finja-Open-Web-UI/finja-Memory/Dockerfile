@@ -1,11 +1,15 @@
 # =====================================================================
-#  Project: Finja Cloud Memory - Dockerfile: v4.1.6 (Optimization)
+#  Project: Finja Cloud Memory - Dockerfile: v4.1.7 (Optimization)
 #  Author:  JohnV2002 (J. Apps / Sodakiller1)
 #  Inspired by: gramanoid (diligent_chooser)
 #  License: Apache License 2.0
 #  Copyright (c) 2025 J. Apps
 #
 # =====================================================================
+# Updated in v4.1.7:
+# =====================================================================
+#   + Added backups Folder to the docker.
+#
 # Updated in v4.1.6:
 # =====================================================================
 #   + LAYER OPTIMIZATION: Merged multiple RUN commands into a single layer
@@ -34,7 +38,7 @@ FROM python:3.12-alpine
 WORKDIR /app
 
 # Erstelle Verzeichnisse, User und setze Rechte in EINEM Schritt (optimiert für Docker Layers)
-RUN mkdir -p user_memories user_audio tts_cache && \
+RUN mkdir -p user_memories user_audio tts_cache backups && \
     addgroup -S appgroup && \
     adduser -S appuser -G appgroup && \
     chown -R appuser:appgroup /app user_memories user_audio tts_cache
