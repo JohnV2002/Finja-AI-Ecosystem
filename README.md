@@ -18,13 +18,13 @@
 ---
 
 ### Links & Demos
+-   **Blog:** [![Blog Badge](https://img.shields.io/badge/Blog-Finja-fd7e14?style=for-the-badge&logo=rss&logoColor=white)](https://doku.jappshome.de/blog)
+-   **Documentation:** [![Dokumentation Badge](https://img.shields.io/badge/Doku-Finja-28a745?style=for-the-badge&logo=robot&logoColor=yellow)](https://doku.jappshome.de)
+-   **Besuche meine Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
 -   **Schau dir Finja live an (jeden Samstag):** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
 -   **Komm auf unseren Discord für mehr Projekte:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
--   **Besuche meine Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
--   **TESTE FINJA KOSTENLOS (OHNE MEMORY) UPDATED TO MoE Modell!:** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)
 -   **TESTE FINJA, WÄHREND SIE OFFLINE IST (MIT MEMORY):** [![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)
--   **Documentation:** [![Dokumentation Badge](https://img.shields.io/badge/Doku-Finja-28a745?style=for-the-badge&logo=robot&logoColor=yellow)](https://doku.jappshome.de)
--   **Blog:** [![Blog Badge](https://img.shields.io/badge/Blog-Finja-fd7e14?style=for-the-badge&logo=rss&logoColor=white)](https://doku.jappshome.de/blog)
+-   **TESTE FINJA KOSTENLOS (OHNE MEMORY) UPDATED TO MoE Modell!:** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)
 ---
 
 # ✨ Finja AI Ecosystem
