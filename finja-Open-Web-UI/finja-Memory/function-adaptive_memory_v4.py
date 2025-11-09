@@ -4,7 +4,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3.13 (Ollama Payload Switch)
+  Version: 4.4 (Ollama Payload Switch)
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -12,8 +12,21 @@
   Author Website: https://jappshome.de
   Support: https://buymeacoffee.com/J.Apps
 
-  
 ----------------------------------------------------------------------
+ Updates 4.4.0 (Vision Update):
+ ---------------------------------------------------------------------
+  + **Extraction Mode Ventil:** Neues Ventil `extraction_mode` hinzugefügt.
+    - `"inlet"` (Standard): Analysiert die User-Nachricht, bevor die KI antwortet.
+      Ideal für Text-Modelle und OCR.
+    - `"outlet"`: Analysiert User-Nachricht + KI-Antwort, *nachdem* die KI
+      geantwortet hat. Ideal für Vision-Modelle (z.B. LLaVA), um deren
+      Bildbeschreibungen abzufangen.
+  + **Regex Ventil:** Neues Ventil `block_image_generation_prompts` hinzugefügt,
+    um das Speichern von "Erstelle ein Bild..."-Befehlen zu steuern.
+  + **Refactoring:** Die Extraktionslogik (Phase 2) wurde in eine neue
+    Funktion `_run_extraction_phase` ausgelagert, die nun flexibel
+    von `inlet` oder `outlet` aufgerufen werden kann.
+
  Updates 4.3.13:
  ---------------------------------------------------------------------
   + **Multimodal-Stabilitätsfix (Quick Fix):** Das Plugin stürzt nicht mehr ab,
@@ -290,13 +303,24 @@ class Filter:
             description="The exact phrase the user must enter for confirmation."
         )
 
+        extraction_mode: Literal["inlet", "outlet"] = Field(
+            default="inlet",
+            description="Where to extract new memories: 'inlet' (from user message only) or 'outlet' (from user message + AI response, for Vision models)."
+        )
+
+        # --- NEW BLOCKER VALVE ---
+        block_image_generation_prompts: bool = Field(
+            default=True,
+            description="If True, blocks memory extraction from prompts like 'erstelle ein Bild...'."
+        )
+
 
     def __init__(self):
         self.valves = self.Valves()
         self._session: Optional[aiohttp.ClientSession] = None
         self._context_cache: Optional[Dict[str, Any]] = None
         self._pending_deletions: Dict[str, float] = {}
-        self._block_extract_patterns = [
+        self._general_block_patterns = [
             r"^\s*(was\s+ist\s+mein\s+name\??)\s*$",
             r"^\s*(wie\s+heiße\s+ich\??)\s*$",
             r"^\s*what'?s\s+my\s+name\??\s*$",
@@ -307,13 +331,16 @@ class Filter:
             r"^\s*yes\s*$",
             r"^\s*aha\s*$",
             r"^\s*hm(m)?\s*$"
-            r"^\s*(erstelle|generiere|generate|zeichne)\s+(mir\s+)?(ein\s+)?(bild|image)\b.*$"
         ]
         # Log if SentenceTransformer library is available
         if not _SENTENCE_TRANSFORMER_AVAILABLE:
              _log("WARNING: sentence-transformers library not found. Local embedding provider 'sentence_transformer' will not work.")
 
 
+        # Diese werden nur blockiert, wenn das Ventil an ist
+        self._generation_block_patterns = [
+            r"^\s*(erstelle|generiere|generate|zeichne)\s+(mir\s+)?(ein\s+)?(bild|image)\b.*$"
+        ]
     @property
     def embedding_model(self) -> Optional[Any]: # Return type depends on library
         """Loads the SentenceTransformer model instance or returns the cached one."""
@@ -768,10 +795,19 @@ class Filter:
     # Memory extraction & upload
     # --------------------------
     def _is_blocked_for_extract(self, text: str) -> bool:
-        # ... (implementation remains the same) ...
         t = text.strip().lower();
-        for pat in self._block_extract_patterns:
-            if re.match(pat, t): return True
+
+        # 1. Prüfe die allgemeinen Sperren (IMMER)
+        for pat in self._general_block_patterns:
+            if re.match(pat, t):
+                return True
+
+        # 2. Prüfe die Generierungs-Sperren (nur wenn Ventil AN ist)
+        if self.valves.block_image_generation_prompts:
+            for pat in self._generation_block_patterns:
+                if re.match(pat, t):
+                    return True
+
         return False
 
     async def _extract_new_memories(self, last_user_text: str) -> List[dict]:
@@ -905,7 +941,94 @@ class Filter:
 
         if not non_duplicates: _log("dedup: All candidates were duplicates."); return 0
         _log(f"dedup: Uploading {len(non_duplicates)} non-duplicates."); return await self._mem_add_batch_from_candidates(user_id, non_duplicates)
+    
+    async def _run_extraction_phase(self, user_id: str, text_to_analyze: str, emitter: Optional[Any]):
+        """
+        Führt die 'Phase 2' der Gedächtnis-Extraktion durch.
+        Diese Funktion wird entweder vom 'inlet' (mit User-Text) oder
+        vom 'outlet' (mit User+KI-Text) aufgerufen.
+        """
+        _log(f"extract: running phase 2, analyzing text (len: {len(text_to_analyze)})...")
 
+        # --- DIES IST DER GESAMTE CODE-BLOCK AUS DEM ALTEN INLET (Zeile 911-987) ---
+        # Alle Vorkommen von 'last_user' wurden durch 'text_to_analyze' ersetzt
+        
+        extraction_done = False; llm_found_memories = False
+        new_mems_candidates: List[Dict] = []; should_save_raw = False
+        # WICHTIG: 'extraction_provider_name' wird hier benötigt
+        extraction_provider_name = self.valves.extraction_provider.upper()
+
+        try:
+            _log(f"extract: trying configured LLM ({extraction_provider_name})...")
+            # Nutzen von _emit_status statt direkt emitter
+            await self._emit_status(emitter, f"🧠 Analysiere Nachricht ({extraction_provider_name})...", done=False)
+            
+            # HIER DIE ÄNDERUNG: text_to_analyze statt last_user
+            new_mems_candidates = await self._extract_new_memories(text_to_analyze) 
+            
+            extraction_done = True; llm_found_memories = bool(new_mems_candidates)
+        except (ValueError, ConnectionError, aiohttp.ClientResponseError) as llm_e:
+             _log(f"extract: Configured LLM ({extraction_provider_name}) failed ({llm_e}), checking fallback...", {"traceback": traceback.format_exc()})
+             await self._emit_status(emitter, f"⚠️ {extraction_provider_name} nicht erreichbar...", done=True)
+             extraction_done = False
+        except Exception as e:
+            _log(f"extract: Unexpected error during LLM extraction ({extraction_provider_name}): {e}", {"traceback": traceback.format_exc()})
+            await self._emit_status(emitter, f"🔥 Unerwarteter Fehler bei Extraktion ({extraction_provider_name}).", done=True)
+            extraction_done = False
+
+        # --- Embedding Fallback (Simple Dedupe & Save Raw) ---
+        if not extraction_done and self.valves.use_local_embedding_fallback:
+            _log("extract: using local embeddings fallback...");
+            await self._emit_status(emitter, "⚙️ Lokale Fallback-Prüfung...", done=False)
+            
+            # HIER DIE ÄNDERUNG: text_to_analyze statt last_user
+            if self._is_blocked_for_extract(text_to_analyze) or self._is_spam_or_too_short(text_to_analyze):
+                _log("extract: blocked raw message.")
+                await self._emit_status(emitter, "ℹ️ Nachricht zum Merken blockiert.", done=True)
+            
+            # HINWEIS: 'candidates' ist hier nicht verfügbar.
+            # Wir rufen sie neu ab.
+            else:
+                existing_fb = await self._mem_get_existing(user_id)
+                candidates_fb = [m.get("text", "") for m in existing_fb if isinstance(m, dict) and m.get("text", "").strip()]
+                
+                if not candidates_fb:
+                    should_save_raw = True; _log("extract: saving first raw message.")
+                else:
+                     try: 
+                          # HIER DIE ÄNDERUNG: text_to_analyze statt last_user
+                          new_emb = await self._calculate_embeddings([text_to_analyze]); 
+                          existing_emb = await self._calculate_embeddings(candidates_fb) # Nutze candidates_fb
+                          
+                          if new_emb is not None and existing_emb is not None:
+                               if new_emb.ndim == 1: new_emb = new_emb.reshape(1, -1)
+                               if existing_emb.ndim == 1: existing_emb = existing_emb.reshape(1, -1)
+                               if new_emb.shape[1] == existing_emb.shape[1]:
+                                   sims = cosine_similarity(new_emb, existing_emb); max_sim = np.max(sims) if sims.size > 0 else 0.0
+                                   if max_sim < self.valves.min_similarity_for_upload:
+                                        should_save_raw = True
+                                        await self._emit_status(emitter, f"✅ Neuer Fakt (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
+                                   else:
+                                        await self._emit_status(emitter, f"❌ Fakt zu ähnlich (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
+                               else:
+                                    _log("extract: fallback dim mismatch."); await self._emit_status(emitter, "❌ Fallback-Fehler (Dim).", done=True)
+                          else:
+                               await self._emit_status(emitter, "❌ Lokale Fallback-Analyse fehlgeschlagen (Embeddings).", done=True)
+                     except Exception as fb_e:
+                         _log(f"extract: fallback check failed: {fb_e}"); await self._emit_status(emitter, "❌ Fehler bei Fallback-Analyse.", done=True)
+
+                if should_save_raw:
+                     # HIER DIE ÄNDERUNG: text_to_analyze statt last_user
+                     save_ok = await self._mem_add_batch_from_candidates(user_id, [{"content": text_to_analyze}])
+                     if not save_ok: await self._emit_status(emitter, "🔥 Fehler beim Speichern (Fallback).", done=True)
+
+        elif extraction_done:
+            if llm_found_memories:
+                added_count = await self._upload_new_dedup(user_id, new_mems_candidates)
+                if added_count > 0: await self._emit_status(emitter, f"✅ {added_count} neue {'Fakt' if added_count == 1 else 'Fakten'} gespeichert.", done=True)
+                else: await self._emit_status(emitter, "ℹ️ Fakten gefunden, aber Duplikate oder gefiltert.", done=True)
+            else:
+                await self._emit_status(emitter, "ℹ️ Nichts Neues zum Merken gefunden.", done=True)
 
     async def _mem_add_batch_from_candidates(self, user_id: str, candidates: List[dict]) -> int:
         # ... (implementation remains the same) ...
@@ -1090,83 +1213,57 @@ class Filter:
 
 
         # =================================================================
-        # PHASE 2: EXTRACT NEW MEMORIES
+        # PHASE 2: EXTRACT NEW MEMORIES (NEUE LOGIK)
         # =================================================================
-        extraction_done = False; llm_found_memories = False
-        new_mems_candidates: List[Dict] = []; should_save_raw = False
-        extraction_provider_name = self.valves.extraction_provider.upper() # Assign before try
-
-        try:
-            _log(f"extract: trying configured LLM ({extraction_provider_name})...")
-            # Set status to 'processing' (done=False)
-            await self._emit_status(__event_emitter__, f"🧠 Analysiere Nachricht ({extraction_provider_name})...", done=False)
-            new_mems_candidates = await self._extract_new_memories(last_user)
-            extraction_done = True; llm_found_memories = bool(new_mems_candidates)
-        # --- Catch specific exceptions from LLM helpers ---
-        except (ValueError, ConnectionError, aiohttp.ClientResponseError) as llm_e:
-             _log(f"extract: Configured LLM ({extraction_provider_name}) failed ({llm_e}), checking fallback...", {"traceback": traceback.format_exc()})
-             await self._emit_status(__event_emitter__, f"⚠️ {extraction_provider_name} nicht erreichbar...", done=True)
-             extraction_done = False
-        except Exception as e: # Catch any other unexpected error during extraction call
-            _log(f"extract: Unexpected error during LLM extraction ({extraction_provider_name}): {e}", {"traceback": traceback.format_exc()})
-            await self._emit_status(__event_emitter__, f"🔥 Unerwarteter Fehler bei Extraktion ({extraction_provider_name}).", done=True)
-            extraction_done = False
-
-
-        # --- Embedding Fallback (Simple Dedupe & Save Raw) ---
-        if not extraction_done and self.valves.use_local_embedding_fallback:
-            _log("extract: using local embeddings fallback...");
-            # Set status to 'processing fallback' (done=False)
-            await self._emit_status(__event_emitter__, "⚙️ Lokale Fallback-Prüfung...", done=False)
-            if self._is_blocked_for_extract(last_user) or self._is_spam_or_too_short(last_user):
-                _log("extract: blocked raw message.")
-                await self._emit_status(__event_emitter__, "ℹ️ Nachricht zum Merken blockiert.", done=True) # Final status
-            elif not candidates:
-                should_save_raw = True; _log("extract: saving first raw message.")
-                # Status will be set after save attempt
-            else:
-                 try: # Fallback similarity check using _calculate_embeddings
-                      new_emb = await self._calculate_embeddings([last_user]); existing_emb = await self._calculate_embeddings(candidates)
-                      if new_emb is not None and existing_emb is not None:
-                           if new_emb.ndim == 1: new_emb = new_emb.reshape(1, -1)
-                           if existing_emb.ndim == 1: existing_emb = existing_emb.reshape(1, -1)
-                           if new_emb.shape[1] == existing_emb.shape[1]:
-                               sims = cosine_similarity(new_emb, existing_emb); max_sim = np.max(sims) if sims.size > 0 else 0.0
-                               if max_sim < self.valves.min_similarity_for_upload:
-                                    should_save_raw = True
-                                    # Status set here
-                                    await self._emit_status(__event_emitter__, f"✅ Neuer Fakt (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
-                               else:
-                                    # Status set here
-                                    await self._emit_status(__event_emitter__, f"❌ Fakt zu ähnlich (Fallback, Ähnlichkeit: {max_sim:.0%}).", done=True)
-                           else:
-                                _log("extract: fallback dim mismatch."); await self._emit_status(__event_emitter__, "❌ Fallback-Fehler (Dim).", done=True)
-                      else:
-                           await self._emit_status(__event_emitter__, "❌ Lokale Fallback-Analyse fehlgeschlagen (Embeddings).", done=True)
-                 except Exception as fb_e:
-                     _log(f"extract: fallback check failed: {fb_e}"); await self._emit_status(__event_emitter__, "❌ Fehler bei Fallback-Analyse.", done=True)
-
-            if should_save_raw:
-                 # Attempt save and update status based on result
-                 save_ok = await self._mem_add_batch_from_candidates(user_id, [{"content": last_user}])
-                 # Ensure a final status is emitted even if saving raw failed, overwriting previous success message if needed
-                 if not save_ok: await self._emit_status(__event_emitter__, "🔥 Fehler beim Speichern (Fallback).", done=True)
-                 # If save was OK, the previous success status remains.
-
-        # --- Upload / Final Status (only if LLM extraction was attempted) ---
-        elif extraction_done: # Only handle status if LLM extraction was the primary path
-            if llm_found_memories:
-                added_count = await self._upload_new_dedup(user_id, new_mems_candidates)
-                if added_count > 0: await self._emit_status(__event_emitter__, f"✅ {added_count} neue {'Fakt' if added_count == 1 else 'Fakten'} gespeichert.", done=True)
-                else: await self._emit_status(__event_emitter__, "ℹ️ Fakten gefunden, aber Duplikate oder gefiltert.", done=True)
-            else: # LLM ran, found nothing
-                await self._emit_status(__event_emitter__, "ℹ️ Nichts Neues zum Merken gefunden.", done=True)
-        # --- Handle case where LLM failed and fallback is disabled ---
-        # No extra status needed here, the failure was already emitted in the except block
+        
+        if self.valves.extraction_mode == "inlet":
+            _log("extract: running in INLET mode...")
+            
+            # last_user wurde oben (Zeile 880) bereits extrahiert.
+            if not last_user:
+                return body # Nichts zu tun
+            
+            # Rufe die NEUE, ausgelagerte Funktion auf
+            await self._run_extraction_phase(user_id, last_user, __event_emitter__)
+        
+        else:
+             _log("extract: running in OUTLET mode, skipping extraction in inlet.")
+             # Wir müssen den 'last_user' Text für das outlet speichern
+             self._last_user_message_for_outlet = last_user 
 
         return body
 
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # +++ ANGEPASSTE OUTLET FUNKTION +++
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     async def outlet(self, body: Dict[str, Any], __event_emitter__: Optional[Any] = None, __user__: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        
+        if self.valves.extraction_mode == "outlet":
+            _log("extract: running in OUTLET mode...")
+            
+            try:
+                # 1. Hole die LLM-Antwort (das ist der 'body' im outlet)
+                assistant_response = self._extract_text_from_content(body.get("content"))
+                
+                # 2. Hole die User-Frage, die wir im inlet gespeichert haben
+                user_message = getattr(self, "_last_user_message_for_outlet", "")
+                
+                if user_message and assistant_response:
+                    # 3. Kombiniere beides für die Analyse
+                    text_to_analyze = f"USER: {user_message}\nASSISTANT: {assistant_response}"
+                    
+                    user_id = self._get_user_id(__user__)
+                    
+                    # 4. Rufe die GLEICHE ausgelagerte Funktion auf
+                    await self._run_extraction_phase(user_id, text_to_analyze, __event_emitter__)
+                
+                # 5. Setze den Speicher zurück, egal was passiert
+                self._last_user_message_for_outlet = ""
+
+            except Exception as e:
+                _log(f"extract: outlet mode failed: {e}")
+                self._last_user_message_for_outlet = "" # Auch bei Fehler zurücksetzen
+        
         return body # Passthrough
 
     async def cleanup(self):
