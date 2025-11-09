@@ -4,7 +4,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.3.12 (Ollama Payload Switch)
+  Version: 4.3.13 (Ollama Payload Switch)
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -12,6 +12,16 @@
   Author Website: https://jappshome.de
   Support: https://buymeacoffee.com/J.Apps
 
+  
+----------------------------------------------------------------------
+ Updates 4.3.13:
+ ---------------------------------------------------------------------
+  + **Multimodal-Stabilitätsfix (Quick Fix):** Das Plugin stürzt nicht mehr ab,
+    wenn ein Vision-Modell eine Nachricht mit Bild-Daten (Payload als Liste) sendet.
+  + **Neue Helfer-Funktion:** `_extract_text_from_content` implementiert,
+    um Textinhalte robust aus `str` oder `list`-Payloads zu extrahieren.
+  + **Filter-Erweiterung:** Ein Regex-Filter in `_block_extract_patterns`
+    verhindert nun das Speichern von Bild-Generierungs-Prompts (z.B. "erstelle ein Bild...").
 
  Updates 4.3.12:
  ---------------------------------------------------------------------
@@ -161,8 +171,8 @@ class Filter:
             description="FULL API endpoint URL for local LLM (e.g., 'http://localhost:11434/api/chat')."
         )
         local_llm_model_name: str = Field(
-            default="qwen2:7b",
-            description="Model name for local LLM (e.g., 'qwen2:7b', 'llama3:latest')."
+            default="qwen3:8b",
+            description="Model name for local LLM (e.g., 'qwen3:8b', 'llama3:latest')."
         )
         local_llm_api_key: Optional[str] = Field(
             default=None,
@@ -184,7 +194,7 @@ class Filter:
         # Sentence Transformer specific (if local_embedding_provider is 'sentence_transformer')
         sentence_transformer_model: str = Field(
             default="all-MiniLM-L6-v2",
-            description="Model name for sentence-transformers library (e.g., 'all-MiniLM-L6-v2'). Ensure it's installed or downloadable."
+            description="Model name for sentence-transformers library (e.g., 'all-MiniLM-L6-v2', 'qwen3-embedding:0.6b'). Ensure it's installed or downloadable."
         )
         # Ollama Embedding specific (if local_embedding_provider is 'ollama')
         ollama_embedding_api_endpoint_url: str = Field(
@@ -192,8 +202,8 @@ class Filter:
              description="FULL API endpoint URL for Ollama embeddings (e.g., 'http://localhost:11434/api/embeddings')."
         )
         ollama_embedding_model_name: str = Field(
-            default="qwen2:7b-embed", # Example embedding model, adjust as needed
-            description="Model name for Ollama embeddings (e.g., 'nomic-embed-text', 'qwen2:7b-embed')."
+            default="qwen3-embedding:0.6b", # Example embedding model, adjust as needed
+            description="Model name for Ollama embeddings (e.g., 'nomic-embed-text', 'qwen3-embedding:0.6b', 'embeddinggemma:latest')."
         )
 
         # --- Memory Server ---
@@ -297,6 +307,7 @@ class Filter:
             r"^\s*yes\s*$",
             r"^\s*aha\s*$",
             r"^\s*hm(m)?\s*$"
+            r"^\s*(erstelle|generiere|generate|zeichne)\s+(mir\s+)?(ein\s+)?(bild|image)\b.*$"
         ]
         # Log if SentenceTransformer library is available
         if not _SENTENCE_TRANSFORMER_AVAILABLE:
@@ -483,6 +494,29 @@ class Filter:
         text = re.sub(r'[^\w\s]', '', text)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
+    
+    def _extract_text_from_content(self, content: Any) -> str:
+        """
+        Extrahiert und kombiniert alle Textteile aus dem 'content'-Feld,
+        egal ob es ein String oder eine Liste (für multimodale Eingaben) ist.
+        """
+        if isinstance(content, str):
+            # Alter Fall: Es ist bereits ein einfacher String
+            return content.strip()
+        
+        if isinstance(content, list):
+            # Neuer Fall: Es ist eine multimodale Liste
+            text_parts = []
+            for item in content:
+                # Wir suchen nur die Teile, die vom Typ "text" sind
+                if isinstance(item, dict) and item.get("type") == "text":
+                    text_parts.append(item.get("text", ""))
+            
+            # Wir fügen alle gefundenen Textteile zusammen
+            return "\n".join(p for p in text_parts if p).strip()
+        
+        # Fallback, falls es weder String noch Liste ist
+        return ""
 
     # --------------------------
     # Memory Server Interaction
@@ -898,8 +932,20 @@ class Filter:
 
         user_id = self._get_user_id(__user__); last_user = ""
         for m in reversed(body.get("messages", [])):
-            if m.get("role") == "user" and m.get("content"): last_user = m["content"]; break
-        if not last_user: return body
+            if m.get("role") == "user" and m.get("content") is not None:
+                
+                # --- HIER IST DER FIX ---
+                # Nutze die neue Helfer-Funktion, um den Text zu normalisieren.
+                # Das funktioniert jetzt für Strings UND Listen.
+                last_user = self._extract_text_from_content(m["content"])
+                # -----------------------
+                
+                if last_user: # Nur stoppen, wenn wir auch Text gefunden haben
+                    break
+        
+        # Wenn keine User-Nachricht da ist, tu nix.
+        if not last_user:
+            return body
 
         # --- 2. DELETION ROUTINE ---
         # ... (unchanged, includes early returns) ...

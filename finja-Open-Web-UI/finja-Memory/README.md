@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v1.3.1
+# 📚 Finja Cloud Memory v1.3.1 + v4.3.13
 
 Ein leichtgewichtiger, blitzschneller und externer **Memory-Service**, der als Langzeitgedächtnis für KI-Projekte wie Finja dient. Dieses System ist für die nahtlose Integration mit **OpenWebUI** über das `adaptive_memory_v4` Plugin konzipiert.
 
@@ -22,7 +22,7 @@ Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und de
 -   **Sicherheit:** Der Zugriff wird über einen `X-API-Key` in einer `.env`-Datei abgesichert.
 -   **Backup-Endpunkte:** Enthält `/backup_all_now` (Admin) zum Sichern aller Daten und `/backup_now` (Platzhalter für User-Backups).
 
-### Plugin (`adaptive_memory_v4.py` - v4.3.11)
+### Plugin (`adaptive_memory_v4.py` - v4.3.13)
 -   **Flexible Provider-Wahl:**
     -   **Extraktion:** Wähle zwischen OpenAI (`openai`) und einem lokalen LLM (`local`, z.B. Ollama).
     -   **Relevanz:** Wähle zwischen OpenAI (`openai`), lokalem LLM (`local`) oder rein lokalen Embeddings (`embedding`).
@@ -38,6 +38,7 @@ Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und de
     -   **Klares User-Feedback** im Chat informiert über alle Aktionen des Plugins.
     -   Eine **Zwei-Stufen-Bestätigung** per Chat-Befehl ermöglicht dem User, die Löschung seiner Daten selbst zu steuern.
 -   **Stabilität:** Enthält diverse Bugfixes für Fehlerbehandlung, Provider-Logik und Statusmeldungen.
+-    **Filter-Erweiterung:** Ein Regex-Filter in `_block_extract_patterns verhindert nun das Speichern von Bild-Generierungs-Prompts (z.B. "erstelle ein Bild...").
 
 ---
 
