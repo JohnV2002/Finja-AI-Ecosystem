@@ -196,6 +196,14 @@ ihr wart die Inspiration, das überhaupt zu versuchen 🫶
 
 ---
 
+### ☕ Supporter
+Ein riesiges Dankeschön geht an alle, die das Projekt über [Buy Me a Coffee](https://buymeacoffee.com/J.Apps) unterstützen!
+
+Ein ganz besonderer Dank geht an:
+* **[Ithrial]** – für die allererste Spende! 🥇💖
+
+---
+
 ## ❤️ Credits
 
 Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
@@ -207,4 +215,3 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 
 -   **E-Mail:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
