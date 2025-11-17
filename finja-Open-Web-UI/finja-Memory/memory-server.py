@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 1.3.1
+  Version: 1.3.2
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -28,6 +28,17 @@
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
+ Updates 1.3.2:
+ ---------------------------------------------------------------------
+  + **Security Hardening (Path Traversal):** Kritische Sicherheitsverbesserungen in
+    den Endpunkten `/delete_user_memories` und `/add_voice_memory` implementiert.
+    Zusätzliche Checks (Empty-String & Path Canonicalization) verhindern nun
+    potenzielle Path-Traversal-Angriffe oder das versehentliche Löschen von
+    Hauptverzeichnissen durch manipulierte User-IDs.
+  + **Dependency Security Fix:** `starlette` in der `requirements.txt` auf
+    Version 0.50.0 aktualisiert, um eine bekannte Sicherheitslücke (Vulnerability)
+    in der älteren Version zu schließen.
+
  Updates 1.3.1:
  ---------------------------------------------------------------------
   + **Fix Auth Log Fehler:** Ein Check in `auth_check` hinzugefügt, um
@@ -502,9 +513,32 @@ async def add_voice_memory(request: Request, user_id: str = Form(...), file: Upl
     """Nimmt Audio entgegen, speichert es, simuliert Transkription."""
     auth_check(request)
     uid = user_id or "default"
-    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).rstrip()
+    
+    # 1. Sanitize input
+    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).strip()
+    
+    # 2. CHECK: Verhindere leere Strings (Verhindert schreiben ins Root-Verzeichnis)
+    if not safe_uid:
+        print(f"WARN:    Invalid user_id for audio upload: '{uid}'")
+        raise HTTPException(status_code=400, detail="Invalid User ID.")
+
+    # 3. Pfad sicher zusammenbauen
     user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
-    os.makedirs(user_audio_subdir, exist_ok=True) # Ensure user's audio dir exists
+
+    # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
+    # Sicherstellen, dass der Zielordner wirklich innerhalb von USER_AUDIO_DIR liegt
+    try:
+        real_target_path = os.path.realpath(user_audio_subdir)
+        real_base_path = os.path.realpath(USER_AUDIO_DIR)
+        if not real_target_path.startswith(real_base_path):
+             print(f"CRITICAL: Path Traversal attempt in audio upload! {real_target_path}")
+             raise HTTPException(status_code=400, detail="Security check failed.")
+    except Exception as e:
+        print(f"ERROR:   Path security check failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal security check error.")
+
+    # Ab hier ist alles sicher -> Ordner erstellen
+    os.makedirs(user_audio_subdir, exist_ok=True) 
 
     file_extension = os.path.splitext(file.filename or "audio.unk")[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
@@ -514,10 +548,11 @@ async def add_voice_memory(request: Request, user_id: str = Form(...), file: Upl
         async with aiofiles.open(save_path, 'wb') as out_file:
             while content := await file.read(1024 * 1024): await out_file.write(content)
         print(f"INFO:    Saved voice memory to {save_path}")
-    except Exception as e: raise HTTPException(status_code=500, detail=f"Could not save audio file: {e}")
+    except Exception as e: 
+        raise HTTPException(status_code=500, detail=f"Could not save audio file: {e}")
 
     transcript = transcribe_audio_dummy(save_path)
-    voice_memory = MemoryItem(user_id=uid, text=transcript, meta={"source": "voice_input", "audio_path": save_path}) # Use path not url
+    voice_memory = MemoryItem(user_id=uid, text=transcript, meta={"source": "voice_input", "audio_path": save_path}) 
 
     # Use the existing add_memory endpoint logic
     await add_memory(request, voice_memory)
@@ -562,13 +597,38 @@ def delete_user_memories(request: Request, data: UserAction = Body(...)):
     """Löscht ALLE Daten für einen User (JSON, Audio, RAM)."""
     auth_check(request)
     uid = data.user_id
-    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).rstrip()
+    
+    # 1. Input Sanitization: Entferne alles außer Alphanumerik, Bindestrich, Unterstrich
+    # .strip() entfernt Leerzeichen am Anfang/Ende
+    safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).strip()
+    
+    # 2. CRITICAL SECURITY CHECK: Verhindere leere Strings!
+    # Wenn safe_uid leer ist (z.B. weil User nur "..." gesendet hat), brechen wir sofort ab.
+    if not safe_uid:
+        print(f"WARN:    Invalid user_id provided for deletion: '{uid}' -> resulted in empty safe_uid.")
+        raise HTTPException(status_code=400, detail="Invalid User ID for deletion.")
+
     print(f"WARN:    Deletion requested for user '{uid}' (safe: '{safe_uid}')")
 
-    filepath = memory_file(uid) # Use safe ID potentially for filename consistency
+    filepath = memory_file(uid) # Nutzt intern auch safe_uid Logik, ist hier okay
+    
+    # 3. Pfad sicher zusammenbauen
     user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
 
-    # 1. Delete associated audio files first (if dir exists)
+    # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
+    # Wir lösen den Pfad komplett auf und prüfen, ob er wirklich noch im USER_AUDIO_DIR liegt.
+    # Das verhindert theoretische "../"-Angriffe komplett.
+    try:
+        real_audio_path = os.path.realpath(user_audio_subdir)
+        real_base_path = os.path.realpath(USER_AUDIO_DIR)
+        if not real_audio_path.startswith(real_base_path):
+             print(f"CRITICAL: Path Traversal attempt detected! {real_audio_path}")
+             raise HTTPException(status_code=400, detail="Security check failed.")
+    except Exception as e:
+        print(f"ERROR:    Path security check failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal security check error.")
+
+    # 5. Delete associated audio files first (if dir exists)
     if os.path.isdir(user_audio_subdir):
         try:
             shutil.rmtree(user_audio_subdir)
@@ -577,11 +637,16 @@ def delete_user_memories(request: Request, data: UserAction = Body(...)):
             print(f"ERROR:   Failed to delete audio directory {user_audio_subdir}: {e}")
             # Continue deletion process even if audio removal fails partially
 
-    # 2. Delete from RAM caches
-    if uid in user_memories: del user_memories[uid]; print(f"INFO:    Evicted RAM cache 'user_memories' for {uid}.")
-    if uid in cache_last_accessed: del cache_last_accessed[uid]; print(f"INFO:    Evicted RAM cache 'cache_last_accessed' for {uid}.")
+    # 6. Delete from RAM caches
+    if uid in user_memories: 
+        del user_memories[uid]
+        print(f"INFO:    Evicted RAM cache 'user_memories' for {uid}.")
+    
+    if uid in cache_last_accessed: 
+        del cache_last_accessed[uid]
+        print(f"INFO:    Evicted RAM cache 'cache_last_accessed' for {uid}.")
 
-    # 3. Delete the JSON file from disk
+    # 7. Delete the JSON file from disk
     if os.path.exists(filepath):
         try:
             os.remove(filepath)

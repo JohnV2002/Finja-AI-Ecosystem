@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v1.3.1 + v4.4
+# 📚 Finja Cloud Memory v1.3.2 + v4.4.1
 
 Ein leichtgewichtiger, blitzschneller und externer **Memory-Service**, der als Langzeitgedächtnis für KI-Projekte wie Finja dient. Dieses System ist für die nahtlose Integration mit **OpenWebUI** über das `adaptive_memory_v4` Plugin konzipiert.
 
@@ -12,9 +12,33 @@ Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und de
 
 ---
 
+### 🛡️ Kritisches Sicherheits-Update (v1.3.2)
+
+⚠️ **Handlung erforderlich:** In älteren Versionen des Docker-Containers bestand eine Vulnerability durch eine veraltete Version / **library:** `starlette`.
+
+Um diese Sicherheitslücke zu schließen, **muss zwingend die `requirements.txt` aktualisiert** und der Container anschließend neu gebaut werden!
+
+**Schritt 1: `requirements.txt` aktualisieren**
+Lade die neueste Version der Datei herunter oder führe ein `git pull` aus, um sicherzustellen, dass `starlette>=0.49.1` (bzw. empfholen 0.50.0) enthalten ist.
+
+**Schritt 2: Container neu bauen**
+Führe danach folgenden Befehl aus, um die Änderungen anzuwenden:
+```bash
+docker-compose up -d --build
+```
+---
+
+## 🆕 Updates & Changelog
+
+### Server v1.3.2
+* **Security Hardening (Path Traversal):** Kritische Sicherheitsverbesserungen in den Endpunkten `/delete_user_memories` und `/add_voice_memory` implementiert. Zusätzliche Checks (Empty-String & Path Canonicalization) verhindern nun potenzielle Path-Traversal-Angriffe oder das versehentliche Löschen von Hauptverzeichnissen durch manipulierte User-IDs.
+* **Dependency Security Fix:** `starlette` in der `requirements.txt` auf Version **0.50.0** aktualisiert, um eine bekannte Sicherheitslücke (Vulnerability) in der älteren Version zu schließen.
+
+---
+
 ## ✨ Features
 
-### Server (`memory-server.py` - v1.3.1)
+### Server (`memory-server.py` - v1.3.2)
 -   **Intelligenter RAM-Cache:** Hält aktive User-Daten im Arbeitsspeicher für blitzschnelle Lesezugriffe und gibt den Speicher nach einer Zeit der Inaktivität automatisch wieder frei.
 -   **Persistente Speicherung:** Sichert alle Erinnerungen als portable JSON-Dateien pro Benutzer in einem Docker-Volume.
 -   **Voice-Memory-Gerüst:** Bietet API-Endpunkte zur Annahme von Sprachdateien (`/add_voice_memory`) und zum Caching von Sprachausgaben (`/get_or_create_speech`), vorbereitet für STT/TTS-Modelle.
@@ -22,7 +46,7 @@ Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und de
 -   **Sicherheit:** Der Zugriff wird über einen `X-API-Key` in einer `.env`-Datei abgesichert.
 -   **Backup-Endpunkte:** Enthält `/backup_all_now` (Admin) zum Sichern aller Daten und `/backup_now` (Platzhalter für User-Backups).
 
-### Plugin (`adaptive_memory_v4.py` - v4.4)
+### Plugin (`adaptive_memory_v4.py` - v4.4.1)
 -   **Flexible Provider-Wahl:**
     -   **Extraktion:** Wähle zwischen OpenAI (`openai`) und einem lokalen LLM (`local`, z.B. Ollama).
     -   **Relevanz:** Wähle zwischen OpenAI (`openai`), lokalem LLM (`local`) oder rein lokalen Embeddings (`embedding`).

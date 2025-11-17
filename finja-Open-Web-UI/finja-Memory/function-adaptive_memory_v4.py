@@ -4,7 +4,7 @@
 ======================================================================
 
   Project: Adaptive Memory (OpenWebUI Plugin)
-  Version: 4.4 (Ollama Payload Switch)
+  Version: 4.4.1 (Ollama Payload Switch)
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -13,6 +13,16 @@
   Support: https://buymeacoffee.com/J.Apps
 
 ----------------------------------------------------------------------
+ Updates 4.4.1:
+ ---------------------------------------------------------------------
+  + **Pre-Filtering Ventil:** Neues Ventil `enable_relevance_prefiltering` hinzugefügt.
+    Damit kann die lokale Voselektion (Phase 1) deaktiviert werden.
+    Wichtig für User, deren lokale Embedding-Umgebung defekt ist und die
+    ausschließlich externe APIs (OpenAI) nutzen wollen.
+    
+  + **Bugfix:** Verhindert Abstürze in Phase 1, wenn lokale Embeddings nicht
+    funktionieren, selbst wenn der "Fallback" (Phase 2) bereits deaktiviert war.
+
  Updates 4.4.0 (Vision Update):
  ---------------------------------------------------------------------
   + **Extraction Mode Ventil:** Neues Ventil `extraction_mode` hinzugefügt.
@@ -230,6 +240,10 @@ class Filter:
         relevance_threshold: float = Field(default=0.70, description="Relevance threshold (0..1) for context injection.")
         max_memories_fetch: int = Field(default=100, description="Max memories to fetch from server.")
         relevance_prefilter_cap: int = Field(default=15, description="Number of top memories from local pre-selection sent to LLM for relevance check (if provider is 'openai' or 'local').")
+        enable_relevance_prefiltering: bool = Field(
+            default=True,
+            description="If True, uses local embeddings to pre-filter memories before sending them to the LLM. Disable this if you want to skip local embedding calculation in Phase 1."
+        )
         min_memory_chars: int = Field(default=10, description="Minimum character length for a new memory.")
         min_memory_tokens: int = Field(default=3, description="Minimum number of words for a new memory.")
         topical_cache_threshold: float = Field(default=0.92, description="Similarity threshold (0..1) to use the topical context cache.")
@@ -1148,27 +1162,32 @@ class Filter:
                 provider_name = relevance_provider.upper()
                 status_msg = f"🔍 Prüfe Relevanz ({provider_name})..."; await self._emit_status(__event_emitter__, status_msg, done=False)
                 try:
-                    _log("relevance: performing local pre-filtering..."); prefiltered_candidates = candidates # Default
-                    try: # Prefiltering logic using _calculate_embeddings
-                         new_emb_pre = await self._calculate_embeddings([last_user]); existing_emb_pre = await self._calculate_embeddings(candidates)
-                         if new_emb_pre is not None and existing_emb_pre is not None:
-                              if new_emb_pre.ndim == 1: new_emb_pre = new_emb_pre.reshape(1, -1)
-                              if existing_emb_pre.ndim == 1: existing_emb_pre = existing_emb_pre.reshape(1, -1)
-                              if new_emb_pre.shape[1] == existing_emb_pre.shape[1]:
-                                   similarities_pre = cosine_similarity(new_emb_pre, existing_emb_pre)[0]
-                                   scored = sorted(zip(candidates, similarities_pre), key=lambda i: i[1], reverse=True)
-                                   prefiltered_candidates = [txt for txt, scr in scored[:self.valves.relevance_prefilter_cap]]
-                                   _log(f"relevance: pre-filtered to {len(prefiltered_candidates)}.")
-                              else: _log("relevance: pre-filtering dim mismatch.")
-                         else: _log("relevance: embedding failed pre-filtering.")
-                    except Exception as pre_e: _log(f"relevance: pre-filtering failed: {pre_e}")
-
+                    prefiltered_candidates = candidates # Default: Alle Kandidaten nehmen
+                    
+                    # --- NEW CHECK: Nur Pre-Filtern, wenn aktiviert ---
+                    if self.valves.enable_relevance_prefiltering:
+                        _log("relevance: performing local pre-filtering...")
+                        try: # Prefiltering logic using _calculate_embeddings
+                             new_emb_pre = await self._calculate_embeddings([last_user]); existing_emb_pre = await self._calculate_embeddings(candidates)
+                             if new_emb_pre is not None and existing_emb_pre is not None:
+                                  if new_emb_pre.ndim == 1: new_emb_pre = new_emb_pre.reshape(1, -1)
+                                  if existing_emb_pre.ndim == 1: existing_emb_pre = existing_emb_pre.reshape(1, -1)
+                                  if new_emb_pre.shape[1] == existing_emb_pre.shape[1]:
+                                       similarities_pre = cosine_similarity(new_emb_pre, existing_emb_pre)[0]
+                                       scored = sorted(zip(candidates, similarities_pre), key=lambda i: i[1], reverse=True)
+                                       prefiltered_candidates = [txt for txt, scr in scored[:self.valves.relevance_prefilter_cap]]
+                                       _log(f"relevance: pre-filtered to {len(prefiltered_candidates)}.")
+                                  else: _log("relevance: pre-filtering dim mismatch.")
+                             else: _log("relevance: embedding failed pre-filtering.")
+                        except Exception as pre_e: _log(f"relevance: pre-filtering failed: {pre_e}")
+                    else:
+                        _log("relevance: pre-filtering DISABLED by user settings. Sending all candidates.")
                     if prefiltered_candidates:
                          _log(f"relevance: using {provider_name} LLM for ranking.")
                          ranked = await self._rank_relevance(last_user, prefiltered_candidates)
                          if not ranked: llm_failed = True; _log(f"relevance: {provider_name} LLM call failed or returned empty.")
                     else: _log("relevance: no candidates after pre-filtering.")
-                except Exception as e: _log(f"relevance: {provider_name} LLM path failed: {e}"); llm_failed = True; await self._emit_status(__event_emitter__, f"⚠️ {provider_name} nicht erreichbar...", done=True) # Set done=True on failure
+                except Exception as e: _log(f"relevance: {provider_name} LLM path failed: {e}"); llm_failed = True; await self._emit_status(__event_emitter__, f"⚠️ {provider_name} nicht erreichbar...", done=True)
             # --- C) Embedding Fallback ---
             if llm_failed and self.valves.use_local_embedding_fallback:
                 status_msg = "⚙️ Lokale Fallback-Analyse..."; await self._emit_status(__event_emitter__, status_msg, done=False)
