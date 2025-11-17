@@ -58,10 +58,11 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 | &nbsp;&nbsp;└─ finja-ocr | 🟢 Stabil | Funktioniert einwandfrei |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup abgeschlossen, keine Tests |
 | &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Noch nicht implementiert |
-| **VPet-Simulator Mods** | 🟡 WIP | Aktuell geplant, noch leer |
+| **VPet-Simulator Mods** | 🔴 NWO | Bald nicht mehr nötig! |
 | **finja-app** | 🟡 WIP | Aktuell geplant, noch leer, Bringt ihre Reaction aufs handy! + Schreib mit ihr auf dem handy! |
+| **OWN / Self made VPet!** | 🟡 WIP | Vergiss VPet Simulator und Windows Apps, Willkommen bei Python und ein Besseres Tomogatchi! mit allem was VPet auch konnte! |
 
-**Legende:** 🟢 Stabil | 🔵 Stabil (in Arbeit) | 🟡 WIP (in Planung)
+**Legende:** 🟢 Stabil | 🔵 Stabil (in Arbeit) | 🟡 WIP (in Planung) | 🔴 Not Working on it
 ---
 
 ## 🗺️ Finja Architektur – Visueller Flow
@@ -196,6 +197,14 @@ ihr wart die Inspiration, das überhaupt zu versuchen 🫶
 
 ---
 
+### ☕ Supporter
+Ein riesiges Dankeschön geht an alle, die das Projekt über [Buy Me a Coffee](https://buymeacoffee.com/J.Apps) unterstützen!
+
+Ein ganz besonderer Dank geht an:
+* **[Ithrial]** – für die allererste Spende! 🥇💖
+
+---
+
 ## ❤️ Credits
 
 Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
@@ -207,4 +216,3 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 
 -   **E-Mail:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
