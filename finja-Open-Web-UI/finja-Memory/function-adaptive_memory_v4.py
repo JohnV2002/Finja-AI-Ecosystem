@@ -15,13 +15,22 @@
 ----------------------------------------------------------------------
  Updates 4.4.1:
  ---------------------------------------------------------------------
-  + **Pre-Filtering Ventil:** Neues Ventil `enable_relevance_prefiltering` hinzugefügt.
-    Damit kann die lokale Voselektion (Phase 1) deaktiviert werden.
-    Wichtig für User, deren lokale Embedding-Umgebung defekt ist und die
-    ausschließlich externe APIs (OpenAI) nutzen wollen.
-    
-  + **Bugfix:** Verhindert Abstürze in Phase 1, wenn lokale Embeddings nicht
-    funktionieren, selbst wenn der "Fallback" (Phase 2) bereits deaktiviert war.
++ **Neues Ventil: Pre-Filtering (`enable_relevance_prefiltering`):**
+    Ermöglicht das Abschalten der lokalen Voselektion (Phase 1).
+    Essentiell für User, die ausschließlich externe APIs (OpenAI/Ollama) nutzen
+    wollen oder deren lokale Embedding-Umgebung defekt ist.
+
+  + **Stabilitäts-Fix (Phase 1):** Verhindert Abstürze beim "Cache Check" und
+    "Pre-Filtering", wenn lokale Embeddings nicht funktionieren – selbst wenn
+    der "Fallback" (für Phase 2) bereits deaktiviert war.
+
+  + **Fix `sentence-transformers` Kompatibilität:** Korrigiert einen
+    `ValueError: Prompt name 'True'` bei neueren Library-Versionen durch
+    saubere Argument-Übergabe in `_calculate_embeddings`.
+
+  + **UI-Cleanup:** Die Valves (Einstellungen) wurden neu sortiert und in
+    logische Gruppen (Server, Provider, Embedding, Thresholds) unterteilt,
+    um die Übersichtlichkeit im OpenWebUI-Menü zu verbessern.
 
  Updates 4.4.0 (Vision Update):
  ---------------------------------------------------------------------
@@ -156,117 +165,175 @@ class Filter:
     _embedding_model_instance: Optional[Any] = None # Renamed to avoid conflict
 
     class Valves(BaseModel):
-        # --- LLM Provider Settings ---
+        # =========================================================
+        # 1. MEMORY SERVER CONNECTION (Essential)
+        # =========================================================
+        memory_api_base: str = Field(
+            default="http://localhost:8000",
+            description="Base URL of your Memory Server (do not include trailing slash)."
+        )
+        memory_api_key: str = Field(
+            default="changeme-supersecretkey",
+            description="API Key for the Memory Server authentication."
+        )
+
+        # =========================================================
+        # 2. MAIN BEHAVIOR & PROVIDERS
+        # =========================================================
+        extraction_mode: Literal["inlet", "outlet"] = Field(
+            default="inlet",
+            description="Extraction Mode: 'inlet' (Standard/Text) analyzes user message before AI reply. 'outlet' (Vision) analyzes user message + AI reply (good for image descriptions)."
+        )
         extraction_provider: Literal["openai", "local"] = Field(
             default="openai",
-            description="LLM provider for extracting new facts ('openai' or 'local')."
+            description="LLM provider used to extract new facts/memories."
         )
         relevance_provider: Literal["openai", "local", "embedding"] = Field(
             default="openai",
-            description="Method for relevance checking ('openai', 'local' LLM, or 'embedding' for local vector similarity)."
+            description="Method to check if existing memories are relevant to the current conversation."
         )
 
-        # --- OpenAI Settings (if used) ---
+        # =========================================================
+        # 3. OPENAI SETTINGS (if provider is 'openai')
+        # =========================================================
         openai_api_endpoint_url: str = Field(
             default="https://api.openai.com/v1/chat/completions",
-            description="API endpoint for OpenAI or compatible services."
+            description="API endpoint for OpenAI chat completions."
         )
         openai_model_name: str = Field(
             default="gpt-4o-mini",
-            description="Model name for OpenAI or compatible services."
+            description="Chat Model name for OpenAI."
         )
         openai_api_key: str = Field(
             default=PLACEHOLDER_OPENAI_KEY,
-            description="API Key for OpenAI or compatible services."
+            description="API Key for OpenAI."
         )
         openai_embedding_model: str = Field(
             default="text-embedding-3-small",
-            description="OpenAI model for embedding vectors (used if extraction_provider='openai' or relevance_provider='openai' for cosine sim in dedupe/prefilter)."
+            description="OpenAI model for embeddings (used for cosine similarity checks)."
         )
         openai_embedding_endpoint_url: str = Field(
             default="https://api.openai.com/v1/embeddings",
             description="API endpoint for OpenAI Embeddings."
         )
 
-        # --- Local LLM (Ollama) Settings (if used for extraction or relevance) ---
+        # =========================================================
+        # 4. LOCAL LLM / OLLAMA SETTINGS (if provider is 'local')
+        # =========================================================
         local_llm_api_endpoint_url: str = Field(
-            default="http://host.docker.internal:11434/api/chat", # User must provide the FULL endpoint URL now
-            description="FULL API endpoint URL for local LLM (e.g., 'http://localhost:11434/api/chat')."
+            default="http://host.docker.internal:11434/api/chat",
+            description="Full API endpoint for local LLM (e.g. .../api/chat)."
         )
         local_llm_model_name: str = Field(
             default="qwen3:8b",
-            description="Model name for local LLM (e.g., 'qwen3:8b', 'llama3:latest')."
+            description="Model name for local LLM."
         )
         local_llm_api_key: Optional[str] = Field(
             default=None,
-            description="API Key for local LLM (if required)."
+            description="API Key for local LLM (optional)."
         )
-        # --- NEW PAYLOAD SWITCH ---
         local_llm_payload_format: Literal["v4_standard", "v3_options"] = Field(
             default="v4_standard",
-            description="Payload format for local LLM ('v4_standard' for top-level format, 'v3_options' for format within options block for compatibility)."
+            description="Payload format: 'v4_standard' (Ollama default) or 'v3_options' (compatibility mode)."
         )
-        # --- END NEW PAYLOAD SWITCH ---
 
-
-        # --- Local Embedding Settings ---
+        # =========================================================
+        # 5. LOCAL EMBEDDING SETTINGS
+        # =========================================================
         local_embedding_provider: Literal["sentence_transformer", "ollama"] = Field(
             default="sentence_transformer",
-            description="Source for local embeddings ('sentence_transformer' for built-in library, 'ollama' for Ollama API)."
+            description="Provider for local embeddings."
         )
-        # Sentence Transformer specific (if local_embedding_provider is 'sentence_transformer')
+        # Option A: Sentence Transformers
         sentence_transformer_model: str = Field(
             default="all-MiniLM-L6-v2",
-            description="Model name for sentence-transformers library (e.g., 'all-MiniLM-L6-v2', 'qwen3-embedding:0.6b'). Ensure it's installed or downloadable."
+            description="Model name for 'sentence_transformer' provider."
         )
-        # Ollama Embedding specific (if local_embedding_provider is 'ollama')
+        # Option B: Ollama Embeddings
         ollama_embedding_api_endpoint_url: str = Field(
-             default="http://host.docker.internal:11434/api/embeddings", # User must provide the FULL endpoint URL now
-             description="FULL API endpoint URL for Ollama embeddings (e.g., 'http://localhost:11434/api/embeddings')."
+             default="http://host.docker.internal:11434/api/embeddings", 
+             description="Full API endpoint for 'ollama' embedding provider."
         )
         ollama_embedding_model_name: str = Field(
-            default="qwen3-embedding:0.6b", # Example embedding model, adjust as needed
-            description="Model name for Ollama embeddings (e.g., 'nomic-embed-text', 'qwen3-embedding:0.6b', 'embeddinggemma:latest')."
+            default="qwen3-embedding:0.6b", 
+            description="Model name for 'ollama' embedding provider."
         )
-
-        # --- Memory Server ---
-        memory_api_base: str = Field(
-            default="http://localhost:8000",
-            description="Base URL of your Memory Server (without path, http!)"
-        )
-        memory_api_key: str = Field(default="changeme-supersecretkey")
-
-        # --- Thresholds/Behavior ---
-        relevance_threshold: float = Field(default=0.70, description="Relevance threshold (0..1) for context injection.")
-        max_memories_fetch: int = Field(default=100, description="Max memories to fetch from server.")
-        relevance_prefilter_cap: int = Field(default=15, description="Number of top memories from local pre-selection sent to LLM for relevance check (if provider is 'openai' or 'local').")
+        # Behavior Control
         enable_relevance_prefiltering: bool = Field(
             default=True,
-            description="If True, uses local embeddings to pre-filter memories before sending them to the LLM. Disable this if you want to skip local embedding calculation in Phase 1."
+            description="PHASE 1: Enable local pre-filtering? (Disable this if your local embedding setup is broken to force pure API usage)."
         )
-        min_memory_chars: int = Field(default=10, description="Minimum character length for a new memory.")
-        min_memory_tokens: int = Field(default=3, description="Minimum number of words for a new memory.")
-        topical_cache_threshold: float = Field(default=0.92, description="Similarity threshold (0..1) to use the topical context cache.")
+        use_local_embedding_fallback: bool = Field(
+            default=True, 
+            description="PHASE 2: Use local embedding fallback if the LLM extraction fails?"
+        )
+
+        # =========================================================
+        # 6. THRESHOLDS & FINE-TUNING
+        # =========================================================
+        relevance_threshold: float = Field(
+            default=0.70, 
+            description="Minimum score (0.0-1.0) for a memory to be injected into context."
+        )
+        relevance_prefilter_cap: int = Field(
+            default=15, 
+            description="How many top memories to send to the LLM for final relevance ranking."
+        )
+        max_memories_fetch: int = Field(
+            default=100, 
+            description="Maximum memories to fetch from server for analysis."
+        )
+        topical_cache_threshold: float = Field(
+            default=0.92, 
+            description="Similarity threshold (0.0-1.0) to re-use the previous context (Cache)."
+        )
+        # Duplicate Detection
+        dup_cosine_threshold: float = Field(
+            default=0.92, 
+            description="Cosine similarity threshold to consider a memory a duplicate."
+        )
+        dup_levenshtein_threshold: float = Field(
+            default=0.90, 
+            description="Text similarity threshold to consider a memory a duplicate."
+        )
+        min_similarity_for_upload: float = Field(
+            default=0.95, 
+            description="Threshold for the fallback mechanism to save raw messages."
+        )
+        # Input Limits
+        min_memory_chars: int = Field(default=10, description="Min chars for a message to be considered.")
+        min_memory_tokens: int = Field(default=3, description="Min words for a message to be considered.")
+        http_client_timeout: int = Field(default=180, description="Timeout in seconds for requests.")
+
+        # =========================================================
+        # 7. PROMPTS & FILTERS
+        # =========================================================
+        block_image_generation_prompts: bool = Field(
+            default=True,
+            description="If True, blocks memory extraction from prompts like 'create an image...'."
+        )
         spam_filter_patterns: List[str] = Field(
             default=[
                 r"^\s*https?://[^\s]+\s*$",
                 r"^\s*[\U0001F600-\U0001F64F\s]+\s*$",
             ],
-            description="Regex patterns to block spam or unwanted content."
+            description="Regex patterns to ignore."
         )
-
-        # --- Duplicate Killer 2.0 Settings ---
-        dup_cosine_threshold: float = Field(default=0.92, description="Minimum cosine similarity to be considered a duplicate.")
-        dup_levenshtein_threshold: float = Field(default=0.90, description="Minimum text similarity (Levenshtein) to be considered a duplicate.")
-
-        # --- Embedding Fallback Settings ---
-        use_local_embedding_fallback: bool = Field(default=True, description="Enable local embedding fallback for relevance/deduplication if the selected LLM provider fails.")
-        min_similarity_for_upload: float = Field(default=0.95, description="Minimum similarity to detect a duplicate during embedding fallback save raw.")
-
-        # --- General Settings ---
-        http_client_timeout: int = Field(default=180, description="Timeout in seconds for all external requests.")
-
-        # --- System Prompts ---
+        delete_trigger_phrases: List[str] = Field(
+            default=[
+                "lösch meine erinnerungen",
+                "lösche meine memorys",
+                "vergiss alles über mich",
+                "setze dein gedächtnis zurück"
+            ],
+            description="Phrases that trigger the deletion confirmation."
+        )
+        delete_confirmation_phrase: str = Field(
+            default="Ja, ich möchte all meine Erinnerungen unwiderruflich gelöscht haben",
+            description="The exact phrase required to confirm deletion."
+        )
+        
+        # System Prompts (Keep at bottom as they are long)
         memory_identification_prompt: str = Field(
             default=(
                 "You are an automated JSON data extraction system. Your SOLE function is to identify "
@@ -300,32 +367,6 @@ class Filter:
                 "Score high only if the memory is directly useful to respond to the current message. "
                 "Avoid trivia/irrelevant info. JSON only, no extra text."
             )
-        )
-
-        # --- Memory Deletion Settings ---
-        delete_trigger_phrases: List[str] = Field(
-            default=[
-                "lösch meine erinnerungen",
-                "lösche meine memorys",
-                "vergiss alles über mich",
-                "setze dein gedächtnis zurück"
-            ],
-            description="List of phrases (lowercase) that initiate the deletion process."
-        )
-        delete_confirmation_phrase: str = Field(
-            default="Ja, ich möchte all meine Erinnerungen unwiderruflich gelöscht haben",
-            description="The exact phrase the user must enter for confirmation."
-        )
-
-        extraction_mode: Literal["inlet", "outlet"] = Field(
-            default="inlet",
-            description="Where to extract new memories: 'inlet' (from user message only) or 'outlet' (from user message + AI response, for Vision models)."
-        )
-
-        # --- NEW BLOCKER VALVE ---
-        block_image_generation_prompts: bool = Field(
-            default=True,
-            description="If True, blocks memory extraction from prompts like 'erstelle ein Bild...'."
         )
 
 
@@ -451,8 +492,7 @@ class Filter:
 
     async def _calculate_embeddings(self, texts: List[str]) -> Optional[np.ndarray]:
         """
-        Calculates embeddings using the configured local provider ('sentence_transformer' or 'ollama').
-        Returns None if calculation fails for any reason.
+        Calculates embeddings using the configured local provider.
         """
         if not texts: return None
 
@@ -461,18 +501,17 @@ class Filter:
 
         try:
             if provider == "sentence_transformer":
-                model = self.embedding_model # Calls the @property
+                model = self.embedding_model 
                 if model:
                     loop = asyncio.get_running_loop()
-                    # Execute sentence-transformer encoding in a thread pool
                     try:
-                        # Pass texts directly to the lambda
-                        embeddings = await loop.run_in_executor(None, model.encode, texts, True) # True for convert_to_numpy
+                        # FIX: Use lambda to pass keyword arguments correctly, avoiding the "Prompt name 'True'" crash
+                        # Old buggy call: await loop.run_in_executor(None, model.encode, texts, True)
+                        embeddings = await loop.run_in_executor(None, lambda: model.encode(texts, convert_to_numpy=True))
                     except Exception as encode_error:
                          _log(f"embedding: SentenceTransformer encode failed: {encode_error}", {"traceback": traceback.format_exc()})
                          return None
 
-                    # Check if encoding returned a valid numpy array
                     if isinstance(embeddings, np.ndarray):
                         return embeddings
                     else:
@@ -482,15 +521,12 @@ class Filter:
                     _log("embedding: SentenceTransformer model instance is None or library unavailable.")
                     return None
             elif provider == "ollama":
-                # Call the async Ollama embedding function
                 embeddings = await self._get_ollama_embeddings(texts)
-                # _get_ollama_embeddings already returns np.ndarray or None
                 return embeddings
             else:
                 _log(f"embedding: Unknown local_embedding_provider: {provider}")
                 return None
         except Exception as e:
-            # Catch any unexpected error during the process
             _log(f"embedding: Error during _calculate_embeddings with provider {provider}: {e}", {"traceback": traceback.format_exc()})
             return None
 
@@ -1059,7 +1095,6 @@ class Filter:
     ) -> Dict[str, Any]:
         _log("inlet: received batch")
         # --- 1. SETUP & SERVER CHECK ---
-        # ... (unchanged) ...
         try:
              s = await self._session_get(); headers = {"X-API-Key": self.valves.memory_api_key}
              async with s.get(self._mem_url("memory_stats"), headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as r:
@@ -1070,23 +1105,13 @@ class Filter:
         user_id = self._get_user_id(__user__); last_user = ""
         for m in reversed(body.get("messages", [])):
             if m.get("role") == "user" and m.get("content") is not None:
-                
-                # --- HIER IST DER FIX ---
-                # Nutze die neue Helfer-Funktion, um den Text zu normalisieren.
-                # Das funktioniert jetzt für Strings UND Listen.
                 last_user = self._extract_text_from_content(m["content"])
-                # -----------------------
-                
-                if last_user: # Nur stoppen, wenn wir auch Text gefunden haben
-                    break
+                if last_user: break
         
-        # Wenn keine User-Nachricht da ist, tu nix.
-        if not last_user:
-            return body
+        if not last_user: return body
 
         # --- 2. DELETION ROUTINE ---
-        # ... (unchanged, includes early returns) ...
-        if user_id in self._pending_deletions: # Check pending
+        if user_id in self._pending_deletions: 
             if time.time() - self._pending_deletions[user_id] > 120:
                 del self._pending_deletions[user_id]; await self._emit_status(__event_emitter__, "ℹ️ Zeit für Lösch-Bestätigung abgelaufen.")
             elif last_user.strip().lower() == self.valves.delete_confirmation_phrase.lower():
@@ -1101,30 +1126,30 @@ class Filter:
                 except Exception as e: _log(f"delete: server call failed: {e}"); await self._emit_status(__event_emitter__, "🔥 Verbindungs-Fehler."); body["messages"] = []
                 del self._pending_deletions[user_id]; return body
             else: _log("delete: Aborted.", {"user_id": user_id}); await self._emit_status(__event_emitter__, "ℹ️ Löschvorgang abgebrochen."); del self._pending_deletions[user_id]
-        elif any(phrase in last_user.lower() for phrase in self.valves.delete_trigger_phrases): # Initiate deletion
+        elif any(phrase in last_user.lower() for phrase in self.valves.delete_trigger_phrases): 
             _log("delete: Initiated.", {"user_id": user_id}); self._pending_deletions[user_id] = time.time()
             sys_prompt = f"IMPORTANT: Ask user for confirmation using ONLY this EXACT text: Bist du dir sicher, dass du alle deine Erinnerungen unwiderruflich löschen möchtest? Antworte bitte mit genau dem Satz: '{self.valves.delete_confirmation_phrase}'"
             body["messages"] = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": "Proceed."}]; await self._emit_status(__event_emitter__, "🔒 Sicherheitsüberprüfung erforderlich.")
-            return body # Important return
+            return body
 
         # --- 3. RELEVANCE CHECK (PHASE 1) ---
         existing = await self._mem_get_existing(user_id)
         candidates = [m.get("text", "") for m in existing if isinstance(m, dict) and m.get("text", "").strip()]
 
         # --- Topical Cache Check ---
-        if self._context_cache and 'embedding' in self._context_cache:
-             # ... (cache check logic using _calculate_embeddings) ...
+        # FIX: Wir prüfen jetzt das Ventil AUCH hier!
+        # Wenn prefiltering aus ist, wollen wir auch keine Cache-Embeddings berechnen.
+        if self.valves.enable_relevance_prefiltering and self._context_cache and 'embedding' in self._context_cache:
             _log("cache: checking topical cache...")
             new_embedding = await self._calculate_embeddings([last_user])
             if new_embedding is not None and self._context_cache['embedding'] is not None:
                 try:
-                    # Ensure dimensions match before comparing
                     if new_embedding.shape == self._context_cache['embedding'].shape:
                         similarity = cosine_similarity(new_embedding, self._context_cache['embedding'])[0][0]
                         if similarity >= self.valves.topical_cache_threshold:
                             _log(f"cache: HIT! Sim {similarity:.2f}. Re-injecting.")
                             body["messages"].insert(0, self._context_cache['context_message'])
-                            return body # Return early on cache hit
+                            return body 
                         else:
                             _log(f"cache: MISS! Sim {similarity:.2f}.")
                     else:
@@ -1133,14 +1158,13 @@ class Filter:
                     _log(f"cache: Error calculating similarity: {cache_sim_error}")
             else:
                 _log("cache: Failed to calculate embeddings for cache check.")
+        # --------------------------
 
 
         is_context_injected = False; ranked = []; llm_failed = False
-        # --- FIX: Initialize status_msg before 'if candidates:' to prevent UnboundLocalError ---
-        status_msg = "" # Initialize here!
+        status_msg = "" 
         if candidates:
             relevance_provider = self.valves.relevance_provider
-            # status_msg = "" # Moved up
 
             # --- A) Embedding Directly ---
             if relevance_provider == "embedding":
@@ -1162,7 +1186,7 @@ class Filter:
                 provider_name = relevance_provider.upper()
                 status_msg = f"🔍 Prüfe Relevanz ({provider_name})..."; await self._emit_status(__event_emitter__, status_msg, done=False)
                 try:
-                    prefiltered_candidates = candidates # Default: Alle Kandidaten nehmen
+                    prefiltered_candidates = candidates # Default: Alle nehmen
                     
                     # --- NEW CHECK: Nur Pre-Filtern, wenn aktiviert ---
                     if self.valves.enable_relevance_prefiltering:
@@ -1182,6 +1206,8 @@ class Filter:
                         except Exception as pre_e: _log(f"relevance: pre-filtering failed: {pre_e}")
                     else:
                         _log("relevance: pre-filtering DISABLED by user settings. Sending all candidates.")
+                    # --------------------------------------------------
+
                     if prefiltered_candidates:
                          _log(f"relevance: using {provider_name} LLM for ranking.")
                          ranked = await self._rank_relevance(last_user, prefiltered_candidates)
@@ -1192,7 +1218,7 @@ class Filter:
             if llm_failed and self.valves.use_local_embedding_fallback:
                 status_msg = "⚙️ Lokale Fallback-Analyse..."; await self._emit_status(__event_emitter__, status_msg, done=False)
                 _log("relevance: using local embeddings fallback...")
-                try: # Fallback logic using _calculate_embeddings
+                try: 
                      new_emb_fb = await self._calculate_embeddings([last_user]); existing_emb_fb = await self._calculate_embeddings(candidates)
                      if new_emb_fb is not None and existing_emb_fb is not None:
                          if new_emb_fb.ndim == 1: new_emb_fb = new_emb_fb.reshape(1, -1)
@@ -1209,7 +1235,7 @@ class Filter:
             relevant = [r for r in ranked if r.get("score", 0.0) >= threshold]
             if relevant:
                 relevant.sort(key=lambda x: x.get("score", 0.0), reverse=True)
-                top = [r["memory"] for r in relevant[:3]] # Example: top 3
+                top = [r["memory"] for r in relevant[:3]] 
                 if top:
                     context = "MEMORY_CONTEXT:\n" + "\n".join(f"- {t}" for t in top)
                     context_message = {"role": "system", "content": context}
@@ -1218,16 +1244,17 @@ class Filter:
                     is_context_injected = True
                     # Update cache...
                     try:
-                        cur_emb = await self._calculate_embeddings([last_user])
-                        if cur_emb is not None: self._context_cache = {"embedding": cur_emb, "context_message": context_message}
+                        # HIER EBENFALLS CHECKEN!
+                        # Wenn prefiltering disabled ist, macht caching auch keinen Sinn (da wir keine Embeddings wollen)
+                        if self.valves.enable_relevance_prefiltering:
+                            cur_emb = await self._calculate_embeddings([last_user])
+                            if cur_emb is not None: self._context_cache = {"embedding": cur_emb, "context_message": context_message}
                     except Exception as cache_e: _log(f"cache: update failed: {cache_e}")
 
-        # --- FIX: Add final status message if context was injected ---
         if is_context_injected:
             await self._emit_status(__event_emitter__, "✅ Relevante Erinnerungen zum Kontext hinzugefügt.", done=True)
             return body
-        # --- FIX: If relevance check ran but nothing was relevant/injected, clear the status ---
-        elif status_msg: # Check if a relevance status was emitted and not cleared by injection
+        elif status_msg: 
             await self._emit_status(__event_emitter__, "Keine relevanten Erinnerungen gefunden.", done=True)
 
 
@@ -1237,20 +1264,14 @@ class Filter:
         
         if self.valves.extraction_mode == "inlet":
             _log("extract: running in INLET mode...")
-            
-            # last_user wurde oben (Zeile 880) bereits extrahiert.
-            if not last_user:
-                return body # Nichts zu tun
-            
-            # Rufe die NEUE, ausgelagerte Funktion auf
+            if not last_user: return body 
             await self._run_extraction_phase(user_id, last_user, __event_emitter__)
-        
         else:
              _log("extract: running in OUTLET mode, skipping extraction in inlet.")
-             # Wir müssen den 'last_user' Text für das outlet speichern
              self._last_user_message_for_outlet = last_user 
 
         return body
+
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # +++ ANGEPASSTE OUTLET FUNKTION +++
