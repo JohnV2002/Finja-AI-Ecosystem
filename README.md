@@ -10,6 +10,26 @@
 
 ---
 
+> [!IMPORTANT]
+> # ❄️ WINTER BREAK – SEE YOU IN 2026! ❄️
+>
+> **Status:** 🟡 *Maintenance Mode & Critical Fixes Only*
+>
+> Hey ho! "Finja" und ich gehen in eine kreative Winterpause bis zum **01.01.2026**.
+>
+> **Warum?**
+> 1.  🚀 **The Big Picture:** Ich plane im Hintergrund etwas Großes – ein riesiges Upgrade für das Ökosystem. (Bin dabei endlich alles zu einem "Kopf" zu verbinden :D)
+> 2.  🧠 **Mental Health & Quality:** Finja ist mir extrem wichtig. Damit das Projekt langfristig gut bleibt und ich die Vision für 2026 umsetzen kann, will ich kein halbherziges "Vibe Coding", sondern echte Qualität abliefern. Dafür brauche ich mentale Ruhe und Fokus.
+>
+> **Was bedeutet das für euch?**
+> * Keine großen neuen Feature-Drops bis 2026.
+> * 🚑 **Support läuft weiter:** Bei wirklichen Problemen, Bugs oder Sicherheitslücken bin ich natürlich da und pushe Updates!
+>
+> *Danke für euren Support. Stay hydrated! 💖*
+> *„Sometimes you have to disconnect to reconnect.“ - Finja* 
+
+---
+
 ### Build Status
 [![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
 [![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
