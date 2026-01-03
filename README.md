@@ -30,10 +30,19 @@
 
 ---
 
-### Build Status
+### Build & Test Status
+
+#### 🔨 Docker Builds
 [![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
 [![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
 [![Web-Crawler Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
+
+#### ✅ Automated Tests
+[![Finja Chat Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml)
+[![OpenWebUI Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml)
+[![Music Engine Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-engine-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-engine-tests.yml)
+[![Code Quality](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml)
+[![Comprehensive Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml)
 
 ---
 
@@ -141,6 +150,32 @@ flowchart TD
     -   `/finja-music-standalone` → Das klassische, modulare System, bei dem jede Musikquelle in einem eigenen Ordner liegt und manuell per Skript gestartet wird.
 -   `/finja-Open-Web-UI` → Sammlung von Docker-Modulen für OpenWebUI (Memory, OCR, Web Crawler etc.).
 -   `/VPet-Simulator Mods` → Geplante Mods, um Aktionen im VPet-Simulator-Avatar auszulösen.
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+Das Finja-Ökosystem verfügt über eine umfassende Test-Suite, um Code-Qualität und Stabilität sicherzustellen.
+
+### Test-Coverage
+- **Unit Tests**: 150+ Test Cases für alle Haupt-Komponenten
+- **Integration Tests**: API-Endpoints, Spotify-Integration, Memory-System
+- **Security Tests**: Path-Traversal-Prevention, Auth-Validation
+- **Code Quality**: Linting (flake8, black, isort), Security-Scanning (bandit, safety)
+
+### Lokal testen
+```bash
+# Test-Dependencies installieren
+pip install -r test-requirements.txt
+
+# Alle Tests ausführen
+pytest
+
+# Mit Coverage-Report
+pytest --cov=. --cov-report=html
+```
+
+📖 **Vollständige Test-Dokumentation**: [TESTING.md](./TESTING.md)
 
 ---
 
