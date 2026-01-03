@@ -128,6 +128,32 @@ flowchart TD
 
 ---
 
+## 🧪 Testing & Quality Assurance
+
+Das Finja-Ökosystem verfügt über eine umfassende Test-Suite, um Code-Qualität und Stabilität sicherzustellen.
+
+### Test-Coverage
+- **Unit Tests**: 150+ Test Cases für alle Haupt-Komponenten
+- **Integration Tests**: API-Endpoints, Spotify-Integration, Memory-System
+- **Security Tests**: Path-Traversal-Prevention, Auth-Validation
+- **Code Quality**: Linting (flake8, black, isort), Security-Scanning (bandit, safety)
+
+### Lokal testen
+```bash
+# Test-Dependencies installieren
+pip install -r test-requirements.txt
+
+# Alle Tests ausführen
+pytest
+
+# Mit Coverage-Report
+pytest --cov=. --cov-report=html
+```
+
+📖 **Vollständige Test-Dokumentation**: [TESTING.md](./TESTING.md)
+
+---
+
 ## 🚀 Der rote Faden – Empfohlener Start
 
 Folge diesen Schritten, um das Finja-Ökosystem von Grund auf einzurichten.
