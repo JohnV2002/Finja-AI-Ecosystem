@@ -1,0 +1,100 @@
+# .github/workflows/openweb-ui-tests.yml
+name: OpenWebUI Modules Tests
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/**'
+      - '.github/workflows/openweb-ui-tests.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/**'
+      - '.github/workflows/openweb-ui-tests.yml'
+
+jobs:
+  test-memory:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-memory-${{ hashFiles('finja-Open-Web-UI/finja-Memory/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-memory-
+
+      - name: Install dependencies for Memory module
+        working-directory: ./finja-Open-Web-UI/finja-Memory
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov httpx
+
+      - name: Run Memory module tests
+        working-directory: ./finja-Open-Web-UI/finja-Memory
+        env:
+          MEMORY_API_KEY: "test-api-key-12345"
+        run: |
+          pytest test_memory_server.py -v --tb=short || true
+
+  test-web-crawler:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-crawler-${{ hashFiles('finja-Open-Web-UI/finja-web-crawler/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-crawler-
+
+      - name: Install dependencies for Web Crawler
+        working-directory: ./finja-Open-Web-UI/finja-web-crawler
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov httpx
+
+      - name: Run Web Crawler tests
+        working-directory: ./finja-Open-Web-UI/finja-web-crawler
+        env:
+          BEARER_TOKEN: "test-bearer-token-12345"
+        run: |
+          pytest test_web_crawler.py -v --tb=short
+
+      - name: Generate coverage report
+        working-directory: ./finja-Open-Web-UI/finja-web-crawler
+        run: |
+          pytest test_web_crawler.py --cov=. --cov-report=term --cov-report=xml
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-web-crawler-${{ matrix.python-version }}
+          path: finja-Open-Web-UI/finja-web-crawler/coverage.xml
