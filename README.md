@@ -1,3 +1,4 @@
+# ✨ Finja AI Ecosystem
 ```
 ███████╗██╗███╗   ██╗     ██╗ █████╗ 
 ██╔════╝██║████╗  ██║     ██║██╔══██╗
@@ -11,49 +12,31 @@
 ---
 
 > [!IMPORTANT]
-> # ❄️ WINTER BREAK – SEE YOU IN 2026! ❄️
+> # 🚀 ROADMAP 2026 – WE ARE BACK!
 >
-> **Status:** 🟡 *Maintenance Mode & Critical Fixes Only*
+> **Status:** 🟢 *Active Development & New Features*
 >
-> Hey ho! "Finja" und ich gehen in eine kreative Winterpause bis zum **01.01.2026**.
+> 2026 ist da und Finja bekommt das größte Upgrade aller Zeiten. Hier ist der Plan für dieses Jahr:
 >
-> **Warum?**
-> 1.  🚀 **The Big Picture:** Ich plane im Hintergrund etwas Großes – ein riesiges Upgrade für das Ökosystem. (Bin dabei endlich alles zu einem "Kopf" zu verbinden :D)
-> 2.  🧠 **Mental Health & Quality:** Finja ist mir extrem wichtig. Damit das Projekt langfristig gut bleibt und ich die Vision für 2026 umsetzen kann, will ich kein halbherziges "Vibe Coding", sondern echte Qualität abliefern. Dafür brauche ich mentale Ruhe und Fokus.
->
-> **Was bedeutet das für euch?**
-> * Keine großen neuen Feature-Drops bis 2026.
-> * 🚑 **Support läuft weiter:** Bei wirklichen Problemen, Bugs oder Sicherheitslücken bin ich natürlich da und pushe Updates!
->
-> *Danke für euren Support. Stay hydrated! 💖*
-> *„Sometimes you have to disconnect to reconnect.“ - Finja* 
-
----
-
-### Build Status
-[![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
-[![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
-[![Web-Crawler Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
-
----
-
-### Links & Demos
--   **Blog:** [![Blog Badge](https://img.shields.io/badge/Blog-Finja-fd7e14?style=for-the-badge&logo=rss&logoColor=white)](https://doku.jappshome.de/blog)
--   **Documentation:** [![Dokumentation Badge](https://img.shields.io/badge/Doku-Finja-28a745?style=for-the-badge&logo=robot&logoColor=yellow)](https://doku.jappshome.de)
--   **Besuche meine Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
--   **Schau dir Finja live an **AB SOFORT 24/7 AUF TWITCH**:** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
--   **Komm auf unseren Discord für mehr Projekte:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
--   **TESTE FINJA, WÄHREND SIE OFFLINE IST (MIT MEMORY):** [![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)
--   **TESTE FINJA KOSTENLOS (OHNE MEMORY) UPDATED TO MoE Modell!:** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)
----
-
-# ✨ Finja AI Ecosystem
-
-Dein Hybrid-KI-Buddy fürs Streaming – mit Chatbot, Musikengine, Memories, Mods und einem geheimen LLM-Core.
+> 1.  🛠️ **Quality First:** Ich überarbeite den Code fast einmal komplett manuell (+ Hilfe von Sonar), um echten Quality-Code zu liefern.
+> 2.  🐛 **Bug-Hunting:** Diverse Fixes stehen an.
+> 3.  🧠 **Memory Update:** Voice-Support ist hinzugefügt! (Checks müssen noch gemacht werden).
+> 4.  🐾 **Own VPet Program:** Mein eigenes VPet ist in voller Bearbeitung!
+>     * 👀 Kann ab sofort **24/7 auf Twitch** beobachtet werden.
+>     * 📦 Release folgt, sobald es vollständig ist.
+> 5.  🌐 **Finja's Brain:** Arbeit läuft – dieses Modul verknüpft endlich **ALLES** miteinander.
+> 6.  😅 **Survival:** Nicht zusammenbrechen! XD
+> 7.  🗣️ **Releases:** Finja TTS muss noch veröffentlicht werden.
+> 8.  📚 **Tutorials & Guides:**
+>     * Paperless-ngx + Paperless AI + API Tutorial.
+>     * Home Assistant + API Tutorial.
+> 9.  ✨ **Wildcard:** Alles, was mir übers Jahr noch so einfällt! :D
 
 ---
 
 ## 🤖 Was ist Finja?
+
+Dein Hybrid-KI-Buddy fürs Streaming – mit Chatbot, Musikengine, Memories, Mods und einem geheimen LLM-Core.
 
 Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul kann **standalone** laufen – aber nur zusammen ergibt’s die volle **Finja-Experience**.
 
@@ -63,26 +46,26 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 
 ---
 
-## 📊 Projektstatus-Übersicht
-*Stand: 1. Dec 2025*
+## 📊 Projektstatus
+*Stand: Januar 2026*
 
 | Hauptkomponente | Status | Bemerkungen |
 | :--- | :--- | :--- |
-| **finja-chat** | 🟢 Stabil | LLM-Support hinzugefügt, modularer gemacht |
+| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert |
 | **finja-music** | 🟢 Stabil | Verschiedene Versionen verfügbar |
 | &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | Empfohlene Web-UI-Version |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🟢 Stabil | Docker-Version nur für Spotify + gebraucht für die App |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🟢 Stabil | Docker-Version (Spotify only) |
 | &nbsp;&nbsp;└─ finja-music-standalone | 🟢 Stabil | Klassisches modulares System |
 | **finja-Open-Web-UI** | 🟢 Stabil | Module einsatzbereit |
-| &nbsp;&nbsp;└─ finja-Memory | 🟢 Stabil | Updates erstmal Fertig |
+| &nbsp;&nbsp;└─ finja-Memory | 🔵 Update | Voice hinzugefügt, Checks laufen |
 | &nbsp;&nbsp;└─ finja-ocr | 🟢 Stabil | Funktioniert einwandfrei |
-| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup abgeschlossen, keine Tests |
-| &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Gebaut und wird Getestet |
-| **finja-app** | 🟡 WIP | Aktuell geplant, noch leer, Bringt ihre Reaction aufs handy! + Schreib mit ihr auf dem handy! |
-| **OWN / Self made VPet!** | 🟡 WIP | Vergiss VPet Simulator und Windows Apps, Willkommen bei Python und ein Besseres Tomogatchi! mit allem was VPet auch konnte! |
-| **VPet-Simulator Mods** | 🔴 NWO | Bald nicht mehr nötig! |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup fertig, Tests fehlen |
+| &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Release geplant |
+| **OWN / Self made VPet** | 🟡 Dev | **LIVE auf Twitch!** Eigener Python-Core, ersetzt VPet-Sim. |
+| **Finja's Brain** | 🟡 WIP | Das neue Verbindungs-Modul |
 
-**Legende:** 🟢 Stabil | 🔵 Stabil (in Arbeit) | 🟡 WIP (in Planung) | 🔴 Not Working on it
+**Legende:** 🟢 Stabil | 🔵 Update/Testphase | 🟡 WIP (in Arbeit) | 🔴 Veraltet/Pausiert
+
 ---
 
 ## 🗺️ Finja Architektur – Visueller Flow
@@ -102,6 +85,7 @@ flowchart TD
     subgraph Memories["🧠 Finja Memories"]
         C1["Chat Memory"]
         C2["Music + Reaction Memory"]
+        C3["Voice Input (New)"]
     end
     subgraph OpenWebUI["🌐 OpenWebUI Modules"]
         D1["Web Crawler 🔍"]
@@ -109,17 +93,17 @@ flowchart TD
         D3["Stable Diffusion 🎨"]
         D4["TTS 🔊 (planned)"]
     end
-    subgraph VPet["🐾 VPet Simulator"]
+    subgraph VPet["🐾 Own VPet (Python)"]
         E1["Finja Avatar"]
-        E2["Mods (z.B. !drink = Animation)"]
+        E2["Logic Core"]
     end
-    subgraph LLM["🔒 Finja LLM (privat)"]
-        F1["Language Core"]
+    subgraph Brain["🔗 Finja's Brain"]
+        F1["Central Logic Hub"]
     end
 
     A1 --> C1; A2 --> E2
     B1 & B2 & B3 & B4 -->|Song Info| C2
-    C1 & C2 & D1 & D2 & D3 & D4 --> F1
+    C1 & C2 & C3 & D1 & D2 & D3 & D4 --> F1
     F1 --> E1; E2 --> E1
 
     style Twitch fill:#f4f1fe,stroke:#9146FF,stroke-width:2px
@@ -127,7 +111,7 @@ flowchart TD
     style Memories fill:#fff9e6,stroke:#f9a825,stroke-width:2px
     style OpenWebUI fill:#f5f3ff,stroke:#6a32e2,stroke-width:2px
     style VPet fill:#fff0f7,stroke:#ff69b4,stroke-width:2px
-    style LLM fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    style Brain fill:#ffebee,stroke:#d32f2f,stroke-width:2px
 ```
 
 ---
@@ -138,9 +122,9 @@ flowchart TD
 -   `/Finja-music` → Enthält alle Varianten der Musik-Engine. Du wählst **eine** davon aus:
     -   `/finja-everthing-in-once` → **(Empfohlen)** Bündelt alle Musikquellen (TruckersFM, Spotify etc.) und wird über eine komfortable Weboberfläche gesteuert.
     -   `/finja-music-docker-spotify` → Eine spezielle Docker-Version, die nur für Spotify optimiert ist.
-    -   `/finja-music-standalone` → Das klassische, modulare System, bei dem jede Musikquelle in einem eigenen Ordner liegt und manuell per Skript gestartet wird.
+    -   `/finja-music-standalone` → Das klassische, modulare System.
 -   `/finja-Open-Web-UI` → Sammlung von Docker-Modulen für OpenWebUI (Memory, OCR, Web Crawler etc.).
--   `/VPet-Simulator Mods` → Geplante Mods, um Aktionen im VPet-Simulator-Avatar auszulösen.
+-   `/Own-VPet` (Coming Soon) → Der neue eigenständige VPet-Core.
 
 ---
 
@@ -170,11 +154,42 @@ Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 2.  Folge der dortigen `README.md`, um das **OBS Chat-Overlay** und das **Bot Control Panel** zu konfigurieren.
 3.  [➡️ **Zur Anleitung für das Chat-System**](./finja-chat/README.md)
 
-### Schritt 4: Die visuelle Form (VPet-Simulator)
-Der letzte Schritt ist, Finja im VPet-Simulator zum Leben zu erwecken.
-1.  Navigiere in das Verzeichnis `VPet-Simulator Mods/`.
-2.  Folge der dortigen `README.md`, um die geplanten Mods zu verstehen.
-3.  [➡️ **Zur Anleitung für die VPet-Mods**](./VPet-Simulator%20Mods/readme.md)
+---
+
+## 🔗 Links, Demos & Build Status
+
+### Live Demos
+-   🚨 **DEFEKT!** ~~**TESTE FINJA, WÄHREND SIE OFFLINE IST (MIT MEMORY):** [![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)~~
+-   🚨 **DEFEKT!** ~~**TESTE FINJA KOSTENLOS (OHNE MEMORY) UPDATED TO MoE Modell!:** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)~~
+
+### Community & Docs
+-   **Blog:** [![Blog Badge](https://img.shields.io/badge/Blog-Finja-fd7e14?style=for-the-badge&logo=rss&logoColor=white)](https://doku.jappshome.de/blog)
+-   **Documentation:** [![Dokumentation Badge](https://img.shields.io/badge/Doku-Finja-28a745?style=for-the-badge&logo=robot&logoColor=yellow)](https://doku.jappshome.de)
+-   **Besuche meine Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
+-   **Komm auf unseren Discord für mehr Projekte:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
+-   **Schau dir Finja live an **AB SOFORT 24/7 AUF TWITCH**:** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
+
+### Build Status
+[![Memory Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
+[![OCR Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
+[![Web-Crawler Build Check](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
+
+---
+
+## ❤️ Credits & Thanks
+
+### Special Thanks
+* **Synk** 💻 – für die Hilfe beim Finden und Fixen von Vulnerabilities und die Sicherheit des Projekts 🛡️
+* **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration für das **Open WebUI Adaptive Memory Projekt** (Apache 2.0 License preserved).
+* **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration für AI-Companions beim Streamen.
+
+### ☕ Supporter
+Ein riesiges Dankeschön geht an alle, die das Projekt über [Buy Me a Coffee](https://buymeacoffee.com/J.Apps) unterstützen!
+* **[Ithrial]** – für die allererste Spende! 🥇💖
+
+### Created by
+Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps (aka JohnV2002 or Sodakiller1)**.
+Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ---
 
@@ -182,53 +197,6 @@ Der letzte Schritt ist, Finja im VPet-Simulator zum Leben zu erwecken.
 
 MIT-License.
 Alle Module sind Open-Source – das **LLM bleibt privat**.
-
----
-
-## ❤️ THANKS
-
-Ein riesiges Dankeschön an **Synk** 💻  
-für die Hilfe beim Finden und Fixen von Vulnerabilities –  
-und dafür, dass dieses Projekt **sicher & geschützt** bleibt 🛡️
-
----
-
-Ein **dickes Dankeschön** an **gramanoid** (aka **diligent_chooser**) 🧠  
-Er war meine Inspiration für das **Open WebUI Adaptive Memory Projekt**!  
-Ohne ihn gäb’s Finjas Memory-System so nicht 💖
-
-- [👤 Reddit-Profil](https://www.reddit.com/user/diligent_chooser/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
-- [📄 Original Reddit-Post](https://www.reddit.com/r/OpenWebUI/comments/1kd0s49/adaptive_memory_v30_openwebui_plugin/)
-- [🧩 Open WebUI Plugin-Seite](https://openwebui.com/f/alexgrama7/adaptive_memory_v2)
-
-**Danke auch für die Freigabe unter Apache 2.0-Lizenz Habe Diese beibehalten! (NUR FÜR CHAT - MEMORY!) 💖**
-
-![Berechtigungs-Screenshot](./assets/Screenshot2025-09-12.png)
-
----
-
-Und natürlich auch Shoutout an  
-**Vedal1987 + Neuro / Neurosamma + Evil** 💚  
-für die ursprüngliche Idee, **AI-Companions beim Streamen** zu nutzen —  
-ihr wart die Inspiration, das überhaupt zu versuchen 🫶
-
-- [🎥 Twitch](https://www.twitch.tv/vedal987)
-- [🌐 Vedal.ai (alle weiteren Links dort)](https://vedal.ai/)
-
----
-
-### ☕ Supporter
-Ein riesiges Dankeschön geht an alle, die das Projekt über [Buy Me a Coffee](https://buymeacoffee.com/J.Apps) unterstützen!
-
-Ein ganz besonderer Dank geht an:
-* **[Ithrial]** – für die allererste Spende! 🥇💖
-
----
-
-## ❤️ Credits
-
-Built mit zu viel Mate, Coding-Sessions & Liebe by **J. Apps**.
-Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ---
 
