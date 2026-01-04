@@ -1,7 +1,7 @@
 # 💬 Finja Chat System
 *OBS Chat-Overlay + Bot-Panel + Song-Requests – cute, fast, Gen‑Z approved. 💙*
 
-> **✨ Neu in v2.2.0:**
+> **✨ Neu in v2.2.1:**
 > - Finja bleibt **IMMER blau** – egal was passiert!
 > - `!uptime` zeigt dir die Stream-Dauer an.
 > - VPet Bridge & Song Requests sind jetzt **abschaltbar** im Bot-Panel.
@@ -142,4 +142,4 @@ Unter dem ⚙️-Icon kannst du Module an- und abschalten, um Fehlermeldungen zu
 
 ---
 
-MIT © 2025 J. Apps — Finja sagt: *„Stay hydrated, Chat 💖“*
+MIT © 2026 J. Apps (JohnV2002 / Sodakiller1) — Finja sagt: *„Stay hydrated, Chat 💖“*
