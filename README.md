@@ -49,20 +49,20 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 ## 📊 Projektstatus
 *Stand: Januar 2026*
 
-| Hauptkomponente | Status | Bemerkungen |
-| :--- | :--- | :--- |
-| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert | 0 Sonar und Snyk Fehler!! |
-| **finja-music** | 🔵 Stabil | Verschiedene Versionen verfügbar |
-| &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | Empfohlene Web-UI-Version | 1 real Sonar und 15 False Positiv Snyk Fehler!! |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🔵 Stabil | Docker-Version (Spotify only) |
-| &nbsp;&nbsp;└─ finja-music-standalone | 🔵 Stabil | Klassisches modulares System |
-| **finja-Open-Web-UI** | 🔵 Stabil | Module einsatzbereit |
-| &nbsp;&nbsp;└─ finja-Memory | 🔵 Update | Voice hinzugefügt, Checks laufen |
-| &nbsp;&nbsp;└─ finja-ocr | 🔵 Stabil | Funktioniert einwandfrei |
-| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup fertig, Tests fehlen |
-| &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Release geplant |
-| **OWN / Self made VPet** | 🟡 Dev | **LIVE auf Twitch!** Eigener Python-Core, ersetzt VPet-Sim. |
-| **Finja's Brain** | 🟡 WIP | Das neue Verbindungs-Modul |
+| Hauptkomponente | Status | Bemerkungen | Fehler-Bericht (Sonar/Snyk) |
+| :--- | :--- | :--- | :--- |
+| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert | **0 Fehler** (Sauber! 🎉) |
+| **finja-music** | 🔵 Stabil | Verschiedene Versionen verfügbar | |
+| &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | **Empfohlene Web-UI-Version** | 1 Real / 15 False Positive |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🔵 Stabil | Docker-Version (Spotify only) | |
+| &nbsp;&nbsp;└─ finja-music-standalone | 🔵 Stabil | Klassisches modulares System | |
+| **finja-Open-Web-UI** | 🔵 Stabil | Module einsatzbereit | |
+| &nbsp;&nbsp;└─ finja-Memory | 🔵 Update | Voice hinzugefügt, Checks laufen | |
+| &nbsp;&nbsp;└─ finja-ocr | 🔵 Stabil | Funktioniert einwandfrei | |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup fertig, Tests fehlen | |
+| &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Release geplant | |
+| **OWN / Self made VPet** | 🟡 Dev | **LIVE auf Twitch!** Eigener Python-Core | |
+| **Finja's Brain** | 🟡 WIP | Das neue Verbindungs-Modul | |
 
 **Legende:** 🟢 Stabil | 🔵 Update/Testphase | 🟡 WIP (in Arbeit) | 🔴 Veraltet/Pausiert
 
