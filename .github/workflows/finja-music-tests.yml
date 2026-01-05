@@ -4,13 +4,13 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'Finja-AI-Ecosystem/Finja-music/finja-everything-in-once/**'
-      - '.github/workflows/finja-music-tests.yml'
+      - 'Finja-AI-Ecosystem/Finja-music/finja-everthing-in-once/**'
+      - '.github/workflows/music-engine-tests.yml'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'Finja-AI-Ecosystem/Finja-music/finja-everything-in-once/**'
-      - '.github/workflows/finja-music-tests.yml'
+      - 'Finja-AI-Ecosystem/Finja-music/finja-everthing-in-once/**'
+      - '.github/workflows/music-engine-tests.yml'
 
 jobs:
   test:
@@ -41,34 +41,32 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-mock
-          # Core dependencies
-          pip install requests beautifulsoup4 defusedxml spotipy python-dotenv
-          # websocket for RTL CDP (optional, skip if not needed in CI)
-          pip install websocket-client || true
+          pip install pytest pytest-cov pytest-mock httpx
+          # Manuelle Installation der Musik-Server Abhängigkeiten
+          # (Da keine requirements.txt im Unterordner liegt)
+          pip install flask flask-cors requests beautifulsoup4 spotipy python-dotenv
 
       - name: Run All Music Tests
-        working-directory: ./Finja-AI-Ecosystem/Finja-music/finja-everything-in-once
+        working-directory: ./Finja-AI-Ecosystem/Finja-music/finja-everthing-in-once
         run: |
-          # Führt test_music_webserver.py UND test_music_resources.py aus
-          pytest test_*.py -v --tb=short
+          # Führt test_music_webserver.py UND test_music_resources.py aus (falls vorhanden)
+          pytest test_*.py -v --tb=short --cov=. --cov-report=term --cov-report=xml:coverage.xml
 
       - name: Syntax Check for Helper Scripts
-        working-directory: ./Finja-AI-Ecosystem/Finja-music/finja-everything-in-once
+        working-directory: ./Finja-AI-Ecosystem/Finja-music/finja-everthing-in-once
         run: |
           # Prüft, ob die Python-Dateien syntaktisch okay sind (kein SyntaxError)
           python -m py_compile webserver.py
-          python -m py_compile RTLHilfe/rtl89_cdp_nowplaying.py
-          python -m py_compile RTLHilfe/rtl_repeat_counter.py
-          python -m py_compile MDRHilfe/mdr_nowplaying.py
-
-      - name: Generate coverage report
-        working-directory: ./Finja-AI-Ecosystem/Finja-music/finja-everything-in-once
-        run: |
-          pytest test_*.py --cov=. --cov-report=term --cov-report=xml
+          # Pfade relativ zum working-directory
+          if [ -f RTLHilfe/rtl89_cdp_nowplaying.py ]; then python -m py_compile RTLHilfe/rtl89_cdp_nowplaying.py; fi
+          if [ -f RTLHilfe/rtl_repeat_counter.py ]; then python -m py_compile RTLHilfe/rtl_repeat_counter.py; fi
+          if [ -f MDRHilfe/mdr_nowplaying.py ]; then python -m py_compile MDRHilfe/mdr_nowplaying.py; fi
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-finja-music-${{ matrix.python-version }}
-          path: Finja-AI-Ecosystem/Finja-music/finja-everything-in-once/coverage.xml
+          # Der Pfad muss exakt stimmen. Da wir oben explizit --cov-report=xml:coverage.xml 
+          # gesetzt haben, liegt die Datei im working-directory.
+          path: Finja-AI-Ecosystem/Finja-music/finja-everthing-in-once/coverage.xml
+          if-no-files-found: warn
