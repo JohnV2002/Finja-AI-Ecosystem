@@ -96,6 +96,8 @@ Python scripts that fetch NowPlaying data from radio stations.
 
 | Script | Source | Method |
 |--------|--------|--------|
+| `webserver.py` | TruckersFM | TruckersFM API (built-in) |
+| `webserver.py` | Spotify | Spotify Web API (built-in) |
 | `rtl89_cdp_nowplaying.py` | 89.0 RTL | Chrome DevTools Protocol |
 | `mdr_nowplaying.py` | MDR Sachsen-Anhalt | ICY/XML/HTML hybrid |
 
