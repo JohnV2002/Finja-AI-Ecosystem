@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
   Version: 1.1.0
-
+  
   ✨ New in 1.1.0:
     • Complete English documentation
     • Comprehensive endpoint tests
@@ -14,6 +14,11 @@
     • Helper script tests
     • Mock server for isolated testing
     • Path validation security tests
+    • Fixed test_path_traversal_vectors failure for absolute paths
+    • Fixed unused variable warning in test_entry_card_structure
+    • Fixed test_entry_card_structure failure by adding missing 'buttons' field to mock
+    • Fixed path resolution: Now uses paths relative to the test file location
+      instead of current working directory. Tests can now be run from anywhere.
 
 ----------------------------------------------------------------------
 
@@ -35,10 +40,23 @@ Or:       python test_music_webserver.py
 import unittest
 import json
 import os
+import sys
 import tempfile
 import shutil
 import importlib.util
 from pathlib import Path
+
+
+# =============================================================================
+# Path Configuration (Robustness Fix)
+# =============================================================================
+
+# Determine the directory where this test file resides
+BASE_DIR = Path(__file__).resolve().parent
+
+# Add subfolders to Python path so imports work regardless of CWD
+sys.path.insert(0, str(BASE_DIR / 'RTLHilfe'))
+sys.path.insert(0, str(BASE_DIR / 'MDRHilfe'))
 
 
 # =============================================================================
@@ -234,20 +252,13 @@ class TestMusikHTML(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
-        self.musik_html_path = Path("OBSHTML/Musik.html")
+        self.musik_html_path = BASE_DIR / "OBSHTML" / "Musik.html"
         
     def test_musik_html_exists(self):
         """Test: Musik.html file exists."""
-        # Check multiple possible locations
-        locations = [
-            Path("OBSHTML/Musik.html"),
-            Path("Musik.html"),
-            Path("../OBSHTML/Musik.html"),
-        ]
-        
-        found = any(loc.exists() for loc in locations)
-        if not found:
-            self.skipTest("Musik.html not found in expected locations")
+        if not self.musik_html_path.exists():
+            self.skipTest(f"Musik.html not found at {self.musik_html_path}")
+        print(f"✅ Musik.html exists at {self.musik_html_path}")
     
     def test_source_buttons_defined(self):
         """Test: All source buttons are defined in Musik.html."""
@@ -354,16 +365,18 @@ class TestArtistNotSureHTML(unittest.TestCase):
             "observed",      # Observed title/artist
             "kb_entry",      # KB entry title/artist
             "reason",        # Reason for conflict
+            "buttons",       # Action buttons
         ]
         
         # Mock entry structure
         entry = {
-            "observed": {"title": "Song A", "artist": "Artist A"},
-            "kb_entry": {"title": "Song A", "artist": "Artist B"},
+            "observed": {"title": "Test Song", "artist": "Test Artist"},
+            "kb_entry": {"title": "Test Song", "artist": "Different Artist"},
             "reason": "Artist mismatch",
+            "buttons": [],  # Added to satisfy required_elements
         }
         
-        # Verify all required elements are present
+        # Verify all required elements are present using the defined list
         for element in required_elements:
             self.assertIn(element, entry)
         
@@ -513,10 +526,11 @@ class TestRTLRepeatCounter(unittest.TestCase):
         try:
             # Dynamic import to avoid Pylance resolution errors
             import importlib.util
-            rtl_path = Path("RTLHilfe/rtl_repeat_counter.py")
+            # Use absolute path based on BASE_DIR
+            rtl_path = BASE_DIR / "RTLHilfe" / "rtl_repeat_counter.py"
             
             if not rtl_path.exists():
-                self.skipTest("rtl_repeat_counter.py not found")
+                self.skipTest(f"rtl_repeat_counter.py not found at {rtl_path}")
                 return
             
             spec = importlib.util.spec_from_file_location("rtl_repeat_counter", rtl_path)
@@ -732,9 +746,14 @@ class TestSecurity(unittest.TestCase):
         ]
         
         for path in dangerous_paths:
-            # These should all be blocked
-            self.assertIn("..", path.replace("%2e", ".").replace("%252f", "/").lower()[:5] 
-                         if "%" in path else path[:2])
+            # Normalize for detection
+            p = path.replace("%2e", ".").replace("%252f", "/").lower()
+            
+            # Check for common traversal indicators or absolute paths
+            is_traversal = ".." in p
+            is_absolute = path.startswith("/") or (len(path) > 1 and path[1] == ":")
+            
+            self.assertTrue(is_traversal or is_absolute, f"Vector should be detected: {path}")
         
         print("✅ Path traversal vectors identified")
     
@@ -798,7 +817,8 @@ class TestFileStructure(unittest.TestCase):
         
         missing = []
         for dir_name in required_dirs:
-            if not Path(dir_name).is_dir():
+            # Use absolute path based on BASE_DIR
+            if not (BASE_DIR / dir_name).is_dir():
                 missing.append(dir_name)
         
         if missing:
@@ -815,7 +835,8 @@ class TestFileStructure(unittest.TestCase):
         
         missing = []
         for file_name in required_files:
-            if not Path(file_name).exists():
+            # Use absolute path based on BASE_DIR
+            if not (BASE_DIR / file_name).exists():
                 missing.append(file_name)
         
         if missing:
@@ -830,10 +851,13 @@ class TestFileStructure(unittest.TestCase):
             "OBSHTML/ArtistNotSure.html",
         ]
         
-        # Check with fallback locations
+        # Check with fallback locations using BASE_DIR
         missing_overlays = []
         for overlay in overlays:
-            locations = [Path(overlay), Path(overlay.replace("OBSHTML/", ""))]
+            locations = [
+                BASE_DIR / overlay,
+                BASE_DIR / overlay.replace("OBSHTML/", "")
+            ]
             if not any(loc.exists() for loc in locations):
                 missing_overlays.append(overlay)
         
@@ -848,7 +872,7 @@ class TestFileStructure(unittest.TestCase):
 
 if __name__ == '__main__':
     print("\n" + "=" * 70)
-    print("           Finja Music - Comprehensive Test Suite v1.1.0")
+    print("          Finja Music - Comprehensive Test Suite v1.1.0")
     print("=" * 70 + "\n")
     
     # Run all tests
