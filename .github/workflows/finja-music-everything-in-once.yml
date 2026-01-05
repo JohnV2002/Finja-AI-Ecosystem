@@ -1,0 +1,84 @@
+name: Finja Music Everthing in once Test
+
+on:
+  push:
+    branches: [ "main" ]
+    # Monitor all path variants to ensure triggers work
+    paths:
+      - '**/Finja-music/**'
+      # Adjusted to match your specific filename
+      - '.github/workflows/finja-music-everything-in-once.yml'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Run Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Added 3.9 as requested
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-finja-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-finja-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Test Tools
+          pip install pytest pytest-cov pytest-mock httpx
+          # Finja Music Core Dependencies
+          pip install flask flask-cors requests beautifulsoup4 defusedxml spotipy python-dotenv websocket-client
+
+      - name: Run Tests
+        # Dynamically search for the correct directory
+        run: |
+          # Find the directory containing test_music_webserver.py
+          TARGET_DIR=$(find . -name "test_music_webserver.py" -exec dirname {} \;)
+          
+          if [ -z "$TARGET_DIR" ]; then
+            echo "❌ Could not find the test directory. Please check paths!"
+            exit 1
+          fi
+          
+          echo "📂 Testing in directory: $TARGET_DIR"
+          cd "$TARGET_DIR"
+          
+          # Run all files starting with 'test_'
+          pytest test_*.py -v --tb=short --cov=. --cov-report=xml
+
+      - name: Syntax Check for Helper Scripts
+        run: |
+          TARGET_DIR=$(find . -name "test_music_webserver.py" -exec dirname {} \;)
+          cd "$TARGET_DIR"
+          
+          echo "🔍 Checking syntax of helper scripts..."
+          # Only check if files exist
+          [ -f webserver.py ] && python -m py_compile webserver.py
+          [ -f RTLHilfe/rtl89_cdp_nowplaying.py ] && python -m py_compile RTLHilfe/rtl89_cdp_nowplaying.py
+          [ -f MDRHilfe/mdr_nowplaying.py ] && python -m py_compile MDRHilfe/mdr_nowplaying.py
+          echo "✅ Syntax check completed."
+
+      - name: Upload Coverage Report
+        if: always() # Upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.python-version }}
+          # Find coverage.xml anywhere
+          path: '**/coverage.xml'
