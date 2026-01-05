@@ -1,0 +1,446 @@
+<!-- ====================================================================== -->
+<!--        Finja's Artist-Not-Sure Reviewer - Admin Interface              -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header and attribution footer                    -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Fixed DOM XSS vulnerability (using DOM methods instead of HTML)  -->
+<!--     • Using replaceAll() instead of replace() (SonarQube)              -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Finja's Artist-Not-Sure Reviewer</title>
+  <style>
+    /* ===========================================
+       Base Styles
+       =========================================== */
+    body { 
+      font-family: system-ui, sans-serif; 
+      background-color: #1f1f1f; 
+      color: #fff; 
+      padding: 20px; 
+    }
+
+    h1, h2 { 
+      color: #a07aff; 
+    }
+
+    .container { 
+      max-width: 800px; 
+      margin: 0 auto; 
+    }
+
+    /* ===========================================
+       Entry Card Styles
+       =========================================== */
+    .entry { 
+      background-color: #2a2a2a; 
+      border: 1px solid #444; 
+      padding: 15px; 
+      margin-bottom: 15px; 
+      border-radius: 8px; 
+    }
+
+    .info { 
+      margin-bottom: 10px; 
+    }
+
+    .info strong { 
+      color: #76f7ff; 
+    }
+
+    /* ===========================================
+       Button Styles
+       =========================================== */
+    .buttons { 
+      display: flex; 
+      gap: 10px; 
+      margin-top: 10px; 
+    }
+
+    button {
+      border: none; 
+      padding: 8px 16px; 
+      font-size: 14px; 
+      font-weight: bold;
+      border-radius: 5px; 
+      cursor: pointer; 
+      transition: all 0.2s;
+    }
+
+    /* Confirm button - Cyan */
+    .btn-confirm { 
+      background-color: #76f7ff; 
+      color: #1f1f1f; 
+    }
+
+    .btn-confirm:hover { 
+      background-color: #90ffff; 
+    }
+
+    /* Deny button - Red */
+    .btn-deny { 
+      background-color: #ff7a7a; 
+      color: #332d2d; 
+    }
+
+    .btn-deny:hover { 
+      background-color: #ff9a9a; 
+    }
+
+    /* Allow Title Only button - Orange */
+    .btn-allow-title { 
+      background-color: #ffa500; 
+      color: #383333; 
+    }
+
+    .btn-allow-title:hover { 
+      background-color: #ffc14d; 
+    }
+
+    /* Skip button - Gray */
+    .btn-skip { 
+      background-color: #666; 
+      color: #fff; 
+    }
+
+    .btn-skip:hover { 
+      background-color: #888; 
+    }
+
+    /* ===========================================
+       Status & Loading Display
+       =========================================== */
+    #status { 
+      margin-top: 20px; 
+      min-height: 20px; 
+      font-style: italic; 
+      color: #88ff88; 
+    }
+
+    #loading { 
+      display: none; 
+      color: #aaa; 
+    }
+
+    /* ===========================================
+       Footer / Attribution
+       =========================================== */
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #444;
+      color: #888;
+      font-size: 0.9em;
+      text-align: center;
+    }
+
+    footer a {
+      color: #7aa2ff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Finja's Artist-Not-Sure Reviewer</h1>
+    <p>This page helps to correct unclear artist assignments.</p>
+
+    <!-- Loading indicator -->
+    <div id="loading">Loading entries...</div>
+    
+    <!-- Entries will be rendered here -->
+    <div id="entries-container"></div>
+    
+    <!-- Status messages -->
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // ===========================================
+    // DOM References
+    // ===========================================
+    
+    const statusElement = document.getElementById('status');
+    const loadingElement = document.getElementById('loading');
+    const container = document.getElementById('entries-container');
+
+    // ===========================================
+    // DOM Element Builders (XSS-Safe)
+    // Using DOM methods instead of innerHTML to prevent XSS
+    // ===========================================
+
+    /**
+     * Create an info row element
+     * @param {string} label - Label text (e.g., "Observed:")
+     * @param {string} title - Song title
+     * @param {string} artist - Artist name
+     * @returns {HTMLDivElement} Info div element
+     */
+    function createInfoRow(label, title, artist) {
+      const div = document.createElement('div');
+      div.className = 'info';
+      
+      const strong = document.createElement('strong');
+      strong.textContent = label;
+      
+      const text = document.createTextNode(
+        ` ${title || '(no title)'} — ${artist || '(no artist)'}`
+      );
+      
+      div.appendChild(strong);
+      div.appendChild(text);
+      
+      return div;
+    }
+
+    /**
+     * Create a reason info row
+     * @param {string} reason - Reason text
+     * @returns {HTMLDivElement} Info div element
+     */
+    function createReasonRow(reason) {
+      const div = document.createElement('div');
+      div.className = 'info';
+      
+      const strong = document.createElement('strong');
+      strong.textContent = 'Reason:';
+      
+      const text = document.createTextNode(` ${reason || 'Unknown'}`);
+      
+      div.appendChild(strong);
+      div.appendChild(text);
+      
+      return div;
+    }
+
+    /**
+     * Create a button element
+     * @param {string} className - CSS class name
+     * @param {string} text - Button text
+     * @param {Function} onClick - Click handler
+     * @returns {HTMLButtonElement} Button element
+     */
+    function createButton(className, text, onClick) {
+      const button = document.createElement('button');
+      button.className = className;
+      button.textContent = text;
+      button.addEventListener('click', onClick);
+      return button;
+    }
+
+    /**
+     * Create the buttons container for an entry
+     * @param {Object} obs - Observed data {title, artist}
+     * @param {Object} kb - Knowledge base data {title, artist}
+     * @returns {HTMLDivElement} Buttons container
+     */
+    function createButtonsContainer(obs, kb) {
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.className = 'buttons';
+      
+      // Confirm button
+      buttonsDiv.appendChild(
+        createButton('btn-confirm', 'Confirm Artist', () => 
+          performAction('confirm', obs.title, obs.artist, kb.title, kb.artist)
+        )
+      );
+      
+      // Deny button
+      buttonsDiv.appendChild(
+        createButton('btn-deny', 'Deny Artist', () => 
+          performAction('deny', obs.title, obs.artist, kb.title, kb.artist)
+        )
+      );
+      
+      // Allow Title Only button
+      buttonsDiv.appendChild(
+        createButton('btn-allow-title', 'Allow Title-Only', () => 
+          performAction('allow_title_only', obs.title, obs.artist, kb.title, kb.artist)
+        )
+      );
+      
+      // Skip button
+      buttonsDiv.appendChild(
+        createButton('btn-skip', 'Skip', () => loadAndDisplayEntries())
+      );
+      
+      return buttonsDiv;
+    }
+
+    /**
+     * Create a complete entry card
+     * @param {Object} entry - Entry data from server
+     * @returns {HTMLDivElement} Entry card element
+     */
+    function createEntryCard(entry) {
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'entry';
+      
+      const obs = entry.observed;
+      const kb = entry.kb_entry;
+      
+      // Add info rows
+      entryDiv.appendChild(createInfoRow('Observed:', obs.title, obs.artist));
+      entryDiv.appendChild(createInfoRow('KB Entry:', kb.title, kb.artist));
+      entryDiv.appendChild(createReasonRow(entry.reason));
+      
+      // Add buttons
+      entryDiv.appendChild(createButtonsContainer(obs, kb));
+      
+      return entryDiv;
+    }
+
+    // ===========================================
+    // Load and Display Entries
+    // ===========================================
+    
+    /**
+     * Fetch entries from the server and display them
+     */
+    async function loadAndDisplayEntries() {
+      loadingElement.style.display = 'block';
+      container.textContent = ''; // Clear safely (no innerHTML)
+      statusElement.textContent = '';
+
+      try {
+        const response = await fetch('/get_artist_not_sure_entries');
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.message || 'Unknown error');
+        }
+        
+        const entries = result.entries;
+
+        // Check if there are any entries to review
+        if (entries.length === 0) {
+          const p = document.createElement('p');
+          p.textContent = 'No pending entries to review.';
+          container.appendChild(p);
+          loadingElement.style.display = 'none';
+          return;
+        }
+
+        // Render each entry using DOM methods (XSS-safe)
+        entries.forEach(entry => {
+          container.appendChild(createEntryCard(entry));
+        });
+        
+      } catch (error) {
+        statusElement.textContent = `Error loading: ${error.message}`;
+        console.error('Error loading entries:', error);
+      } finally {
+        loadingElement.style.display = 'none';
+      }
+    }
+
+    // ===========================================
+    // Perform Action on Entry
+    // ===========================================
+    
+    /**
+     * Send an action to the server for a specific entry
+     * @param {string} action - The action to perform (confirm, deny, allow_title_only)
+     * @param {string} obsTitle - Observed title
+     * @param {string} obsArtist - Observed artist
+     * @param {string} kbTitle - Knowledge base title
+     * @param {string} kbArtist - Knowledge base artist
+     */
+    async function performAction(action, obsTitle, obsArtist, kbTitle, kbArtist) {
+      statusElement.textContent = `Performing action '${action}'...`;
+      
+      try {
+        const response = await fetch('/artist_not_sure_action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: action,
+            observed_title: obsTitle,
+            observed_artist: obsArtist,
+            kb_title: kbTitle,
+            kb_artist: kbArtist
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          statusElement.textContent = `Action successful: ${result.message}`;
+          // After successful action, reload entries after a short delay
+          setTimeout(() => loadAndDisplayEntries(), 1000);
+        } else {
+          statusElement.textContent = `Action failed: ${result.message}`;
+        }
+        
+      } catch (error) {
+        statusElement.textContent = `Action error: ${error.message}`;
+        console.error('Action error:', error);
+      }
+    }
+
+    // ===========================================
+    // Initialize on Page Load
+    // ===========================================
+    
+    // Load entries when the page is ready
+    document.addEventListener('DOMContentLoaded', loadAndDisplayEntries);
+  </script>
+
+  <!-- Attribution Footer -->
+  <footer>
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:0.85em;">MIT License — Free to use & modify</span>
+  </footer>
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!-- ====================================================================== -->
+<!--        Sodakiller NowPlaying Spotify - OBS Browser Source              -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header and attribution footer                    -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Fixed SonarQube code quality issues                              -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Spotify Now Playing + Finja</title>
+  <style>
+    /* ===========================================
+       Base Reset & Transparent Background
+       =========================================== */
+    html, body { 
+      margin: 0; 
+      background: transparent; 
+    }
+
+    /* ===========================================
+       CSS Custom Properties (Theme Variables)
+       =========================================== */
+    :root {
+      --x: 24px;           /* Horizontal position */
+      --y: 24px;           /* Vertical position */
+      --maxw: 820px;       /* Maximum container width */
+      --bg: rgba(10,12,20,.55);
+      --txt: #eaf9ff;
+      --accent: #1DB954;   /* Spotify Green */
+      --finja: #7aa2ff;    /* Finja Blue */
+    }
+
+    /* ===========================================
+       Main Container
+       Controls position for all child elements
+       =========================================== */
+    .main-container {
+      position: fixed; 
+      left: var(--x); 
+      top: var(--y);
+      display: flex;
+      flex-direction: column;  /* Stack boxes vertically */
+      gap: 12px;               /* Space between disclaimer and player */
+      max-width: min(88vw, var(--maxw));
+      width: fit-content;      /* Fit content width */
+    }
+
+    /* ===========================================
+       Finja Disclaimer Box
+       Work-in-progress warning shown above player
+       =========================================== */
+    .finja-box {
+      background: rgba(20, 20, 30, 0.9);
+      border-left: 4px solid #5865F2;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      font-family: system-ui, Segoe UI, sans-serif;
+      color: white;
+      width: 100%; 
+      box-sizing: border-box;
+    }
+
+    /* Yellow/Orange warning variant */
+    .disclaimer-box {
+      border-left-color: #F0B232;
+    }
+
+    .disclaimer-box .header {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #F0B232;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+      line-height: 1.2;
+    }
+
+    .disclaimer-box .text {
+      font-size: 0.9rem;
+      font-weight: 400;
+      line-height: 1.3;
+      color: #e0e0e0;
+    }
+
+    .disclaimer-box .icon-container {
+      font-size: 1.5rem;
+    }
+
+    /* ===========================================
+       Player Card Component
+       Uses CSS Grid for flexible layout
+       =========================================== */
+    .card {
+      position: relative;  /* Relative to container, not viewport */
+      left: auto; 
+      top: auto;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: var(--bg);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.35);
+      
+      /* Grid layout for card content */
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      grid-template-rows: auto auto auto auto;
+      grid-template-areas:
+        "logo head"
+        "logo title"
+        "logo chips"
+        "logo react";
+      grid-column-gap: 12px;
+      grid-row-gap: 8px;
+      align-items: start;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* ===========================================
+       Spotify Logo (SVG)
+       =========================================== */
+    .logo {
+      grid-area: logo;
+      width: 32px; 
+      height: 32px; 
+      border-radius: 50%;
+      align-self: start;
+      background: transparent; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+    }
+    
+    .logo svg {
+      width: 32px; 
+      height: 32px;
+      fill: var(--accent);
+      filter: drop-shadow(0 0 5px rgba(29, 185, 84, 0.6));
+    }
+
+    /* ===========================================
+       Header Section
+       =========================================== */
+    .head { 
+      grid-area: head; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+
+    .sub {
+      opacity: .85;
+      font: 700 13px/1 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: .08em; 
+      text-transform: uppercase;
+      color: #a0ffc7;
+      text-shadow: 0 0 8px rgba(0,0,0,.6);
+      white-space: nowrap;
+    }
+
+    /* ===========================================
+       Song Title
+       =========================================== */
+    .title {
+      grid-area: title;
+      color: var(--txt);
+      font: 700 24px/1.25 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      text-shadow: 0 0 8px rgba(0,0,0,.6);
+      word-break: break-word; 
+      overflow-wrap: anywhere;
+    }
+
+    /* ===========================================
+       Genre Tags Container
+       =========================================== */
+    .chips {
+      grid-area: chips;
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    /*
+     * Individual genre chip/tag
+     * 
+     * NOSONAR: css:S7924 - Contrast is intentionally lower for aesthetic reasons.
+     * This is an OBS overlay with glassmorphism design. The text-shadow provides
+     * sufficient readability. Color #eaf7ff is Finja's signature cyan.
+     */
+    .chip {
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.18); /* NOSONAR - Brand design */
+      color: #eaf7ff; /* NOSONAR - Finja's signature color */
+      font: 800 14px/1.2 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      text-shadow: 0 0 10px rgba(0,0,0,.35);
+      user-select: none;
+    }
+    
+    /* Special tags: white outline, no background fill
+       Used for tags like "Nightcore", "Sped Up", etc. */
+    .chip--special {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.9);
+      color: #ffffff;
+      box-shadow: none;
+      font-weight: 800;
+    }
+
+    /* ===========================================
+       Finja's Response Box
+       
+       NOSONAR: css:S7924 - Contrast is intentionally stylized.
+       Blue background is Finja's brand color.
+       =========================================== */
+    .react {
+      grid-area: react;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(122, 162, 255, 0.25); /* NOSONAR - Finja's blue */
+      border: 1px solid var(--finja);
+      color: #000000;
+      font: 800 16px/1.35 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      text-shadow: 0 0 10px rgba(0,0,0,.35);
+      box-shadow: 0 2px 10px rgba(0,0,0,.35), 0 0 8px rgba(122, 162, 255, 0.3);
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere; 
+      word-break: break-word;
+      transition: opacity .35s ease;
+    }
+
+    .react[hidden] { 
+      display: none; 
+    }
+
+    .fade-out { 
+      opacity: 0; 
+    }
+
+    /* ===========================================
+       Responsive Adjustments
+       =========================================== */
+    @media (max-width: 520px) {
+      .title { font-size: 20px; }
+      .chip { font-size: 13px; padding: 5px 8px; }
+      .react { font-size: 14px; }
+    }
+
+    /* ===========================================
+       Attribution Footer (Dev Mode Only)
+       =========================================== */
+    #attribution {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(12, 14, 20, 0.8);
+      color: #eaf1ff;
+      font: 11px/1.4 system-ui, sans-serif;
+      border-radius: 10px;
+      border: 1px solid rgba(122, 162, 255, 0.3);
+      z-index: 2147483646;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
+    .dev #attribution {
+      display: block;
+    }
+    #attribution a {
+      color: #7aa2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #attribution a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Container - Controls position for all elements -->
+  <div class="main-container">
+    
+    <!-- Work in Progress Disclaimer -->
+    <div class="finja-box disclaimer-box">
+      <div class="icon-container">🚧</div>
+      <div class="content">
+        <div class="header">WORK IN PROGRESS</div>
+        <div class="text">
+          Finja is still learning! Genres may contain traces of confusion.
+        </div>
+      </div>
+    </div>
+
+    <!-- Now Playing Card -->
+    <div class="card" id="card">
+      <!-- Spotify Logo (SVG) -->
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.837-.118-.96-.539-.117-.42.118-.84.54-.961 4.62-1.079 8.52-.66 11.76 1.32.42.18.539.659.24 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.6.72.3 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.4-1.02 16.02 1.74.6.36.781 1.02.42 1.62-.36.6-1.02.78-1.62.42z"/>
+        </svg>
+      </div>
+      
+      <!-- Header with service name -->
+      <div class="head">
+        <div class="sub">Spotify</div>
+      </div>
+      
+      <!-- Current song title -->
+      <div class="title" id="np">Loading…</div>
+      
+      <!-- Genre tags container -->
+      <div class="chips" id="genres"></div>
+      
+      <!-- Finja's response (hidden by default) -->
+      <div class="react" id="react" hidden></div>
+    </div>
+
+  </div>
+
+  <!-- Attribution (visible in dev mode only) -->
+  <div id="attribution">
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:10px;">MIT License — Free to use & modify</span>
+  </div>
+
+  <script>
+    // ===========================================
+    // Initialization - Parse URL Hash Parameters
+    // Allows customization via URL: #x=24&y=24&maxw=820
+    // ===========================================
+    
+    (function initPos() {
+      const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+      
+      // Apply custom position if specified
+      // Variables are set on document root, container picks them up
+      if (p.get('x')) {
+        document.documentElement.style.setProperty('--x', p.get('x') + 'px');
+      }
+      if (p.get('y')) {
+        document.documentElement.style.setProperty('--y', p.get('y') + 'px');
+      }
+      if (p.get('maxw')) {
+        document.documentElement.style.setProperty('--maxw', p.get('maxw') + 'px');
+      }
+      
+      // Enable dev mode (shows attribution) if ?dev=1 or #dev=1
+      if (p.get('dev') === '1' || new URLSearchParams(location.search).get('dev') === '1') {
+        document.body.classList.add('dev');
+      }
+    })();
+
+    // ===========================================
+    // File Reading
+    // ===========================================
+    
+    /**
+     * Read a text file via fetch with cache-busting
+     * @param {string} path - Path to the file
+     * @returns {Promise<string>} File content or empty string on error
+     */
+    async function read(path) {
+      try {
+        // Add timestamp to prevent browser caching
+        const cacheBuster = (path.includes('?') ? '&' : '?') + 'ts=' + Date.now();
+        const r = await fetch(path + cacheBuster);
+        
+        // Throw proper Error object (NOSONAR: S3696)
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: Failed to fetch ${path}`);
+        }
+        
+        return (await r.text()).trim();
+      } catch {
+        // Silently return empty - file may not exist yet
+        return "";
+      }
+    }
+
+    // ===========================================
+    // Text Parsing Utilities
+    // ===========================================
+    
+    /**
+     * Split genre text into individual parts
+     * Handles bullet (•), comma, and pipe separators
+     * @param {string} s - Genre text from file
+     * @returns {string[]} Array of trimmed, non-empty parts
+     */
+    function splitParts(s) {
+      // Using character class instead of alternation (NOSONAR: S6035)
+      return (s || "").split(/[•,|]/g).map(x => x.trim()).filter(Boolean);
+    }
+
+    /**
+     * Pattern for "special" tags that get different styling
+     * These are typically remix/edit indicators
+     */
+    const SPECIAL_RX = /^(nightcore|speed\s*up|sped\s*up|speedup|tiktok|tik\s*tok|radio\s*edit|radio\s*mix)$/i;
+
+    // ===========================================
+    // Genre Tag Rendering
+    // ===========================================
+    
+    /**
+     * Render genre tags from text
+     * Special tags get outline styling
+     * @param {string} text - Genre text from file
+     */
+    function renderGenres(text) {
+      const box = document.getElementById('genres');
+      box.innerHTML = "";
+      
+      if (!text) return;
+      
+      const parts = splitParts(text);
+      for (const p of parts) {
+        const div = document.createElement('div');
+        // Add special class if tag matches special pattern
+        div.className = 'chip' + (SPECIAL_RX.test(p) ? ' chip--special' : '');
+        div.textContent = p;
+        box.appendChild(div);
+      }
+    }
+
+    // ===========================================
+    // Main Update Loop
+    // ===========================================
+    
+    // Track last values to detect changes
+    let lastReact = "";
+    let lastNP = "";
+    let lastGenres = "";
+
+    /**
+     * Update all display elements from files
+     * Called periodically to refresh the display
+     */
+    async function tick() {
+      // --- Update Song Title ---
+      const np = await read('../Nowplaying/nowplaying.txt');
+      
+      if (np && np !== lastNP) {
+        // New song - update display
+        document.getElementById('np').textContent = np;
+        lastNP = np;
+      } else if (!np && lastNP !== "—") {
+        // No song playing - show placeholder
+        document.getElementById('np').textContent = "—";
+        lastNP = "—";
+      }
+
+      // --- Update Genre Tags ---
+      const g = await read('../Nowplaying/obs_genres.txt');
+      if (g !== lastGenres) {
+        renderGenres(g);
+        lastGenres = g;
+      }
+
+      // --- Update Finja's Response ---
+      const r = await read('../Nowplaying/obs_react.txt');
+      const el = document.getElementById('react');
+      
+      if (!r) {
+        // No response - hide element
+        el.hidden = true;
+        lastReact = "";
+      } else if (r !== lastReact) {
+        // New response - animate it in
+        el.hidden = false;
+        el.classList.add('fade-out');
+        
+        setTimeout(() => {
+          el.textContent = "Finja's Response: " + r;
+          el.classList.remove('fade-out');
+          lastReact = r;
+        }, 120);
+      }
+    }
+
+    // ===========================================
+    // Start the Update Loop
+    // ===========================================
+    
+    // Run initial update immediately
+    // Note: Not using top-level await for OBS browser compatibility (NOSONAR: S7785)
+    tick();
+    
+    // Poll every 3 seconds
+    setInterval(tick, 3000);
+  </script>
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>

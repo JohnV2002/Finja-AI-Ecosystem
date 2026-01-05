@@ -1,0 +1,498 @@
+<!-- ====================================================================== -->
+<!--        Finja's Music Control Panel - Admin Interface                   -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header                                           -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Refactored runHelper to reduce cognitive complexity (SonarQube)  -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Finja's Music Control</title>
+  <style>
+    /* ===========================================
+       Base Styles
+       =========================================== */
+    body { 
+      font-family: system-ui, sans-serif; 
+      background-color: #1f1f1f; 
+      color: #fff; 
+      text-align: center; 
+      padding: 20px; 
+    }
+
+    h1, h2 { 
+      color: #a07aff; 
+    }
+
+    h2 { 
+      border-top: 1px solid #444; 
+      padding-top: 25px; 
+      margin-top: 30px; 
+    }
+
+    p { 
+      color: #ccc; 
+    }
+
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+    }
+
+    /* ===========================================
+       Button Group Layout
+       =========================================== */
+    .button-group { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 15px; 
+      margin-top: 20px; 
+    }
+
+    button {
+      border: none; 
+      padding: 12px 24px; 
+      font-size: 16px; 
+      font-weight: bold;
+      border-radius: 10px; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+      width: 80%;
+    }
+
+    button:hover { 
+      transform: scale(1.03); 
+    }
+
+    /* ===========================================
+       Source Buttons (Music Sources)
+       =========================================== */
+    .btn-source { 
+      background-color: #76f7ff; 
+      color: #1f1f1f; 
+    }
+
+    .btn-source.active { 
+      background-color: #a07aff; 
+      color: #000000; 
+    }
+
+    .btn-deactivate { 
+      background-color: #ff7a7a; 
+      color: #000000; 
+      margin-top: 5px; 
+    }
+
+    /* ===========================================
+       Helper Script Buttons
+       =========================================== */
+    .btn-helper { 
+      background-color: #4a4a4a; 
+      color: #fff; 
+      border: 1px solid #666; 
+    }
+
+    .btn-helper:hover { 
+      background-color: #5a5a5a; 
+    }
+
+    /* ===========================================
+       Status Display
+       =========================================== */
+    #status { 
+      margin-top: 25px; 
+      min-height: 20px; 
+      font-style: italic; 
+      color: #88ff88; 
+    }
+
+    /* ===========================================
+       Disabled Button States
+       =========================================== */
+    .btn-disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed; 
+    }
+
+    /* RTL Button - Disabled (Red) */
+    #btn-rtl:disabled {
+      background-color: #ff7a7a;
+      color: #000000;
+      border: 1px solid #cc5555;
+    }
+
+    /* RTL Button - Enabled (Green) */
+    #btn-rtl:not(:disabled) {
+      background-color: #55cc55;
+      color: #1f1f1f;
+      border: 1px solid #76f7ff;
+    }
+
+    /* MDR Button - Disabled (Red) */
+    #btn-mdr:disabled {
+      background-color: #ff7a7a;
+      color: #000000;
+      border: 1px solid #cc5555;
+    }
+
+    /* MDR Button - Enabled (Green) */
+    #btn-mdr:not(:disabled) {
+      background-color: #55cc55;
+      color: #1f1f1f;
+      border: 1px solid #76f7ff;
+    }
+
+    /* ===========================================
+       Footer / Attribution
+       =========================================== */
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #444;
+      color: #888;
+      font-size: 0.9em;
+    }
+
+    footer a {
+      color: #7aa2ff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Finja's Music Control</h1>
+    <p id="status">Ready for your commands. :3</p>
+
+    <!-- ===========================================
+         Music Sources Section
+         =========================================== -->
+    <h2>Music Sources</h2>
+    <div class="button-group" id="source-controls">
+      <button id="btn-truckersfm" class="btn-source" onclick="handleSourceClick('truckersfm')">
+        Activate TruckersFM
+      </button>
+      <button id="btn-spotify" class="btn-source" onclick="handleSourceClick('spotify')">
+        Activate Spotify
+      </button>
+      <button id="btn-rtl" class="btn-source" onclick="handleSourceClick('rtl')" disabled>
+        Activate RTL 89.0
+      </button>
+      <button id="btn-mdr" class="btn-source" onclick="handleSourceClick('mdr')" disabled>
+        Activate MDR
+      </button>
+    </div>
+
+    <!-- ===========================================
+         Database & Helper Scripts Section
+         =========================================== -->
+    <h2>Database & Helper Scripts</h2>
+    <div class="button-group">
+      <button class="btn-helper" onclick="runHelper('build_db')">
+        1. Build DB from Spotify Exports
+      </button>
+      <button class="btn-helper" onclick="runHelper('enrich_missing')">
+        2. Enrich Missing Songs via Spotify
+      </button>
+      <button class="btn-helper" onclick="runHelper('review_artist_queue_ps')">
+        3. Review Artist Conflicts (HTML)
+      </button>
+      <button class="btn-helper" onclick="runHelper('rtl_start_browser')">
+        4. Start RTL Browser (Chrome CDP)
+      </button>
+      <button class="btn-helper" onclick="runHelper('gimick_repeat_counter')">
+        5. Start RTL Repeat Counter
+      </button>
+      <button class="btn-helper" onclick="runHelper('start_mdr')">
+        6. Start MDR NowPlaying (XML/HTML/ICY)
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ===========================================
+    // DOM References & State
+    // ===========================================
+    
+    const statusElement = document.getElementById('status');
+    
+    // Track currently active music source
+    let activeSource = null;
+    
+    // Track whether RTL browser has been started (required before activating RTL source)
+    let rtlBrowserStarted = false;
+
+    // ===========================================
+    // Music Source Control Functions
+    // ===========================================
+    
+    /**
+     * Handle click on a music source button
+     * @param {string} sourceName - Name of the source (truckersfm, spotify, rtl, mdr)
+     */
+    async function handleSourceClick(sourceName) {
+      // RTL requires the browser to be started first
+      if (sourceName === 'rtl' && !rtlBrowserStarted) {
+        statusElement.textContent = 'Error: Please start the RTL browser first (button under "Database & Helper Scripts").';
+        return;
+      }
+
+      if (activeSource === sourceName) {
+        // If source is already active -> restart it
+        await sendCommand(`/activate/${sourceName}`, `Restarting '${sourceName}'...`);
+      } else {
+        // Activate a new source
+        await sendCommand(`/activate/${sourceName}`, `Activating '${sourceName}'...`);
+      }
+    }
+
+    /**
+     * Update the visual state of source buttons
+     * @param {string|null} sourceName - Name of the active source, or null if none
+     */
+    function updateSourceButtons(sourceName) {
+      activeSource = sourceName;
+      
+      // Remove old deactivate button if present
+      const oldDeactivateBtn = document.getElementById('btn-deactivate');
+      if (oldDeactivateBtn) {
+        oldDeactivateBtn.remove();
+      }
+
+      // Reset all source buttons
+      document.querySelectorAll('.btn-source').forEach(btn => {
+        btn.classList.remove('active');
+        btn.textContent = btn.textContent.replace('Restart', 'Activate');
+      });
+      
+      if (sourceName) {
+        // Mark active button and change text to "Restart"
+        const activeButton = document.getElementById(`btn-${sourceName}`);
+        activeButton.classList.add('active');
+        activeButton.textContent = `Restart ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}`;
+
+        // Create and insert deactivate button after the active source button
+        const deactivateBtn = document.createElement('button');
+        deactivateBtn.id = 'btn-deactivate';
+        deactivateBtn.className = 'btn-deactivate';
+        deactivateBtn.textContent = 'Deactivate Active Source';
+        deactivateBtn.onclick = () => sendCommand('/deactivate', 'Deactivating source...');
+        activeButton.after(deactivateBtn);
+      }
+    }
+
+    // ===========================================
+    // Helper Script Handlers (Individual Functions)
+    // Extracted to reduce cognitive complexity
+    // ===========================================
+    
+    /**
+     * Handle artist review - opens new tab
+     */
+    async function handleArtistReview() {
+      await sendCommand('/deactivate', 'Stopping active stream for artist review...');
+      window.open('http://localhost:8022/ArtistNotSure.html', '_blank');
+      statusElement.textContent = 'Stream stopped. Artist review web UI opened.';
+    }
+
+    /**
+     * Handle Spotify enrichment - stops stream first
+     */
+    async function handleEnrichMissing() {
+      await sendCommand('/deactivate', 'Stopping active stream for Spotify enrichment...');
+      await sendCommand('/run/enrich_missing', 'Running Spotify enrichment...');
+    }
+
+    /**
+     * Handle RTL browser start
+     */
+    async function handleRtlBrowserStart() {
+      statusElement.textContent = 'Starting RTL browser (Chrome)...';
+      
+      try {
+        const response = await fetch('/run/rtl_start_browser');
+        const result = await response.json();
+
+        if (result.success) {
+          statusElement.textContent = `Success: ${result.message}`;
+          rtlBrowserStarted = true;
+          
+          const rtlButton = document.getElementById('btn-rtl');
+          rtlButton.disabled = false;
+          rtlButton.textContent = 'Activate RTL 89.0';
+          rtlButton.title = 'Click to activate the RTL stream.';
+        } else {
+          statusElement.textContent = `Error: ${result.message}`;
+        }
+      } catch (error) {
+        statusElement.textContent = 'Error: Server is not reachable or did not understand the command.';
+        console.error('Error sending RTL start command:', error);
+      }
+    }
+
+    /**
+     * Handle RTL repeat counter start
+     */
+    async function handleRepeatCounter() {
+      statusElement.textContent = 'Starting RTL repeat counter...';
+      
+      try {
+        const response = await fetch('/run/gimick_repeat_counter');
+        const result = await response.json();
+
+        if (result.success) {
+          statusElement.textContent = `Success: ${result.message}`;
+        } else {
+          statusElement.textContent = `Error: ${result.message}`;
+        }
+      } catch (error) {
+        statusElement.textContent = 'Error: Server is not reachable or did not understand the command.';
+        console.error('Error sending RTL repeat counter start command:', error);
+      }
+    }
+
+    /**
+     * Handle MDR NowPlaying start
+     */
+    async function handleMdrStart() {
+      statusElement.textContent = 'Starting MDR NowPlaying (XML/HTML/ICY)...';
+      
+      try {
+        const response = await fetch('/run/start_mdr');
+        const result = await response.json();
+
+        if (result.success) {
+          statusElement.textContent = `Success: ${result.message}`;
+          
+          const mdrButton = document.getElementById('btn-mdr');
+          mdrButton.disabled = false;
+          mdrButton.textContent = 'Activate MDR';
+          mdrButton.title = '';
+        } else {
+          statusElement.textContent = `Error: ${result.message}`;
+        }
+      } catch (error) {
+        statusElement.textContent = 'Error: Server is not reachable or did not understand the command.';
+        console.error('Error sending MDR start command:', error);
+      }
+    }
+
+    // ===========================================
+    // Helper Script Router
+    // Maps script names to their handlers
+    // ===========================================
+    
+    /**
+     * Map of script names to their handler functions
+     */
+    const helperHandlers = {
+      'review_artist_queue_ps': handleArtistReview,
+      'enrich_missing': handleEnrichMissing,
+      'rtl_start_browser': handleRtlBrowserStart,
+      'gimick_repeat_counter': handleRepeatCounter,
+      'start_mdr': handleMdrStart
+    };
+
+    /**
+     * Run a helper script
+     * Routes to specific handler or uses default behavior
+     * @param {string} scriptName - Name of the script to run
+     */
+    async function runHelper(scriptName) {
+      // Check if there's a specific handler for this script
+      const handler = helperHandlers[scriptName];
+      
+      if (handler) {
+        await handler();
+        return;
+      }
+      
+      // Default handling for scripts without specific handlers
+      await sendCommand(`/run/${scriptName}`, `Running helper script '${scriptName}'...`);
+    }
+
+    // ===========================================
+    // General Command Function
+    // ===========================================
+    
+    /**
+     * Send a command to the server
+     * @param {string} endpoint - API endpoint to call
+     * @param {string} loadingMessage - Message to show while loading
+     */
+    async function sendCommand(endpoint, loadingMessage) {
+      statusElement.textContent = loadingMessage;
+      
+      try {
+        const response = await fetch(endpoint);
+        const result = await response.json();
+
+        if (result.success) {
+          statusElement.textContent = `Success: ${result.message}`;
+          
+          // Update button state only for source actions
+          if (endpoint.startsWith('/activate/')) {
+            updateSourceButtons(endpoint.split('/')[2]);
+          } else if (endpoint === '/deactivate') {
+            updateSourceButtons(null);
+          }
+        } else {
+          statusElement.textContent = `Error: ${result.message}`;
+        }
+      } catch (error) {
+        statusElement.textContent = 'Error: Server is not reachable.';
+        console.error('Error sending command:', error);
+      }
+    }
+  </script>
+
+  <!-- Attribution Footer -->
+  <footer>
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:0.85em;">MIT License — Free to use & modify</span>
+  </footer>
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>

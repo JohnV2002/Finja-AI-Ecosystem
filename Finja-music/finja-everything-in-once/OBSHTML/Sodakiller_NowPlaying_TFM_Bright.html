@@ -1,0 +1,508 @@
+<!-- ====================================================================== -->
+<!--        Sodakiller NowPlaying TFM Bright - OBS Browser Source           -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header and attribution footer                    -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Fixed SonarQube code quality issues                              -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TruckersFM Now Playing</title>
+  <style>
+    /* ===========================================
+       Base Reset & Transparent Background
+       =========================================== */
+    html, body {
+      margin: 0; 
+      padding: 0;
+      background: transparent; 
+      overflow: hidden;
+    }
+
+    /* ===========================================
+       CSS Custom Properties (Theme Variables)
+       =========================================== */
+    :root {
+      --w: 760px;              /* Card width */
+      --padX: 20px;            /* Horizontal padding */
+      --padY: 16px;            /* Vertical padding */
+      --radius: 18px;          /* Border radius */
+      --shadow: 0 14px 36px rgba(0,0,0,.45);
+      --glass: rgba(18,22,35,.55);  /* Glassmorphism background */
+      --c1: #76f7ff;           /* Primary accent color (cyan) */
+      --c2: #a07aff;           /* Secondary accent color (purple) */
+      --txt: #f6fcff;          /* Main text color */
+      --muted: #b8f7ff;        /* Muted text color */
+      --edge: 16px;            /* Edge spacing */
+    }
+
+    /* ===========================================
+       Layout Container
+       =========================================== */
+    .wrap { 
+      position: fixed; 
+      inset: 0; 
+      pointer-events: none; 
+    }
+
+    /* ===========================================
+       Main Card Component
+       Uses CSS Grid for flexible layout
+       =========================================== */
+    .card {
+      position: absolute; 
+      top: var(--edge); 
+      left: 50%; 
+      transform: translateX(-50%);
+      transform-origin: top center;
+      width: min(var(--w), calc(100vw - (var(--edge)*2)));
+      
+      /* Grid layout for card content */
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto auto;
+      grid-template-areas: 
+        "label label" 
+        "title title" 
+        "genres react";
+      gap: 14px 16px;
+      
+      padding: var(--padY) var(--padX);
+      border-radius: var(--radius);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* Glowing gradient border effect behind the card */
+    .card::before {
+      content: ""; 
+      position: absolute; 
+      inset: -2px; 
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--c1), var(--c2)); 
+      filter: blur(12px);
+      opacity: .7; 
+      z-index: -1;
+    }
+
+    /* ===========================================
+       Station Label (Top row)
+       =========================================== */
+    .label {
+      grid-area: label; 
+      font: 800 14px/1.1 system-ui, sans-serif;
+      letter-spacing: .14em; 
+      text-transform: uppercase; 
+      color: var(--muted);
+      text-shadow: 0 0 10px rgba(0,0,0,.6);
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+    }
+
+    /* Animated dot indicator next to label */
+    .dot {
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 0 10px rgba(118,247,255,.8);
+    }
+
+    /* ===========================================
+       Song Title (Middle row)
+       =========================================== */
+    .title {
+      grid-area: title; 
+      font: 900 32px/1.18 system-ui, sans-serif; 
+      color: var(--txt);
+      text-shadow: 0 0 20px rgba(0,0,0,.65), 0 0 36px rgba(118,247,255,.28);
+      word-break: break-word; 
+      hyphens: auto;
+    }
+
+    /* ===========================================
+       Genre Tags Container (Bottom left)
+       =========================================== */
+    .genres {
+      grid-area: genres; 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 12px;
+    }
+
+    /* 
+     * Individual genre chip/tag
+     * 
+     * NOSONAR: css:S7924 - Contrast is intentionally lower for aesthetic reasons.
+     * This is an OBS overlay with glassmorphism design. The text-shadow provides
+     * sufficient readability. Colors #eaf7ff (Finja's cyan) and the semi-transparent
+     * background are core brand colors that must be preserved.
+     */
+    .chip {
+      font: 800 18px/1.3 system-ui, sans-serif;
+      padding: 10px 14px; 
+      border-radius: 14px;
+      background: rgba(255,255,255,.18); /* NOSONAR - Brand design requirement */
+      color: #eaf7ff; /* NOSONAR - Finja's signature color */
+      text-shadow: 0 0 10px rgba(0,0,0,.35); /* Provides readability */
+      white-space: nowrap; 
+      max-width: 100%; 
+      overflow: hidden; 
+      text-overflow: ellipsis;
+    }
+
+    /* Special tags: white outline, no background fill
+       Used for tags like "Nightcore", "Sped Up", etc. */
+    .chip--special {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.8);
+      color: #202020;
+      text-shadow: 0 0 10px rgba(0,0,0,.35);
+    }
+
+    /* ===========================================
+       Finja's Response Box (Bottom right)
+       
+       NOSONAR: css:S7924 - Contrast is intentionally stylized.
+       This is an OBS overlay, not a standard web page. The purple
+       background (#a07aff at 25% opacity) is Sodakiller's brand color.
+       The text-shadow and box-shadow provide sufficient readability.
+       =========================================== */
+    .react {
+      grid-area: react; 
+      justify-self: end; 
+      align-self: start;
+      border-radius: 16px; 
+      background: rgba(160,122,255,.25); /* NOSONAR - Sodakiller's purple brand color */
+      color: #202020;
+      box-shadow: 0 2px 10px rgba(0,0,0,.35);
+      font: 800 16px/1.25 system-ui, sans-serif;
+      padding: 8px 14px;
+      
+      /* Handle very long text gracefully */
+      max-width: 64ch;
+      white-space: normal;
+      overflow-wrap: anywhere;  /* Break long words/URLs if needed */
+      word-break: normal;
+      transition: opacity 2s ease;
+    }
+
+    /* ===========================================
+       Responsive Adjustments
+       =========================================== */
+    @media (max-width: 600px) {
+      .title { font-size: 28px; }
+      .chip { font-size: 15px; }
+      .react { 
+        font-size: 15px; 
+        max-width: 70vw;  /* Wider on narrow screens */
+      }
+    }
+
+    /* ===========================================
+       Attribution Footer (Dev Mode Only)
+       Only visible when ?dev=1 is in URL
+       =========================================== */
+    #attribution {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(12, 14, 20, 0.8);
+      color: #eaf1ff;
+      font: 11px/1.4 system-ui, sans-serif;
+      border-radius: 10px;
+      border: 1px solid rgba(122, 162, 255, 0.3);
+      z-index: 2147483646;
+      display: none;  /* Hidden by default */
+      backdrop-filter: blur(6px);
+    }
+    .dev #attribution {
+      display: block;
+    }
+    #attribution a {
+      color: #7aa2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #attribution a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main wrapper for positioning -->
+  <div class="wrap">
+    <!-- Now Playing Card -->
+    <div class="card" id="card">
+      <!-- Station label with live indicator dot -->
+      <div class="label">
+        <span class="dot"></span>
+        <span id="label">TruckersFM</span>
+      </div>
+      
+      <!-- Current song title -->
+      <div class="title" id="np">Loading…</div>
+      
+      <!-- Genre tags container -->
+      <div class="genres" id="genres"></div>
+      
+      <!-- Finja's response (hidden by default) -->
+      <div class="react" id="react" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Attribution (visible in dev mode only) -->
+  <div id="attribution">
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:10px;">MIT License — Free to use & modify</span>
+  </div>
+
+  <script>
+    // ===========================================
+    // Utility Functions
+    // ===========================================
+    
+    /**
+     * Parse URL hash parameters (e.g., #w=800&fs=28)
+     * This allows customization via URL without server-side code
+     */
+    const qs = () => new URLSearchParams(location.hash.replace(/^#/, ''));
+    
+    /**
+     * Shorthand for querySelector
+     */
+    const $ = s => document.querySelector(s);
+    
+    /**
+     * Set a CSS custom property (variable) on the document root
+     */
+    const setVar = (n, v) => v != null && document.documentElement.style.setProperty(n, v);
+
+    // ===========================================
+    // Initialization
+    // ===========================================
+    
+    (function init() {
+      const p = qs();
+      
+      // Apply custom width if specified
+      if (p.get('w')) setVar('--w', p.get('w') + 'px');
+      
+      // Apply custom font size if specified
+      if (p.get('fs')) $('.title').style.fontSize = p.get('fs') + 'px';
+      
+      // Apply custom station label if specified
+      if (p.get('label')) $('#label').textContent = p.get('label');
+      
+      // Enable dev mode (shows attribution) if ?dev=1 or #dev=1
+      if (p.get('dev') === '1' || new URLSearchParams(location.search).get('dev') === '1') {
+        document.body.classList.add('dev');
+      }
+    })();
+
+    // ===========================================
+    // File Reading
+    // ===========================================
+    
+    /**
+     * Read a text file via fetch with cache-busting
+     * @param {string} path - Path to the file
+     * @returns {Promise<string>} File content or empty string on error
+     */
+    async function readFile(path) {
+      try {
+        // Add timestamp to prevent browser caching
+        const cacheBuster = (path.includes('?') ? '&' : '?') + 'ts=' + Date.now();
+        const r = await fetch(path + cacheBuster);
+        
+        // Throw proper Error object instead of primitive (NOSONAR: S3696)
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: Failed to fetch ${path}`);
+        }
+        
+        return (await r.text()).trim();
+      } catch {
+        // Silently return empty - file may not exist yet, which is normal
+        return "";
+      }
+    }
+
+    // ===========================================
+    // Special Tag Detection
+    // ===========================================
+    
+    /**
+     * Patterns for "special" tags that get different styling
+     * These are typically remix/edit indicators that should stand out
+     * Handles variations with/without hyphens/spaces
+     */
+    const SPECIAL_PATTERNS = [
+      /(^|\s)night[\s-]*core($|\s)/i,    // Nightcore, Night-core, Night core
+      /(^|\s)speed[\s-]*up($|\s)/i,      // Speed up, Speedup, Speed-up
+      /(^|\s)sped[\s-]*up($|\s)/i,       // Sped up, Spedup
+      /(^|\s)speedup($|\s)/i,            // Speedup (single word)
+      /(^|\s)radio[\s-]*edit($|\s)/i,    // Radio Edit, Radio-edit
+      /(^|\s)radio[\s-]*mix($|\s)/i,     // Radio Mix
+      /(^|\s)tik[\s-]*tok($|\s)/i,       // TikTok, Tik Tok, Tik-Tok
+      /(^|\s)tiktok($|\s)/i              // TikTok (single word)
+    ];
+    
+    /**
+     * Check if a tag should be styled as "special"
+     * @param {string} t - Tag text to check
+     * @returns {boolean} True if tag matches any special pattern
+     */
+    function isSpecialTag(t) {
+      const s = (t || "").toLowerCase();
+      // Add spaces around to ensure word boundary matching
+      return SPECIAL_PATTERNS.some(rx => rx.test(" " + s + " "));
+    }
+
+    // ===========================================
+    // Genre Tag Rendering
+    // ===========================================
+    
+    /**
+     * Render genre tags from text
+     * Splits on bullet (•), comma, or pipe and creates chip elements
+     * Special tags get different styling (white outline)
+     * @param {string} text - Genre text from file
+     */
+    function renderGenres(text) {
+      const box = $('#genres');
+      box.innerHTML = "";
+      if (!text) return;
+
+      // Split on common separators: bullet, comma, pipe
+      // Using character class [•,|] instead of alternation (NOSONAR: S6035)
+      const parts = text.split(/[•,|]/).map(s => s.trim()).filter(Boolean);
+
+      // Separate into normal and special tags
+      const normal = [];
+      const special = [];
+      for (const p of parts) {
+        if (isSpecialTag(p)) {
+          special.push(p);
+        } else {
+          normal.push(p);
+        }
+      }
+
+      // Render normal tags first
+      for (const p of normal) {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = p;
+        box.appendChild(chip);
+      }
+
+      // Render special tags last (with outline style)
+      for (const p of special) {
+        const chip = document.createElement('div');
+        chip.className = 'chip chip--special';
+        chip.textContent = p;
+        box.appendChild(chip);
+      }
+    }
+
+    // ===========================================
+    // Main Update Loop
+    // ===========================================
+    
+    // Track last reaction to detect changes
+    let lastReact = "";
+
+    /**
+     * Update all display elements from files
+     * Called periodically to refresh the display
+     */
+    async function update() {
+      // Update song title (show em-dash if empty)
+      $('#np').textContent = (await readFile('../Nowplaying/nowplaying.txt')) || '—';
+      
+      // Update genre tags
+      renderGenres(await readFile('../Nowplaying/obs_genres.txt'));
+
+      // Handle Finja's response with fade animation
+      const react = (await readFile('../Nowplaying/obs_react.txt')) || "";
+      const rEl = $('#react');
+
+      if (!react) {
+        // No response - hide the element
+        rEl.style.display = 'none';
+        lastReact = "";
+        return;
+      }
+
+      // New response - animate it in
+      if (react !== lastReact) {
+        rEl.style.display = 'inline-block';
+        rEl.style.opacity = 0;
+        
+        // Small delay to ensure opacity transition works
+        setTimeout(() => {
+          rEl.textContent = "Finja's Response: " + react;
+          rEl.style.opacity = 1;
+          lastReact = react;
+        }, 20);
+      }
+    }
+
+    // ===========================================
+    // Start the Update Loop
+    // ===========================================
+    
+    // Run initial update immediately
+    // Note: Top-level await not used here for broader browser compatibility
+    // in OBS browser sources (NOSONAR: S7785 - intentional for compatibility)
+    update();
+    
+    // Then poll at configured interval (default: 3000ms)
+    // Can be customized via #ms=5000 in URL
+    // Using Number.parseInt instead of global parseInt (NOSONAR: S7773)
+    setInterval(update, Number.parseInt(qs().get('ms') || '3000', 10) || 3000);
+  </script>
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>

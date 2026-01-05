@@ -1,0 +1,519 @@
+<!-- ====================================================================== -->
+<!--        Sodakiller NowPlaying RTL Bright - OBS Browser Source           -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header and attribution footer                    -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Fixed SonarQube code quality issues                              -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>89.0 RTL — Now Playing (Stacked)</title>
+  <style>
+    /* ===========================================
+       Base Reset & Transparent Background
+       =========================================== */
+    html, body { 
+      margin: 0; 
+      background: transparent; 
+    }
+
+    /* ===========================================
+       CSS Custom Properties (Theme Variables)
+       =========================================== */
+    :root {
+      --x: 24px;             /* Horizontal position */
+      --y: 24px;             /* Vertical position */
+      --maxw: 820px;         /* Maximum card width */
+      --rtl-red: #e30613;    /* 89.0 RTL Red */
+      --rtl-gold: #ffcc00;   /* 89.0 RTL Gold */
+      --finja-a: #7aa2ff;    /* Finja Blue */
+      --finja-b: #ff6ad5;    /* Finja Pink */
+      --panel-bg: rgba(255,255,255,.72);
+      --panel-border: rgba(0,0,0,.10);
+      --txt: #0b1020;
+      --txt-sub: #334155;
+      /* Glow colors for rainbow border effect */
+      --glow-1: #e30613;
+      --glow-2: #ffcc00;
+      --glow-3: #7aa2ff;
+      --glow-4: #ff6ad5;
+    }
+
+    /* ===========================================
+       Main Card Component
+       Light/bright theme with rainbow glow
+       =========================================== */
+    .card { 
+      position: fixed; 
+      left: var(--x); 
+      top: var(--y); 
+      width: min(92vw, var(--maxw));
+      box-sizing: border-box; 
+      padding: 16px 18px; 
+      border-radius: 16px; 
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px); 
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 10px 30px rgba(0,0,0,.20), 0 0 0 2px rgba(255,255,255,.35) inset;
+    }
+
+    /* Rainbow glow effect behind the card */
+    .card::before { 
+      content: ""; 
+      position: absolute; 
+      inset: -3px; 
+      border-radius: inherit;
+      background: conic-gradient(
+        from 180deg at 50% 50%, 
+        var(--glow-1), 
+        var(--glow-2), 
+        var(--glow-3), 
+        var(--glow-4), 
+        var(--glow-1)
+      );
+      filter: blur(14px); 
+      opacity: .55; 
+      z-index: -1;
+    }
+
+    /* ===========================================
+       Header Section
+       =========================================== */
+    .head { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      margin-bottom: 6px; 
+      flex-wrap: wrap; 
+    }
+
+    /* RTL Logo - CSS-only radial gradient */
+    .logo { 
+      width: 18px; 
+      height: 18px; 
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 35%, 
+        #fff 0 25%, 
+        var(--rtl-gold) 26% 60%, 
+        var(--rtl-red) 61%
+      );
+      box-shadow: 0 0 10px rgba(227,6,19,.65), 0 0 16px rgba(255,204,0,.45);
+      flex: 0 0 18px;
+    }
+
+    .brand { 
+      display: flex; 
+      align-items: baseline; 
+      gap: 10px; 
+    }
+
+    .sub { 
+      font: 800 13px/1 system-ui, Segoe UI, Roboto, Arial, sans-serif; 
+      letter-spacing: .10em; 
+      text-transform: uppercase; 
+      color: var(--txt-sub); 
+      white-space: nowrap; 
+    }
+
+    /* Soft hint text next to label */
+    .note { 
+      font: 600 12px/1.2 system-ui, Segoe UI, Roboto, Arial, sans-serif; 
+      color: #475569; 
+      opacity: .9; 
+      white-space: nowrap; 
+    }
+
+    /* Separator dot between label and note */
+    .dot { 
+      display: inline-block; 
+      width: 4px; 
+      height: 4px; 
+      border-radius: 50%; 
+      background: #94a3b8; 
+      margin: 0 8px; 
+      opacity: .9; 
+      vertical-align: middle; 
+    }
+
+    /* ===========================================
+       Song Title
+       =========================================== */
+    .title { 
+      margin: 2px 0 10px 0; 
+      color: var(--txt); 
+      font: 800 26px/1.25 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      text-shadow: 0 0 6px rgba(255,255,255,.35); 
+      word-break: break-word; 
+      overflow-wrap: anywhere;
+    }
+
+    /* ===========================================
+       Genre Tags & Repeat Badge Container
+       =========================================== */
+    .chips { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      margin: 0 0 10px 0; 
+      align-items: center; 
+    }
+
+    /* Individual chip/tag */
+    .chip { 
+      padding: 6px 10px; 
+      border-radius: 12px; 
+      background: rgba(11,16,32,.06); 
+      border: 1px solid rgba(11,16,32,.08);
+      color: var(--txt); 
+      font: 800 14px/1.2 system-ui, Segoe UI, Roboto, Arial, sans-serif; 
+      text-shadow: 0 1px 0 rgba(255,255,255,.45);
+      user-select: none;
+    }
+
+    /* Special tags: highlighted with white background */
+    .chip--special { 
+      background: rgba(255,255,255,.35); 
+      border: 1px solid rgba(255,255,255,.95); 
+    }
+
+    /* Repeat count badge: RTL red tint */
+    .chip--repeat { 
+      background: rgba(227,6,19,.10); 
+      border-color: rgba(227,6,19,.25); 
+    }
+
+    /* ===========================================
+       Finja's Response Box
+       Rainbow gradient background matching card glow
+       =========================================== */
+    .react { 
+      padding: 10px 14px; 
+      border-radius: 14px;
+      background: linear-gradient(
+        90deg, 
+        rgba(227,6,19,.14), 
+        rgba(255,204,0,.16), 
+        rgba(122,162,255,.18), 
+        rgba(255,106,213,.18)
+      );
+      color: #0b1020; 
+      font: 800 16px/1.35 system-ui, Segoe UI, Roboto, Arial, sans-serif; 
+      text-shadow: 0 1px 0 rgba(255,255,255,.55);
+      box-shadow: 0 2px 8px rgba(0,0,0,.10); 
+      border: 1px solid rgba(11,16,32,.10);
+      max-width: min(70ch, 88vw); 
+      white-space: normal; 
+      overflow-wrap: anywhere; 
+      word-break: break-word; 
+      transition: opacity .35s ease;
+    }
+
+    .react[hidden] { 
+      display: none; 
+    }
+
+    .fade-out { 
+      opacity: 0; 
+    }
+
+    /* ===========================================
+       Responsive Adjustments
+       =========================================== */
+    @media (max-width: 560px) {
+      .title { font-size: 22px; }
+      .chip { font-size: 13px; padding: 5px 8px; }
+      .react { font-size: 14px; }
+      .note { font-size: 11px; }
+    }
+
+    /* ===========================================
+       Attribution Footer (Dev Mode Only)
+       =========================================== */
+    #attribution {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(12, 14, 20, 0.8);
+      color: #eaf1ff;
+      font: 11px/1.4 system-ui, sans-serif;
+      border-radius: 10px;
+      border: 1px solid rgba(122, 162, 255, 0.3);
+      z-index: 2147483646;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
+    .dev #attribution {
+      display: block;
+    }
+    #attribution a {
+      color: #7aa2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #attribution a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Now Playing Card -->
+  <div class="card">
+    <!-- Header with RTL logo and live data notice -->
+    <div class="head">
+      <div class="logo"></div>
+      <div class="brand">
+        <div class="sub" id="label">89.0 RTL</div>
+        <!-- Live data notice -->
+        <div class="note">
+          <span class="dot"></span>Live data from RTL — system delay of 30 sec to ~2 min possible.
+        </div>
+      </div>
+    </div>
+
+    <!-- Current song title -->
+    <div class="title" id="np">Loading…</div>
+
+    <!-- Repeat count badge container -->
+    <div class="chips" id="chips">
+      <div class="chip chip--repeat" id="repeat" hidden>Repeat: 1×</div>
+    </div>
+
+    <!-- Genre tags container -->
+    <div class="chips" id="genres"></div>
+    
+    <!-- Finja's response (hidden by default) -->
+    <div class="react" id="react" hidden></div>
+  </div>
+
+  <!-- Attribution (visible in dev mode only) -->
+  <div id="attribution">
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:10px;">MIT License — Free to use & modify</span>
+  </div>
+
+  <script>
+    // ===========================================
+    // Initialization - Parse URL Hash Parameters
+    // Allows customization via URL: #x=24&y=24&maxw=820&label=Custom
+    // ===========================================
+    
+    (function init() {
+      const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+      
+      /**
+       * Set a CSS custom property on the document root
+       */
+      const setVar = (n, v) => v != null && document.documentElement.style.setProperty(n, v);
+      
+      // Apply custom position and size if specified
+      if (p.get('x')) setVar('--x', p.get('x') + 'px');
+      if (p.get('y')) setVar('--y', p.get('y') + 'px');
+      if (p.get('maxw')) setVar('--maxw', p.get('maxw') + 'px');
+      
+      // Apply custom station label if specified
+      if (p.get('label')) {
+        document.getElementById('label').textContent = p.get('label');
+      }
+      
+      // Enable dev mode (shows attribution) if ?dev=1 or #dev=1
+      if (p.get('dev') === '1' || new URLSearchParams(location.search).get('dev') === '1') {
+        document.body.classList.add('dev');
+      }
+    })();
+
+    // ===========================================
+    // File Reading
+    // ===========================================
+    
+    /**
+     * Read a text file via fetch with cache-busting
+     * @param {string} path - Path to the file
+     * @returns {Promise<string>} File content or empty string on error
+     */
+    async function read(path) {
+      try {
+        // Add timestamp to prevent browser caching
+        const cacheBuster = (path.includes('?') ? '&' : '?') + 'ts=' + Date.now();
+        const r = await fetch(path + cacheBuster);
+        
+        // Throw proper Error object (NOSONAR: S3696)
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: Failed to fetch ${path}`);
+        }
+        
+        return (await r.text()).trim();
+      } catch {
+        // Silently return empty - file may not exist yet
+        return "";
+      }
+    }
+
+    // ===========================================
+    // Text Parsing Utilities
+    // ===========================================
+    
+    /**
+     * Split genre text into individual parts
+     * Handles bullet (•), comma, and pipe separators
+     * @param {string} s - Genre text from file
+     * @returns {string[]} Array of trimmed, non-empty parts
+     */
+    function splitParts(s) {
+      // Using character class instead of alternation (NOSONAR: S6035)
+      return (s || "").split(/[•,|]/g).map(x => x.trim()).filter(Boolean);
+    }
+
+    /**
+     * Pattern for "special" tags that get different styling
+     * These are typically remix/edit indicators
+     */
+    const SPECIAL_RX = /^(nightcore|speed\s*up|sped\s*up|speedup|tiktok|tik\s*tok|radio\s*edit|radio\s*mix)$/i;
+
+    // ===========================================
+    // Genre Tag Rendering
+    // ===========================================
+    
+    /**
+     * Render genre tags from text
+     * Special tags get highlighted styling
+     * @param {string} text - Genre text from file
+     */
+    function renderGenres(text) {
+      const box = document.getElementById('genres');
+      box.innerHTML = "";
+      
+      if (!text) return;
+      
+      for (const p of splitParts(text)) {
+        const div = document.createElement('div');
+        // Add special class if tag matches special pattern
+        div.className = 'chip' + (SPECIAL_RX.test(p) ? ' chip--special' : '');
+        div.textContent = p;
+        box.appendChild(div);
+      }
+    }
+
+    // ===========================================
+    // Main Update Loop
+    // ===========================================
+    
+    // Track last values to detect changes
+    let lastReact = "";
+    let lastNP = "";
+    let lastGenres = "";
+    let lastRepeat = "";
+
+    /**
+     * Update all display elements from files
+     * Called periodically to refresh the display
+     */
+    async function tick() {
+      // --- Update Song Title ---
+      const np = await read('../Nowplaying/nowplaying.txt');
+      
+      if (np && np !== lastNP) {
+        // New song - update display
+        document.getElementById('np').textContent = np;
+        lastNP = np;
+      } else if (!np && lastNP !== "—") {
+        // No song playing - show placeholder
+        document.getElementById('np').textContent = "—";
+        lastNP = "—";
+      }
+
+      // --- Update Genre Tags ---
+      const g = await read('../Nowplaying/obs_genres.txt');
+      if (g !== lastGenres) {
+        renderGenres(g);
+        lastGenres = g;
+      }
+
+      // --- Update Finja's Response ---
+      const r = await read('../Nowplaying/obs_react.txt');
+      const el = document.getElementById('react');
+      
+      if (!r) {
+        // No response - hide element
+        el.hidden = true;
+        lastReact = "";
+      } else if (r !== lastReact) {
+        // New response - animate it in
+        el.hidden = false;
+        el.classList.add('fade-out');
+        
+        setTimeout(() => {
+          el.textContent = "Finja's Response: " + r;
+          el.classList.remove('fade-out');
+          lastReact = r;
+        }, 120);
+      }
+
+      // --- Update Repeat Count Badge ---
+      const rep = await read('../Nowplaying/obs_repeat.txt');
+      const repEl = document.getElementById('repeat');
+      
+      if (rep && rep !== lastRepeat) {
+        // New repeat count - show badge
+        repEl.textContent = rep;
+        repEl.hidden = false;
+        lastRepeat = rep;
+      } else if (!rep && !repEl.hidden) {
+        // No repeat data - hide badge (only if currently visible)
+        repEl.hidden = true;
+        lastRepeat = "";
+      }
+    }
+
+    // ===========================================
+    // Start the Update Loop
+    // ===========================================
+    
+    // Run initial update immediately
+    // Note: Not using top-level await for OBS browser compatibility (NOSONAR: S7785)
+    tick();
+    
+    // Poll every 1.5 seconds (faster for radio)
+    setInterval(tick, 1500);
+  </script>
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>

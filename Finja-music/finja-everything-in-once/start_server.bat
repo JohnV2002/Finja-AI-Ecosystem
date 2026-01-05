@@ -18,6 +18,8 @@ REM      • Professional English documentation
 REM      • Python version detection with fallbacks
 REM      • Improved error handling
 REM
+REM ----------------------------------------------------------------------
+REM
 REM    Copyright (c) 2026 J. Apps
 REM    Licensed under the MIT License.
 REM ======================================================================

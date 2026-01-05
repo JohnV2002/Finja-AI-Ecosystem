@@ -38,11 +38,13 @@ jobs:
             ${{ runner.os }}-pip-music-
 
       - name: Install dependencies
-        working-directory: ./Finja-music/finja-everthing-in-once
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-mock
-          pip install requests beautifulsoup4
+          # Core dependencies
+          pip install requests beautifulsoup4 defusedxml spotipy python-dotenv
+          # websocket for RTL CDP (optional, skip if not needed in CI)
+          pip install websocket-client || true
 
       - name: Run Music Engine tests
         working-directory: ./Finja-music/finja-everthing-in-once

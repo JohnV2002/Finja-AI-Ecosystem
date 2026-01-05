@@ -1,0 +1,505 @@
+<!-- ====================================================================== -->
+<!--        Sodakiller NowPlaying MDR - OBS Browser Source                  -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
+<!--   Version: 1.1.0                                                       -->
+<!--                                                                        -->
+<!--   ✨ New in 1.1.0:                                                     -->
+<!--     • Complete English documentation                                   -->
+<!--     • All comments and UI text translated to English                   -->
+<!--     • Added copyright header and attribution footer                    -->
+<!--     • Fixed encoding issues                                            -->
+<!--     • Fixed SonarQube code quality issues                              -->
+<!--     • Removed unused variables                                         -->
+<!--                                                                        -->
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MDR Sachsen-Anhalt — Now Playing</title>
+  <style>
+    /* ===========================================
+       Base Reset & Transparent Background
+       Transparent for OBS browser source
+       =========================================== */
+    html, body { 
+      margin: 0; 
+      background: transparent; 
+      font-family: Inter, system-ui, Arial; 
+    }
+
+    /* ===========================================
+       CSS Custom Properties (Theme Variables)
+       =========================================== */
+    :root {
+      /* Finja accent colors */
+      --accent-a: #ff6ad5;  /* Pink */
+      --accent-b: #7aa2ff;  /* Cyan */
+      --panel-bg: rgba(16,18,26,.88);
+      --panel-border: rgba(255,255,255,.08);
+      --txt: #eef3ff; 
+      --sub: #c6cfe6;
+      --radius: 16px;
+      --shadow: 0 8px 22px rgba(0,0,0,.26);
+
+      /* Size "readable-compact" */
+      --card-w: 720px;      /* Sweet spot between 880 and 640 */
+      --pad-x: 18px;
+      --pad-y: 16px;
+
+      --fs-h1: 26px;        /* Title */
+      --fs-h2: 19px;        /* Artist */
+      --fs-meta: 13px;      /* Source */
+      --fs-chip: 13px;      /* Genres text */
+      --fs-react: 18px;     /* Finja response */
+    }
+
+    /* ===========================================
+       Layout Container
+       No 100vh - important for OBS edge handling
+       =========================================== */
+    .wrap { 
+      display: block; 
+      padding: 0; 
+    }
+
+    /* ===========================================
+       Main Card Component
+       Pink/Cyan gradient overlay effect
+       =========================================== */
+    .card {
+      width: min(var(--card-w), 94vw);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(120% 140% at 80% 0%, rgba(122,162,255,.18) 0%, transparent 60%),
+        radial-gradient(120% 140% at 0% 100%, rgba(255,106,213,.16) 0%, transparent 60%),
+        var(--panel-bg);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--panel-border);
+      position: relative; 
+      overflow: hidden;
+    }
+
+    /* Glowing gradient border effect */
+    .card::before {
+      content: ""; 
+      position: absolute; 
+      inset: -1px;
+      background: conic-gradient(from 150deg, var(--accent-a), var(--accent-b), var(--accent-a));
+      filter: blur(16px); 
+      opacity: .20; 
+      z-index: 0;
+    }
+
+    .content { 
+      position: relative; 
+      z-index: 1; 
+      padding: var(--pad-y) var(--pad-x); 
+    }
+
+    /* ===========================================
+       Header Section
+       =========================================== */
+    header { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      margin-bottom: 10px; 
+    }
+
+    /* Station name pill badge */
+    .pill {
+      padding: 4px 9px; 
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+      color: #0b0f1a; 
+      font-weight: 800; 
+      font-size: 12px; 
+      letter-spacing: .2px;
+    }
+
+    /* Live indicator */
+    .live { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 6px; 
+      color: var(--sub); 
+      font-size: 12px; 
+    }
+
+    /* Animated dot for live indicator */
+    .dot { 
+      width: 6px; 
+      height: 6px; 
+      border-radius: 50%;
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+      box-shadow: 0 0 6px var(--accent-a), 0 0 6px var(--accent-b);
+    }
+
+    /* ===========================================
+       Song Title & Artist
+       Clear, high contrast for readability
+       =========================================== */
+    h1 { 
+      margin: 2px 0 0; 
+      font-size: var(--fs-h1); 
+      line-height: 1.2; 
+      color: var(--txt); 
+      font-weight: 900; 
+      letter-spacing: .2px; 
+    }
+
+    h2 { 
+      margin: 2px 0 0; 
+      font-size: var(--fs-h2); 
+      line-height: 1.25; 
+      color: var(--sub); 
+      font-weight: 600; 
+    }
+
+    /* ===========================================
+       Meta Section (Source + Equalizer)
+       =========================================== */
+    .meta { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      margin-top: 8px; 
+      color: var(--sub); 
+      font-size: var(--fs-meta); 
+    }
+
+    .src { 
+      opacity: .95; 
+    }
+
+    /* Animated equalizer bars */
+    .eq { 
+      height: 16px; 
+      display: flex; 
+      gap: 3px; 
+      align-items: flex-end; 
+      margin-left: auto; 
+      opacity: .9; 
+    }
+
+    .bar { 
+      width: 3px; 
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--accent-b), var(--accent-a));
+      animation: bop 1.2s ease-in-out infinite;
+    }
+
+    .bar:nth-child(2) { animation-delay: .15s; }
+    .bar:nth-child(3) { animation-delay: .30s; }
+    .bar:nth-child(4) { animation-delay: .45s; }
+    .bar:nth-child(5) { animation-delay: .60s; }
+
+    @keyframes bop { 
+      0%, 100% { height: 16%; } 
+      50% { height: 100%; } 
+    }
+
+    /* ===========================================
+       Content Stack (Genres + Response)
+       =========================================== */
+    .stack { 
+      margin-top: 12px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+    }
+
+    /* Slim genres pill with good contrast */
+    .genres {
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      flex-wrap: wrap;
+      color: #0b0f1a; 
+      font-weight: 800; 
+      font-size: var(--fs-chip);
+      background: linear-gradient(90deg, rgba(255,106,213,.97), rgba(122,162,255,.97));
+      padding: 7px 12px; 
+      border-radius: 11px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.14);
+    }
+
+    .genres .label {
+      background: rgba(255,255,255,.30);
+      color: #0b0f1a; 
+      padding: 2px 8px; 
+      border-radius: 999px; 
+      font-size: 11px; 
+      font-weight: 900; 
+      text-transform: uppercase;
+    }
+
+    .genres .text { 
+      color: #0b0f1a; 
+      font-weight: 900; 
+    }
+
+    /* ===========================================
+       Finja's Response Box
+       Subtle panel with full readability
+       =========================================== */
+    .react {
+      padding: 10px 12px; 
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--txt);
+      font-size: var(--fs-react);
+      font-weight: 800;
+    }
+
+    /* ===========================================
+       Error Message
+       =========================================== */
+    .err { 
+      margin-top: 8px; 
+      font-size: 12px; 
+      color: #ff98c9; 
+    }
+
+    /* ===========================================
+       Attribution Footer (Dev Mode Only)
+       =========================================== */
+    #attribution {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(12, 14, 20, 0.8);
+      color: #eaf1ff;
+      font: 11px/1.4 system-ui, sans-serif;
+      border-radius: 10px;
+      border: 1px solid rgba(122, 162, 255, 0.3);
+      z-index: 2147483646;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
+    .dev #attribution {
+      display: block;
+    }
+    #attribution a {
+      color: #7aa2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #attribution a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="wrap">
+    <div class="card">
+      <div class="content">
+        <!-- Header with station badge and live indicator -->
+        <header>
+          <span class="pill">MDR SACHSEN-ANHALT</span>
+          <div class="live"><span class="dot"></span> Live</div>
+        </header>
+
+        <!-- Song title and artist -->
+        <h1 id="title">Loading Title…</h1>
+        <h2 id="artist">Please wait…</h2>
+
+        <!-- Meta info: source and equalizer animation -->
+        <div class="meta">
+          <div class="src" id="source">Source: —</div>
+          <div class="eq" aria-hidden="true">
+            <div class="bar" style="height:60%"></div>
+            <div class="bar" style="height:30%"></div>
+            <div class="bar" style="height:75%"></div>
+            <div class="bar" style="height:45%"></div>
+            <div class="bar" style="height:85%"></div>
+          </div>
+        </div>
+
+        <!-- Genres and Finja's response -->
+        <div class="stack">
+          <div class="genres">
+            <span class="label">Genres</span>
+            <span class="text" id="genres">—</span>
+          </div>
+          <div class="react" id="react">Listening…</div>
+        </div>
+
+        <!-- Error message (hidden by default) -->
+        <div class="err" id="err" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attribution (visible in dev mode only) -->
+  <div id="attribution">
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:10px;">MIT License — Free to use & modify</span>
+  </div>
+
+  <script>
+    // ===========================================
+    // Initialization
+    // ===========================================
+    
+    /**
+     * Shorthand for getElementById
+     */
+    const $ = (id) => document.getElementById(id);
+
+    // Enable dev mode if ?dev=1 or #dev=1
+    (function initDevMode() {
+      const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+      const searchParams = new URLSearchParams(location.search);
+      if (hashParams.get('dev') === '1' || searchParams.get('dev') === '1') {
+        document.body.classList.add('dev');
+      }
+    })();
+
+    // ===========================================
+    // File Reading
+    // ===========================================
+    
+    /**
+     * Fetch text content from a file with cache-busting
+     * @param {string} path - Path to the file
+     * @returns {Promise<string>} File content
+     * @throws {Error} If fetch fails
+     */
+    async function fetchText(path) {
+      const res = await fetch(path + "?_=" + Date.now(), { cache: "no-store" });
+      
+      // Throw proper Error object (NOSONAR: S3696)
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status + " @ " + path);
+      }
+      
+      return res.text();
+    }
+
+    // ===========================================
+    // Text Parsing
+    // ===========================================
+    
+    /**
+     * Parse a "Title — Artist" line into separate parts
+     * Handles various separator formats
+     * @param {string} line - Raw line from nowplaying.txt
+     * @returns {{title: string, artist: string}} Parsed title and artist
+     */
+    function parseLine(line) {
+      const s = (line || "").trim();
+      
+      // Try various separators (em-dash, en-dash, hyphen, etc.)
+      const seps = [" — ", " - ", " – ", " —", " -", " –", "—", "-", "–"];
+      for (const sep of seps) {
+        if (s.includes(sep)) {
+          const [left, right] = s.split(sep);
+          return { 
+            title: (left || "").trim(), 
+            artist: (right || "").trim() 
+          };
+        }
+      }
+      
+      // Fallback: try "Title by Artist" format
+      const byIdx = s.toLowerCase().lastIndexOf(" by ");
+      if (byIdx > 0) {
+        return { 
+          title: s.slice(0, byIdx).trim(), 
+          artist: s.slice(byIdx + 4).trim() 
+        };
+      }
+      
+      // No separator found - return whole string as title
+      return { title: s, artist: "" };
+    }
+
+    // ===========================================
+    // Main Update Loop
+    // ===========================================
+    
+    /**
+     * Update all display elements from files
+     * Called periodically to refresh the display
+     */
+    async function tick() {
+      try {
+        // Fetch nowplaying and source in parallel
+        const [line, src] = await Promise.all([
+          fetchText('../Nowplaying/nowplaying.txt').catch(() => "-"),
+          fetchText('../Nowplaying/now_source.txt').catch(() => "-")
+        ]);
+        
+        // Parse and display title/artist
+        const { artist, title } = parseLine((line || "").trim());
+        $("title").textContent = title || "—";
+        $("artist").textContent = artist || "—";
+        $("source").textContent = "Source: " + ((src || "").trim() || "—");
+
+        // Fetch genres and reaction in parallel
+        const [genres, react] = await Promise.all([
+          fetchText('../Nowplaying/obs_genres.txt').catch(() => "-"),
+          fetchText('../Nowplaying/obs_react.txt').catch(() => "-")
+        ]);
+        
+        $("genres").textContent = (genres || "—").trim() || "—";
+        $("react").textContent = (react || "—").trim() || "—";
+
+        // Hide error message on success
+        $("err").hidden = true;
+        
+      } catch (e) {
+        // Show error message
+        $("err").hidden = false;
+        $("err").textContent = "Error loading: " + e.message;
+      }
+    }
+
+    // ===========================================
+    // Start the Update Loop
+    // ===========================================
+    
+    // Run initial update immediately
+    // Note: Not using top-level await for OBS browser compatibility (NOSONAR: S7785)
+    tick();
+    
+    // Poll every 2 seconds
+    setInterval(tick, 2000);
+  </script>
+    <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</body>
+</html>
