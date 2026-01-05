@@ -47,12 +47,12 @@ jobs:
           pip install websocket-client || true
 
       - name: Run Music Engine tests
-        working-directory: ./Finja-music/finja-everthing-in-once
+        working-directory: ./Finja-music/finja-everything-in-once
         run: |
           pytest test_music_webserver.py -v --tb=short
 
       - name: Generate coverage report
-        working-directory: ./Finja-music/finja-everthing-in-once
+        working-directory: ./Finja-music/finja-everything-in-once
         run: |
           pytest test_music_webserver.py --cov=. --cov-report=term --cov-report=xml
 
