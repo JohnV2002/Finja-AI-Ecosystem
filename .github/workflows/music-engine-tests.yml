@@ -60,4 +60,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-music-engine-${{ matrix.python-version }}
-          path: Finja-music/finja-everthing-in-once/coverage.xml
+          path: Finja-music/finja-everything-in-once/coverage.xml
