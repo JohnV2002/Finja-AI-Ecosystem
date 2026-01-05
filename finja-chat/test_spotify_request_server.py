@@ -6,10 +6,12 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.2.1
+  Version: 2.2.2
   Description: Unit tests for Spotify song request server.
 
-  ✨ New in 2.2.1:
+  ✨ New in 2.2.2: -
+
+  📜 New in 2.2.1:
     • Complete English documentation with docstrings
     • Improved test coverage for edge cases
     • Type hints for better IDE support
@@ -24,6 +26,8 @@
     • Chat command validation tests
     • Cooldown enforcement tests
     • Moderator permission tests
+
+----------------------------------------------------------------------
 
   Copyright (c) 2026 J. Apps
   Licensed under the MIT License.

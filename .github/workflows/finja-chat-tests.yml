@@ -1,4 +1,3 @@
-# .github/workflows/finja-chat-tests.yml
 name: Finja Chat Tests
 
 on:
@@ -29,11 +28,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Updated cache key to be more flexible (checking any requirements.txt)
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('finja-chat/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -52,11 +52,17 @@ jobs:
       - name: Run spotify_request_server tests
         working-directory: ./finja-chat
         env:
+          # Mock credentials for testing environment
           SPOTIPY_CLIENT_ID: "test_client_id"
           SPOTIPY_CLIENT_SECRET: "test_client_secret"
           SPOTIPY_REDIRECT_URI: "http://localhost:8888/callback"
         run: |
           pytest test_spotify_request_server.py -v --tb=short
+
+      - name: Run startup script sanity checks
+        working-directory: ./finja-chat
+        run: |
+          pytest test_batch_files.py -v --tb=short
 
       - name: Generate coverage report
         working-directory: ./finja-chat

@@ -7,9 +7,14 @@
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
   Version: 2.2.1
-  Description: Unit tests for VPet command bridge server.
+  Description: Unit tests for command bridge server.
 
-  ✨ New in 2.2.1:
+  ✨ New in 2.2.2:
+    • Added CORS header validation tests
+    • Added specific test for 'null' JSON body payload
+    • Updated docstrings to reflect expanded coverage
+  
+  📜 New in 2.2.1:
     • Complete English documentation with docstrings
     • Improved test coverage and edge cases
     • Type hints for better IDE support
@@ -22,6 +27,8 @@
     • Command persistence validation
     • Timestamp update verification
 
+----------------------------------------------------------------------
+    
   Copyright (c) 2026 J. Apps
   Licensed under the MIT License.
 
@@ -82,6 +89,26 @@ class TestCommandBridge:
         assert 'command' in data
         assert 'timestamp' in data
 
+    def test_cors_headers(self, client) -> None:
+        """
+        Test that CORS headers are present.
+        
+        Verifies that the API allows cross-origin requests, which is
+        critical for the browser-based bot to communicate with the server.
+        """
+        # Test basic POST request
+        response = client.post(
+            '/command',
+            data=json.dumps({'command': 'test'}),
+            content_type='application/json'
+        )
+        assert response.headers.get('Access-Control-Allow-Origin') == '*'
+        
+        # Test OPTIONS request (Preflight)
+        # Flask-CORS usually handles this automatically
+        response = client.options('/command')
+        assert response.headers.get('Access-Control-Allow-Origin') == '*'
+
     def test_post_command_success(self, client) -> None:
         """
         Test POST /command with valid data.
@@ -103,7 +130,7 @@ class TestCommandBridge:
 
     def test_post_command_no_json(self, client) -> None:
         """
-        Test POST /command without JSON body.
+        Test POST /command without JSON content-type.
         
         Verifies that the server properly rejects requests
         without a JSON payload and returns 415 Unsupported Media Type.
@@ -112,6 +139,26 @@ class TestCommandBridge:
         
         # Flask returns 415 when Content-Type is not application/json
         assert response.status_code == 415
+
+    def test_post_command_json_null_body(self, client) -> None:
+        """
+        Test POST /command with explicit 'null' JSON body.
+        
+        Verifies that providing 'null' as the JSON body triggers
+        the explicit 'Request must be JSON' error check in the code.
+        This covers the 'if not data:' check.
+        """
+        response = client.post(
+            '/command',
+            data='null', # Sends literal null, which parses to None in Python
+            content_type='application/json'
+        )
+        
+        # This should hit the 'if not data:' block returning 400
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert data['message'] == 'Request must be JSON'
 
     def test_post_command_missing_command(self, client) -> None:
         """
@@ -151,7 +198,7 @@ class TestCommandBridge:
         """
         Test POST /command with null command value.
         
-        Verifies that null values are rejected as invalid commands.
+        Verifies that null values for the command key are rejected.
         """
         response = client.post(
             '/command',
