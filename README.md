@@ -51,9 +51,9 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 
 | Hauptkomponente | Status | Bemerkungen |
 | :--- | :--- | :--- |
-| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert 0 Sonar und Snyk Fehler!! |
+| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert | 0 Sonar und Snyk Fehler!! |
 | **finja-music** | 🔵 Stabil | Verschiedene Versionen verfügbar |
-| &nbsp;&nbsp;└─ finja-everthing-in-once | 🔵 Stabil | Empfohlene Web-UI-Version |
+| &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | Empfohlene Web-UI-Version | 1 real Sonar und 15 False Positiv Snyk Fehler!! |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | 🔵 Stabil | Docker-Version (Spotify only) |
 | &nbsp;&nbsp;└─ finja-music-standalone | 🔵 Stabil | Klassisches modulares System |
 | **finja-Open-Web-UI** | 🔵 Stabil | Module einsatzbereit |
