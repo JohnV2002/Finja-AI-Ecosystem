@@ -51,14 +51,14 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 
 | Hauptkomponente | Status | Bemerkungen |
 | :--- | :--- | :--- |
-| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert |
-| **finja-music** | 🟢 Stabil | Verschiedene Versionen verfügbar |
-| &nbsp;&nbsp;└─ finja-everthing-in-once | 🟢 Stabil | Empfohlene Web-UI-Version |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🟢 Stabil | Docker-Version (Spotify only) |
-| &nbsp;&nbsp;└─ finja-music-standalone | 🟢 Stabil | Klassisches modulares System |
-| **finja-Open-Web-UI** | 🟢 Stabil | Module einsatzbereit |
+| **finja-chat** | 🟢 Stabil | LLM-Support integriert, modularisiert 0 Sonar und Snyk Fehler!! |
+| **finja-music** | 🔵 Stabil | Verschiedene Versionen verfügbar |
+| &nbsp;&nbsp;└─ finja-everthing-in-once | 🔵 Stabil | Empfohlene Web-UI-Version |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | 🔵 Stabil | Docker-Version (Spotify only) |
+| &nbsp;&nbsp;└─ finja-music-standalone | 🔵 Stabil | Klassisches modulares System |
+| **finja-Open-Web-UI** | 🔵 Stabil | Module einsatzbereit |
 | &nbsp;&nbsp;└─ finja-Memory | 🔵 Update | Voice hinzugefügt, Checks laufen |
-| &nbsp;&nbsp;└─ finja-ocr | 🟢 Stabil | Funktioniert einwandfrei |
+| &nbsp;&nbsp;└─ finja-ocr | 🔵 Stabil | Funktioniert einwandfrei |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | 🟢 Stabil | Setup fertig, Tests fehlen |
 | &nbsp;&nbsp;└─ finja-tts | 🟡 WIP | Release geplant |
 | **OWN / Self made VPet** | 🟡 Dev | **LIVE auf Twitch!** Eigener Python-Core, ersetzt VPet-Sim. |
@@ -206,8 +206,8 @@ Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 
 #### ✅ Automated Tests
 [![Finja Chat Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml)
+[![Finja Music Everything in once Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml)
 [![OpenWebUI Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml)
-[![Music Engine Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-engine-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-engine-tests.yml)
 [![Code Quality](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml)
 [![Comprehensive Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml)
 
