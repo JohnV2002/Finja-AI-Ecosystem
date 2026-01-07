@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ======================================================================
-            Finja Music App - Unit Tests 
+            Finja Music App - Unit Tests
 ======================================================================
 
   Project: Finja - Twitch Interactivity Suite

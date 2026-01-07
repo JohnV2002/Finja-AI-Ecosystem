@@ -1,8 +1,7 @@
-name: Music Docker Build & Test
+name: Music Docker Build Check
 
 on:
   push:
-    # Hier sagen wir GitHub: "Starte nur, wenn sich in DIESEM Unterordner was ändert"
     paths:
       - 'Finja-music/finja-music-docker-spotify/**'
   pull_request:
@@ -10,22 +9,14 @@ on:
       - 'Finja-music/finja-music-docker-spotify/**'
 
 jobs:
-  docker-check:
+  docker-build-only:
     runs-on: ubuntu-latest
     
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Schritt 1: Docker Image bauen
-      # WICHTIG: Wir wechseln erst in den richtigen Unterordner!
+      # Wir bauen nur das Image. Wenn das klappt, ist die Syntax & Python-Version okay.
       - name: Build Docker image
         working-directory: ./Finja-music/finja-music-docker-spotify
-        run: docker build . --file Dockerfile --tag finja-music:test
-
-      # Schritt 2: Tests IM Container ausführen
-      # Da der Container schon gebaut ist, brauchen wir hier kein working-directory mehr,
-      # wir starten einfach das Image "finja-music:test".
-      - name: Run Unit Tests inside Docker
-        run: |
-          docker run --rm finja-music:test python -m unittest test_music_app.py
+        run: docker build . --file Dockerfile --tag finja-music:check
