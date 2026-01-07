@@ -1,53 +1,64 @@
 # =====================================================================
-#  Project: Finja Cloud Musik API Docker - Dockerfile: v1.0.0
-#  Author:  JohnV2002 (J. Apps / Sodakiller1)
-#  License: MIT License (c) 2025 J. Apps
+#  Project: Finja Cloud Musik API Docker - Dockerfile
+#  Module: finja-music-docker-spotify
+#  Author: J. Apps (JohnV2002 / Sodakiller1)
+#  Version: 1.0.1
+#  Description: Dockerfile for the Music API service.
+#
+#  ✨ New in 1.0.1:
+#    • Fixed SonarQube issue docker:S7019 (Shell form to Exec form)
+#    • Translated comments to English
+#    • Updated copyright to 2026
+#
+# ---------------------------------------------------------------------
+#  Copyright (c) 2026 J. Apps
+#  Licensed under the MIT License.
 # =====================================================================
 
 # Stage 1: Builder
-# Hier werden die Abhängigkeiten kompiliert und installiert.
+# Compile and install dependencies here.
 FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-# Installiere Build-Tools
+# Install build tools
 RUN apk add --no-cache gcc linux-headers musl-dev
 
-# Kopiere die requirements.txt
+# Copy requirements.txt
 COPY requirements.txt .
 
-# Installiere die Python-Abhängigkeiten
+# Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # ---
 
 # Stage 2: Final
-# Das ist das eigentliche Image, das am Ende verwendet wird.
+# This is the actual image used at the end.
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Erstelle Verzeichnisse, User und setze Rechte
+# Create directories, user, and set permissions
 RUN addgroup -S appgroup && \
     adduser -S appuser -G appgroup && \
     mkdir -p Nowplaying Memory SongsDB cache && \
     chown -R appuser:appgroup /app Nowplaying Memory SongsDB cache
 
-# Kopiere die installierten Pakete aus der Builder-Stage.
+# Copy installed packages from the builder stage
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-# HIER IST DIE NEUE ZEILE: Kopiere die ausführbaren Dateien (wie uvicorn)
+# Copy executable files (like uvicorn)
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Kopiere den gesamten Anwendungscode
+# Copy the entire application code
 COPY --chown=appuser:appgroup . .
 
-# Wechsle zum unprivilegierten Benutzer
+# Switch to non-privileged user
 USER appuser
 
-# Gib den Port an
-EXPOSE 8000
+# Expose the port
+EXPOSE 8022
 
-# Standard-Startbefehl
-CMD uvicorn app:app --host 0.0.0.0 --port 8000
+# Standard start command (Exec form to satisfy SonarQube S7019)
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8022"]

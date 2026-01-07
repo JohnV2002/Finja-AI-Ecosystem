@@ -54,7 +54,7 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 | **finja-chat** | **v2.2.1** | 🟢 Stabil | LLM-Support integriert, modularisiert | **0 Fehler** (Sauber! 🎉) |
 | **finja-music** | | 🔵 Stabil | Verschiedene Versionen verfügbar | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stabil | **Empfohlene Web-UI-Version** | 1 Real / 15 False Positive |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | | 🔵 Stabil | Docker-Version (Spotify only) | |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.0.1** | 🟢 Stabil | Docker-Version (Spotify only) | 5 False Postive |
 | &nbsp;&nbsp;└─ finja-music-standalone | | 🔵 Stabil | Klassisches modulares System | |
 | **finja-Open-Web-UI** | | 🔵 Stabil | Module einsatzbereit | |
 | &nbsp;&nbsp;└─ finja-Memory | | 🔵 Update | Voice hinzugefügt, Checks laufen | |
@@ -207,6 +207,7 @@ Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 #### ✅ Automated Tests
 [![Finja Chat Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml)
 [![Finja Music Everything in once Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml)
+[![Finja Music Docker Spotify Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-docker-spotify.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-docker-spotify.yml)
 [![OpenWebUI Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml)
 [![Code Quality](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml)
 [![Comprehensive Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml)

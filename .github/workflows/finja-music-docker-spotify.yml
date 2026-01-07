@@ -1,0 +1,70 @@
+name: Finja Music Docker Spotify Tests
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      # Monitor changes in the specific module folder
+      - 'Finja-music/finja-music-docker-spotify/**'
+      # Monitor changes to this workflow file
+      - '.github/workflows/finja-music-docker-spotify.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'Finja-music/finja-music-docker-spotify/**'
+      - '.github/workflows/finja-music-docker-spotify.yml'
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          # Hash based on the module's requirements.txt
+          key: ${{ runner.os }}-pip-spotify-${{ hashFiles('Finja-music/finja-music-docker-spotify/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-spotify-
+
+      - name: Install dependencies
+        working-directory: ./Finja-music/finja-music-docker-spotify
+        run: |
+          python -m pip install --upgrade pip
+          # Test Tools
+          pip install pytest pytest-cov pytest-mock httpx
+          # App Dependencies (Core requirements)
+          pip install fastapi uvicorn requests
+          # Install from requirements.txt if present
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run app tests
+        working-directory: ./Finja-music/finja-music-docker-spotify
+        run: |
+          # Running the specific test file as requested
+          pytest test_music_app.py -v --tb=short
+
+      - name: Generate coverage report
+        working-directory: ./Finja-music/finja-music-docker-spotify
+        run: |
+          pytest test_music_app.py --cov=. --cov-report=term --cov-report=xml
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-finja-music-spotify-${{ matrix.python-version }}
+          path: Finja-music/finja-music-docker-spotify/coverage.xml

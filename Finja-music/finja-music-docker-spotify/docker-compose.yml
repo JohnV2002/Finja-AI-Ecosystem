@@ -1,8 +1,17 @@
 # =====================================================================
 #  Project: Finja Musik Docker Spotify - Docker Compose
-#  Version: 1.0.0
-#  Author:  JohnV2002 (J. Apps / Sodakiller1)
-#  License: MIT License (c) 2025 J. Apps
+#  Module: finja-music-docker-spotify
+#  Author: J. Apps (JohnV2002 / Sodakiller1)
+#  Version: 1.0.1
+#  Description: Docker Compose configuration for the Music API service.
+#
+#  ✨ New in 1.0.1:
+#    • Updated port mapping to match Dockerfile (8022)
+#    • Updated copyright to 2026
+#
+# ---------------------------------------------------------------------
+#  Copyright (c) 2026 J. Apps
+#  Licensed under the MIT License.
 # =====================================================================
 
 version: '3.8'
@@ -14,7 +23,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "8022:8022"
     volumes:
       - ./Nowplaying:/app/Nowplaying
       - ./Memory:/app/Memory
