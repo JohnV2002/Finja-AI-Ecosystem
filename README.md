@@ -18,8 +18,8 @@
 >
 > 2026 ist da und Finja bekommt das größte Upgrade aller Zeiten. Hier ist der Plan für dieses Jahr:
 >
-> 1.  🛠️ **Quality First:** Ich überarbeite den Code fast einmal komplett manuell (+ Hilfe von Sonar), um echten Quality-Code zu liefern.
-> 2.  🐛 **Bug-Hunting:** Diverse Fixes stehen an.
+> 1.  🛠️ **Quality First:** Ich überarbeite den Code fast einmal komplett manuell *hust hust* eh manuell ist doch etwas anstrengend für mein ADS *hust hust* (+ Hilfe von Sonar), um echten Quality-Code zu liefern. DONE= 20 ish %
+> 2.  🐛 **Bug-Hunting:** Diverse Fixes stehen an. = LÄUFT
 > 3.  🧠 **Memory Update:** Voice-Support ist hinzugefügt! (Checks müssen noch gemacht werden).
 > 4.  🐾 **Own VPet Program:** Mein eigenes VPet ist in voller Bearbeitung!
 >     * 👀 Kann ab sofort **24/7 auf Twitch** beobachtet werden.
