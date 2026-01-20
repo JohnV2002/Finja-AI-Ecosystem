@@ -14,11 +14,11 @@
 > [!IMPORTANT]
 > # 🚀 ROADMAP 2026 – WE ARE BACK!
 >
-> **Status:** 🟢 *Active Development & New Features*
+> **Status:** 🟢 *Quality First = 20%*
 >
 > 2026 ist da und Finja bekommt das größte Upgrade aller Zeiten. Hier ist der Plan für dieses Jahr:
 >
-> 1.  🛠️ **Quality First:** Ich überarbeite den Code fast einmal komplett manuell *hust hust* eh manuell ist doch etwas anstrengend für mein ADS *hust hust* (+ Hilfe von Sonar), um echten Quality-Code zu liefern. DONE= 20 ish %
+> 1.  🛠️ **Quality First:** Ich überarbeite den Code fast einmal komplett manuell *hust hust* eh manuell ist doch etwas anstrengend für mein ADS *hust hust* (+ Hilfe von Sonar), um echten Quality-Code zu liefern.
 > 2.  🐛 **Bug-Hunting:** Diverse Fixes stehen an. = LÄUFT
 > 3.  🧠 **Memory Update:** Voice-Support ist hinzugefügt! (Checks müssen noch gemacht werden).
 > 4.  🐾 **Own VPet Program:** Mein eigenes VPet ist in voller Bearbeitung!
