@@ -233,10 +233,13 @@ Finja sagt: *“Stay hydrated, Chat 💖”*
 
 ---
 
-## 📜 License
+## License & Usage
 
-MIT-License.
-Alle Module sind Open-Source – das **LLM bleibt privat**.
+**Code:** MIT License - Fork it, use it, build with it! Free for everyone.
+
+**Assets & Character:** The Finja character design, personality, voice model, artwork, and lore are **© 2024-2026 J. Apps**. All rights reserved.
+
+Want to use Finja's likeness or assets? Contact: [contact@jappshome.de]
 
 ---
 
