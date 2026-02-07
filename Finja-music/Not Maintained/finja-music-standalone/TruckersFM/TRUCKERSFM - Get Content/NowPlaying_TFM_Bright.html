@@ -1,29 +1,25 @@
 <!-- ====================================================================== -->
-
-<!--           Finja's Brain & Knowledge Core - TruckersFM                  -->
-
+<!--          NowPlaying TFM Bright - OBS Stream Overlay                    -->
 <!-- ====================================================================== -->
-
 <!--                                                                        -->
-
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
-
-<!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
-
+<!--   Module: finja-music-standalone                                       -->
+<!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
 <!--   Version: 1.0.0                                                       -->
-
-<!--   Description: HTML für TruckersFM.                                    -->
-
+<!--   Description: Bright-themed OBS overlay displaying the currently      -->
+<!--                playing song from TruckersFM with genre chips           -->
+<!--                and Finja's reaction text.                              -->
 <!--                                                                        -->
-
-<!--   Copyright (c) 2025 J. Apps                                           -->
-
+<!-- ---------------------------------------------------------------------- -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
 <!--   Licensed under the MIT License.                                      -->
-
+<!--                                                                        -->
+<!--                                                                        -->
 <!-- ====================================================================== -->
 
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -90,11 +86,11 @@
     .chip{
       font: 800 18px/1.3 system-ui, sans-serif;
       padding: 10px 14px; border-radius:14px;
-      background: rgba(255,255,255,.18); color:#eaf7ff;
+      background: rgba(255,255,255,.18); color:#6d6d6d;
       text-shadow: 0 0 10px rgba(0,0,0,.35);
       white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
     }
-    /* Special-Tags: weiße Outline, kein Farbwechsel am Theme */
+    /* Special tags: white outline, no theme color change */
     .chip--special{
       background: transparent;
       border: 1px solid rgba(255,255,255,.8);
@@ -104,14 +100,14 @@
 
     .react{
       grid-area: react; justify-self:end; align-self:start;
-      border-radius:16px; background: rgba(160,122,255,.25); color:#fff;
+      border-radius:16px; background: rgba(160,122,255,.25); color:#1f1f1f;
       box-shadow: 0 2px 10px rgba(0,0,0,.35);
       font: 800 16px/1.25 system-ui, sans-serif;
       padding: 8px 14px;
-      /* Wichtige Anpassungen für sehr lange Texte: */
-      max-width: 64ch;         /* vorher 40ch */
+      /* Adjustments for very long text: */
+      max-width: 64ch;
       white-space: normal;
-      overflow-wrap: anywhere; /* lange Wörter/URLs umbrechen */
+      overflow-wrap: anywhere; /* Break long words/URLs */
       word-break: normal;
       transition: opacity 2s ease;
     }
@@ -119,7 +115,34 @@
     @media (max-width: 600px){
       .title{ font-size:28px; }
       .chip { font-size:15px; }
-      .react{ font-size:15px; max-width: 70vw; } /* auf schmalen Szenen etwas breiter relativ */
+      .react{ font-size:15px; max-width: 70vw; }
+    }
+
+    /* Attribution (visible in dev mode only) */
+    #attribution {
+      position: fixed;
+      left: 10px;
+      top: 10px;
+      padding: 8px 12px;
+      background: rgba(12, 14, 20, 0.8);
+      color: #eaf1ff;
+      font: 11px/1.4 Inter, system-ui, Arial;
+      border-radius: 10px;
+      border: 1px solid rgba(122, 162, 255, 0.3);
+      z-index: 2147483646;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
+    .dev #attribution {
+      display: block;
+    }
+    #attribution a {
+      color: #7aa2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #attribution a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -127,33 +150,46 @@
   <div class="wrap">
     <div class="card" id="card">
       <div class="label"><span class="dot"></span><span id="label">TruckersFM</span></div>
-      <div class="title" id="np">Lade…</div>
+      <div class="title" id="np">Loading…</div>
       <div class="genres" id="genres"></div>
       <div class="react" id="react" style="display:none;"></div>
     </div>
   </div>
 
-  <script>
+  <!-- Attribution (visible in dev mode) -->
+  <div id="attribution">
+    Made with ❤️ by <a href="https://twitch.tv/sodakiller1" target="_blank">Sodakiller1</a> (J. Apps / JohnV2002)
+    <br>
+    <span style="opacity:0.7;font-size:10px;">MIT License — Free to use &amp; modify</span>
+  </div>
+
+  <script type="module">
     const qs = () => new URLSearchParams(location.hash.replace(/^#/, ''));
     const $  = s => document.querySelector(s);
     const setVar = (n,v) => v != null && document.documentElement.style.setProperty(n, v);
 
+    // Enable dev mode attribution via ?dev=1
     (function init(){
+      const urlParams = new URLSearchParams(location.search);
+      if (urlParams.get('dev') === '1') {
+        document.body.classList.add('dev');
+      }
+
       const p = qs();
-      if (p.get('w'))   setVar('--w', p.get('w') + 'px');
-      if (p.get('fs'))  $('.title').style.fontSize = p.get('fs') + 'px';
+      if (p.get('w'))     setVar('--w', p.get('w') + 'px');
+      if (p.get('fs'))    $('.title').style.fontSize = p.get('fs') + 'px';
       if (p.get('label')) $('#label').textContent = p.get('label');
     })();
 
     async function readFile(path){
       try{
         const r = await fetch(path + (path.includes('?') ? '&' : '?') + 'ts=' + Date.now());
-        if(!r.ok) throw 0;
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
         return (await r.text()).trim();
       }catch{ return ""; }
     }
 
-    // Specials inkl. Bindestrich-Varianten abfangen
+    // Catch special tags including hyphenated variants
     const SPECIAL_PATTERNS = [
       /(^|\s)night[\s-]*core($|\s)/i,
       /(^|\s)speed[\s-]*up($|\s)/i,
@@ -173,10 +209,10 @@
       const box = $('#genres'); box.innerHTML = "";
       if(!text) return;
 
-      // Split an • , |  (wie bisher)
-      const parts = text.split(/•|,|\|/).map(s => s.trim()).filter(Boolean);
+      // Split on bullet, comma, or pipe
+      const parts = text.split(/[•,|]/).map(s => s.trim()).filter(Boolean);
 
-      // In zwei Gruppen aufteilen: normale Tags vs. Specials
+      // Separate into normal tags vs specials
       const normal = [];
       const special = [];
       for(const p of parts){
@@ -184,7 +220,7 @@
         else normal.push(p);
       }
 
-      // zuerst normale Tags
+      // Render normal tags first
       for(const p of normal){
         const chip = document.createElement('div');
         chip.className = 'chip';
@@ -192,7 +228,7 @@
         box.appendChild(chip);
       }
 
-      // dann Specials (weiße Outline), nur wenn vorhanden
+      // Then specials (white outline), if any
       for(const p of special){
         const chip = document.createElement('div');
         chip.className = 'chip chip--special';
@@ -220,15 +256,15 @@
         rEl.style.display = 'inline-block';
         rEl.style.opacity = 0;
         setTimeout(()=>{
-          rEl.textContent = "Finjas Antwort: " + react;
+          rEl.textContent = "Finja's reaction: " + react;
           rEl.style.opacity = 1;
           lastReact = react;
         }, 20);
       }
     }
 
-    update();
-    setInterval(update, parseInt(qs().get('ms') || '3000', 10) || 3000);
+    await update();
+    setInterval(update, Number.parseInt(qs().get('ms') || '3000', 10) || 3000);
   </script>
 </body>
 </html>

@@ -55,7 +55,7 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 | **finja-music** | | 🔵 Stabil | Verschiedene Versionen verfügbar | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stabil | **Empfohlene Web-UI-Version** | 1 Real / 15 False Positive |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.0.1** | 🟢 Stabil | Docker-Version (Spotify only) | 5 False Postive |
-| &nbsp;&nbsp;└─ finja-music-standalone | | 🔵 Stabil | Klassisches modulares System | |
+| &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Klassisches modulares System | WONT BE UPDATED PLEASE USE THE ABOVE ONCE |
 | **finja-Open-Web-UI** | | 🔵 Stabil | Module einsatzbereit | |
 | &nbsp;&nbsp;└─ finja-Memory | | 🔵 Update | Voice hinzugefügt, Checks laufen | |
 | &nbsp;&nbsp;└─ finja-ocr | | 🔵 Stabil | Funktioniert einwandfrei | |
