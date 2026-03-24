@@ -6,149 +6,155 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 1.3.2
+  Version: 4.4.2
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
   Original Plugin: https://openwebui.com/f/alexgrama7/adaptive_memory_v2
   Author Website: https://jappshome.de
-  Support: https://buymeacoffee.com/J.Apps
-
+  Support: https://buymeacoffee.com/J.Apps 
+  
 ----------------------------------------------------------------------
  Features:
  ---------------------------------------------------------------------
-  • Serverseitiger Speicher für das "Adaptive Memory" OpenWebUI-Plugin.
-  • Speichert Erinnerungen getrennt nach User-ID in portablen JSON-Dateien.
-  • Intelligenter RAM-Cache: Hält aktive User für blitzschnelle Lesezugriffe
-    im Arbeitsspeicher und räumt sich nach Inaktivität selbst auf.
-  • Voice-Memory-Schnittstellen: Bietet Endpunkte zur Annahme von User-Sprachdateien
-    (STT) und zum Caching von KI-Sprachausgaben (TTS).
-  • Robuste REST-API auf Basis von FastAPI für alle CRUD-Operationen.
-  • Konfiguration über eine .env-Datei für mehr Sicherheit.
+  • Server-side storage for the "Adaptive Memory" OpenWebUI Plugin.
+  • Stores memories separated by User-ID in portable JSON files.
+  • Intelligent RAM Cache: Keeps active users in memory for lightning-fast
+    read access and cleans up automatically after inactivity.
+  • Voice-Memory Interfaces: Provides endpoints for accepting user audio files
+    (STT) and caching AI speech outputs (TTS).
+  • Robust REST API based on FastAPI for all CRUD operations.
+  • Configuration via a .env file for enhanced security.
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
- Updates 1.3.2:
+ Updates 4.4.2:
  ---------------------------------------------------------------------
-  + **Security Hardening (Path Traversal):** Kritische Sicherheitsverbesserungen in
-    den Endpunkten `/delete_user_memories` und `/add_voice_memory` implementiert.
-    Zusätzliche Checks (Empty-String & Path Canonicalization) verhindern nun
-    potenzielle Path-Traversal-Angriffe oder das versehentliche Löschen von
-    Hauptverzeichnissen durch manipulierte User-IDs.
-  + **Dependency Security Fix:** `starlette` in der `requirements.txt` auf
-    Version 0.50.0 aktualisiert, um eine bekannte Sicherheitslücke (Vulnerability)
-    in der älteren Version zu schließen.
+  + **True TTS Caching:** Replaced placeholder TTS generation with fully
+    implemented endpoints (`/upload_tts_cache` and `/get_tts_audio`). The
+    server now cleanly accepts generated `.wav` audio files and streams them
+    back directly on request, acting as a robust audio caching layer.
+  + **Security Hardening (Path Traversal):** Implemented critical security
+    improvements in the `/delete_user_memories` and `/add_voice_memory` endpoints.
+    Additional checks (Empty-String & Path Canonicalization) now prevent
+    potential Path Traversal attacks or accidental deletion of root directories
+    via manipulated User-IDs.
+  + **Dependency Security Fix:** Updated `starlette` in `requirements.txt` to
+    version 0.50.0 to close a known vulnerability in the older version.
+  + **Code Quality & Modernization:** Migrated FastAPI endpoints to the new
+    `Annotated` syntax to resolve IDE warnings. Properly documented all
+    HTTP-Exceptions in the endpoint schemas. Resolved false-positive
+    warnings for Hardcoded-Credentials.
 
- Updates 1.3.1:
+ Updates 4.4.1:
  ---------------------------------------------------------------------
-  + **Fix Auth Log Fehler:** Ein Check in `auth_check` hinzugefügt, um
-    einen `TypeError` beim Loggen von unautorisierten Zugriffen zu verhindern,
-    wenn der `X-API-Key` Header komplett fehlt (`key` ist None).
+  + **Fix Auth Log Error:** Added a check in `auth_check` to prevent a
+    `TypeError` when logging unauthorized access attempts if the `X-API-Key`
+    header is completely missing (`key` is None).
 
- Updates 1.3.0:
+ Updates 4.4.0:
  ---------------------------------------------------------------------
-  + **Admin Backup Endpunkt:** `POST /backup_all_now` Endpunkt hinzugefügt.
-    - Speichert alle aktuellen In-Memory-Daten auf die Festplatte.
-    - Kopiert alle Benutzer-Memory-JSON-Dateien in einen Unterordner mit Zeitstempel
-      innerhalb des neuen `backups`-Verzeichnisses.
-  + **User Backup Platzhalter:** `POST /backup_now` Endpunkt hinzugefügt.
-    - Akzeptiert eine User-ID.
-    - Führt Authentifizierung durch.
-    - Gibt derzeit eine einfache Bestätigungsnachricht zurück (Platzhalter).
-  + **Backup Verzeichnis:** `BACKUP_DIR` Konstante und Verzeichniserstellung
-    beim Start hinzugefügt.
+  + **Admin Backup Endpoint:** Added `POST /backup_all_now` endpoint.
+    - Saves all current in-memory data to disk.
+    - Copies all user memory JSON files to a timestamped subfolder
+      within the new `backups` directory.
+  + **User Backup Placeholder:** Added `POST /backup_now` endpoint.
+    - Accepts a User-ID.
+    - Performs authentication.
+    - Currently returns a simple confirmation message (Placeholder).
+  + **Backup Directory:** Added `BACKUP_DIR` constant and directory
+    creation on startup.
 
- Updates 1.2.0:
+ Updates 4.3.0:
  ---------------------------------------------------------------------
-  + **Grundgerüst für User-Input (STT):** Neuer Endpunkt `/add_voice_memory`
-    implementiert. Er kann Audiodateien annehmen, speichern und eine
-    Platzhalter-Erinnerung mit dem Dateipfad erstellen.
-  + **Grundgerüst für KI-Output (TTS-Cache):** Neuer Endpunkt `/get_or_create_speech`
-    implementiert. Er prüft, ob eine Sprachausgabe für einen Text bereits
-    existiert und simuliert die Neuerstellung, falls nicht.
+  + **Foundation for User-Input (STT):** Implemented new endpoint
+    `/add_voice_memory`. It accepts audio files, saves them, and creates a
+    placeholder memory with the file path.
+  + **Foundation for AI-Output (TTS-Cache):** Implemented new endpoint
+    `/get_or_create_speech`. It checks if speech output for a text already
+    exists and simulates creation if it doesn't.
 
- Updates 1.1.0:
+ Updates 4.2.0:
  ---------------------------------------------------------------------
-  + **Intelligenter RAM-Cache:** Der Server lädt User-Daten jetzt nur noch
-    einmalig von der Festplatte und bedient alle folgenden Anfragen aus dem
-    schnellen Arbeitsspeicher.
-  + **Automatische Speicherbereinigung:** Ein neuer Hintergrund-Thread
-    überwacht die Aktivität und entfernt inaktive User aus dem RAM.
-  + **Stabilitäts-Fixes:** Logikfehler im Zusammenhang mit dem neuen
-    Cache-System beim Server-Start und bei manuellen Backups behoben.
+  + **Intelligent RAM Cache:** The server now loads user data only once
+    from the disk and serves all subsequent requests from fast memory.
+  + **Automatic Garbage Collection:** A new background thread monitors
+    activity and removes inactive users from RAM.
+  + **Stability Fixes:** Fixed logic errors related to the new cache
+    system during server startup and manual backups.
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
  Roadmap:
  ---------------------------------------------------------------------
-  • Nutzerverwaltung & Zugriffskontrolle
-  • Optionale Datenbank-Backends (ChromaDB, Redis, SQLite)
-  • API-Authentifizierung (Token-System)
-  • Memory-Visualizer (Admin-Oberfläche)
-  • Automatische Memory-Archivierung & -Pruning
-  • Erweiterte Logging-Funktionen
+  • User Management & Access Control
+  • Optional Database Backends (ChromaDB, Redis, SQLite)
+  • API Authentication (Token System)
+  • Memory Visualizer (Admin Interface)
+  • Automatic Memory Archiving & Pruning
+  • Extended Logging Features
 
 ----------------------------------------------------------------------
  License Notice:
  ---------------------------------------------------------------------
-  Dieses Projekt basiert auf der Arbeit von gramanoid (diligent_chooser)
-  und wurde unter Beibehaltung der Apache License 2.0 veröffentlicht.
-  Alle Rechte an den Änderungen © 2025 J. Apps
+  This project is based on the work of gramanoid (diligent_chooser)
+  and is released under the Apache License 2.0.
+  All rights to modifications © 2025 J. Apps
 
-======================================================================
+=====================================================================================================================================
 """
 
 
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, HTTPException, Body, Request, UploadFile, File, Form
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Annotated
 import uuid, time, json, threading, os, hashlib, shutil # Added shutil
 from dotenv import load_dotenv
 import aiofiles
 from datetime import datetime # Added datetime for backup timestamp
 
-# Starte FastAPI-App
+# Start FastAPI App
 app = FastAPI(title="Memory Service")
 
-# Lade .env Datei
+# Load .env file
 load_dotenv()
 
-# Hole API Key aus Umgebungsvariable
+# Get API Key from environment variable
 API_KEY = os.getenv("MEMORY_API_KEY")
 
 if not API_KEY:
     raise ValueError("MEMORY_API_KEY environment variable is required!")
 
-# Maximale Anzahl an Erinnerungen, die im RAM pro User gehalten werden
+# Maximum number of memories kept in RAM per user
 MAX_RAM_MEMORIES = 5000
 
-# Alle wie viele Sekunden ein automatisches Backup gemacht wird (600 = 10 Minuten)
+# Auto-backup interval in seconds (600 = 10 minutes)
 BACKUP_INTERVAL = 600
 CACHE_TIMEOUT = 600
 
-# Ordner-Definitionen
+# Folder definitions
 USER_MEMORY_DIR = "user_memories"
 USER_AUDIO_DIR = "user_audio"
 TTS_CACHE_DIR = "tts_cache"
 BACKUP_DIR = "backups" # New backup directory
 
-# Erstelle alle notwendigen Ordner beim Start
+# Create all necessary folders on startup
 os.makedirs(USER_MEMORY_DIR, exist_ok=True)
 os.makedirs(USER_AUDIO_DIR, exist_ok=True)
 os.makedirs(TTS_CACHE_DIR, exist_ok=True)
 os.makedirs(BACKUP_DIR, exist_ok=True) # Create backup dir
 
-# Speichert, wann ein User-Cache zuletzt verwendet wurde (für die automatische Bereinigung)
+# Stores when a user cache was last accessed (for automatic cleanup)
 cache_last_accessed: Dict[str, float] = {}
 
 # -------------------------
-# Daten-Modelle (Schemas)
+# Data Models (Schemas)
 # -------------------------
 class MemoryItem(BaseModel):
     id: str = ""
-    # snyk:ignore:python/UseOfHardcodedCredentials
-    # Reason: User ID is dynamically retrieved from Open-Web-UI at runtime
-    user_id: str = "default"
+    # deepcode ignore HardcodedCredentials: User ID is dynamically retrieved from Open-Web-UI at runtime
+    user_id: str = Field(default="default_user")
     text: str
     timestamp: float = 0
     bank: Optional[str] = "General"
@@ -162,25 +168,25 @@ class PruneAction(BaseModel):
     user_id: str
     amount: int
 
-# Speicherstruktur im RAM (alle aktiven Erinnerungen)
+# Memory structure in RAM (all active memories)
 user_memories: Dict[str, List[MemoryItem]] = {}
 
 class TTSRequest(BaseModel):
     text: str
 
 # -------------------------
-# Hilfsfunktionen
+# Helper Functions
 # -------------------------
 
 def memory_file(user_id):
-    """Gibt den Pfad zur Speicherdatei für einen bestimmten User zurück"""
+    """Returns the file path for the memory file of a specific user."""
     # Ensure user_id is filename-safe (basic sanitation)
     safe_user_id = "".join(c for c in user_id if c.isalnum() or c in ('-', '_')).rstrip()
     if not safe_user_id: safe_user_id = "invalid_user_id"
     return os.path.join(USER_MEMORY_DIR, f"{safe_user_id}_memory.json")
 
 def save_to_disk(user_id):
-    """Speichert die Erinnerungen eines Benutzers auf die Festplatte"""
+    """Saves a user's memories to disk."""
     filepath = memory_file(user_id)
     if user_id in user_memories:
         try:
@@ -196,7 +202,7 @@ def save_to_disk(user_id):
 
 
 def load_from_disk(user_id):
-    """Lädt die Erinnerungen eines Benutzers von der Festplatte in den RAM"""
+    """Loads a user's memories from disk into RAM."""
     filepath = memory_file(user_id)
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -223,7 +229,7 @@ def load_from_disk(user_id):
         user_memories[user_id] = [] # Fallback to empty list on other errors
 
 def auto_backup_thread_func():
-    """Automatisches Backup aller User-Erinnerungen im RAM in regelmäßigen Abständen"""
+    """Automatic backup of all user memories in RAM at regular intervals."""
     while True:
         time.sleep(BACKUP_INTERVAL)
         print(f"INFO:    Starting periodic auto-save of {len(user_memories)} users in RAM...")
@@ -239,7 +245,7 @@ def auto_backup_thread_func():
 
 
 def cleanup_inactive_caches_thread_func():
-    """Entfernt in regelmäßigen Abständen inaktive User-Caches aus dem RAM."""
+    """Periodically removes inactive user caches from RAM."""
     while True:
         time.sleep(60) # Check every minute
         now = time.time()
@@ -260,12 +266,12 @@ def cleanup_inactive_caches_thread_func():
 
 
 # -------------------------
-# Startup-Events
+# Startup Events
 # -------------------------
 
 @app.on_event("startup")
 def startup():
-    """Beim Start: Gespeicherte Erinnerungen laden & Hintergrund-Threads starten"""
+    """On startup: Load saved memories & start background threads."""
     print("INFO:    Server startup initiated...")
     # No initial load here, lazy loading on first access per user
 
@@ -282,10 +288,10 @@ def startup():
 
 
 # -------------------------
-# Authentifizierung
+# Authentication
 # -------------------------
 def auth_check(request: Request):
-    """Überprüft, ob der API-Key im Header vorhanden und gültig ist"""
+    """Checks if the API key in the header is present and valid."""
     key = request.headers.get("X-API-Key")
     if not key or key != API_KEY:
         # FIX: Check if key is not None before slicing
@@ -295,12 +301,12 @@ def auth_check(request: Request):
 
 
 # -------------------------
-# API-Endpunkte
+# API Endpoints
 # -------------------------
 
-@app.post("/add_memory")
-async def add_memory(request: Request, mem: MemoryItem = Body(...)):
-    """Fügt eine einzelne Erinnerung hinzu und nutzt den RAM-Cache."""
+@app.post("/add_memory", responses={401: {"description": "Unauthorized"}})
+async def add_memory(request: Request, mem: Annotated[MemoryItem, Body(...)]):
+    """Adds a single memory and utilizes the RAM cache."""
     auth_check(request)
     uid = mem.user_id or "default"
 
@@ -321,9 +327,9 @@ async def add_memory(request: Request, mem: MemoryItem = Body(...)):
     # save_to_disk(uid)
     return {"status": "added", "id": mem.id}
 
-@app.post("/add_memories")
-def add_memories(request: Request, batch: List[MemoryItem] = Body(...)):
-    """Fügt eine Liste von Erinnerungen hinzu und nutzt den RAM-Cache."""
+@app.post("/add_memories", responses={401: {"description": "Unauthorized"}})
+def add_memories(request: Request, batch: Annotated[List[MemoryItem], Body(...)]):
+    """Adds a list of memories and utilizes the RAM cache."""
     auth_check(request)
     if not batch: return {"status": "no_data"}
     # Assume all items in batch are for the same user
@@ -349,9 +355,9 @@ def add_memories(request: Request, batch: List[MemoryItem] = Body(...)):
     # save_to_disk(uid)
     return {"status": "batch_added", "added": added_count, "total_in_ram": len(memories)}
 
-@app.get("/get_memories")
+@app.get("/get_memories", responses={401: {"description": "Unauthorized"}})
 def get_memories(request: Request, user_id: Optional[str] = None, query: Optional[str] = None, limit: int = 50):
-    """Erinnerungen abrufen, bevorzugt aus dem schnellen RAM-Cache."""
+    """Retrieve memories, preferably from the fast RAM cache."""
     auth_check(request)
     uid = user_id or "default"
 
@@ -373,9 +379,9 @@ def get_memories(request: Request, user_id: Optional[str] = None, query: Optiona
     # Return the latest 'limit' matching memories
     return filtered[-limit:]
 
-@app.get("/memory_stats")
+@app.get("/memory_stats", responses={401: {"description": "Unauthorized"}})
 def memory_stats(request: Request, user_id: Optional[str] = None):
-    """Statistiken über die Erinnerungen eines Benutzers aus dem RAM-Cache."""
+    """Statistics about a user's memories from the RAM cache."""
     auth_check(request)
     uid = user_id or "default"
 
@@ -397,9 +403,9 @@ def memory_stats(request: Request, user_id: Optional[str] = None):
         "last_accessed_ram": cache_last_accessed.get(uid) # Unix timestamp
     }
 
-@app.post("/prune")
-def prune(request: Request, data: PruneAction = Body(...)):
-    """Älteste Einträge löschen und dabei den RAM-Cache nutzen."""
+@app.post("/prune", responses={401: {"description": "Unauthorized"}})
+def prune(request: Request, data: Annotated[PruneAction, Body(...)]):
+    """Delete oldest entries while utilizing the RAM cache."""
     # Note: This only prunes the RAM cache. File is overwritten on next save.
     auth_check(request)
     uid = data.user_id
@@ -424,7 +430,7 @@ def prune(request: Request, data: PruneAction = Body(...)):
 
 # --- Original /backup_now (User specific, renamed for clarity) ---
 # This endpoint now handles the admin full backup.
-@app.post("/backup_all_now")
+@app.post("/backup_all_now", responses={401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})
 def backup_all_now(request: Request):
     """
     Admin Endpoint: Triggers an immediate backup of all user memory files.
@@ -483,8 +489,8 @@ def backup_all_now(request: Request):
     return {"status": "backup_done", "details": status_message, "backup_location": backup_subdir}
 
 # --- Placeholder for User-Triggered Backup ---
-@app.post("/backup_now")
-async def backup_now_placeholder(request: Request, data: UserAction = Body(...)):
+@app.post("/backup_now", responses={401: {"description": "Unauthorized"}})
+async def backup_now_placeholder(request: Request, data: Annotated[UserAction, Body(...)]):
     """
     Placeholder Endpoint for User Backup Request.
     Currently only acknowledges the request.
@@ -502,31 +508,31 @@ async def backup_now_placeholder(request: Request, data: UserAction = Body(...))
 
 
 def transcribe_audio_dummy(filepath: str) -> str:
-    """PLATZHALTER-FUNKTION: Simuliert die Transkription."""
+    """PLACEHOLDER FUNCTION: Simulates transcription."""
     filename = os.path.basename(filepath)
     print(f"INFO:    [DUMMY] Transcribing '{filename}'...")
     time.sleep(0.5) # Shorter delay
     return f"Transkript: {filename}"
 
-@app.post("/add_voice_memory")
-async def add_voice_memory(request: Request, user_id: str = Form(...), file: UploadFile = File(...)):
-    """Nimmt Audio entgegen, speichert es, simuliert Transkription."""
+@app.post("/add_voice_memory", responses={400: {"description": "Bad Request"}, 401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})
+async def add_voice_memory(request: Request, user_id: Annotated[str, Form(...)], file: Annotated[UploadFile, File(...)]):
+    """Receives audio, saves it, and simulates transcription."""
     auth_check(request)
     uid = user_id or "default"
     
     # 1. Sanitize input
     safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).strip()
     
-    # 2. CHECK: Verhindere leere Strings (Verhindert schreiben ins Root-Verzeichnis)
+    # 2. CHECK: Prevent empty strings (Prevents writing to the root directory)
     if not safe_uid:
         print(f"WARN:    Invalid user_id for audio upload: '{uid}'")
         raise HTTPException(status_code=400, detail="Invalid User ID.")
 
-    # 3. Pfad sicher zusammenbauen
+    # 3. Build path securely
     user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
 
     # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
-    # Sicherstellen, dass der Zielordner wirklich innerhalb von USER_AUDIO_DIR liegt
+    # Ensure that the target folder is truly inside USER_AUDIO_DIR
     try:
         real_target_path = os.path.realpath(user_audio_subdir)
         real_base_path = os.path.realpath(USER_AUDIO_DIR)
@@ -537,7 +543,7 @@ async def add_voice_memory(request: Request, user_id: str = Form(...), file: Upl
         print(f"ERROR:   Path security check failed: {e}")
         raise HTTPException(status_code=500, detail="Internal security check error.")
 
-    # Ab hier ist alles sicher -> Ordner erstellen
+    # From here on everything is safe -> create folder
     os.makedirs(user_audio_subdir, exist_ok=True) 
 
     file_extension = os.path.splitext(file.filename or "audio.unk")[1]
@@ -559,65 +565,74 @@ async def add_voice_memory(request: Request, user_id: str = Form(...), file: Upl
 
     return {"status": "voice_memory_added", "transcript": transcript, "audio_path": save_path}
 
-def generate_speech_dummy(text: str, filepath: str) -> bool:
-    """PLATZHALTER-FUNKTION: Simuliert TTS."""
-    print(f"INFO:    [DUMMY] Generating speech for: '{text[:30]}...'")
-    time.sleep(0.5) # Shorter delay
-    try:
-        with open(filepath, 'w') as f: f.write(f"Dummy audio for: {text}")
-        print(f"INFO:    [DUMMY] Saved dummy speech to {filepath}")
-        return True
-    except Exception as e:
-        print(f"ERROR:   [DUMMY] Failed to save dummy speech file {filepath}: {e}")
-        return False
-
-@app.post("/get_or_create_speech")
-async def get_or_create_speech(request: Request, data: TTSRequest = Body(...)):
-    """Prüft TTS Cache, simuliert Generierung."""
+@app.post("/upload_tts_cache", responses={401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})
+async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], file: Annotated[UploadFile, File(...)]):
+    """Receives generated TTS audio and stores it in the cache."""
     auth_check(request)
-    text_to_speak = data.text.strip()
-    if not text_to_speak: raise HTTPException(status_code=400, detail="Text cannot be empty.")
-
-    text_hash = hashlib.sha256(text_to_speak.encode('utf-8')).hexdigest()
-    filename = f"{text_hash}.mp3" # Assume mp3
+    
+    # Calculate hash to determine filename
+    text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
+    filename = f"{text_hash}.wav" # We use wav
     filepath = os.path.join(TTS_CACHE_DIR, filename)
+    
+    try:
+        # Save file
+        async with aiofiles.open(filepath, 'wb') as out_file:
+            while content := await file.read(1024 * 1024): 
+                await out_file.write(content)
+        
+        print(f"INFO:    TTS Cache ADDED: '{text[:20]}...' -> {filename}")
+        return {"status": "cached", "file": filename}
+    except Exception as e:
+        print(f"ERROR:   Failed to cache TTS upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    if os.path.exists(filepath):
-        print(f"INFO:    TTS Cache HIT for: '{text_to_speak[:30]}...'")
-        return {"status": "cache_hit", "audio_path": filepath} # Use path
+@app.get("/get_tts_audio", responses={401: {"description": "Unauthorized"}, 404: {"description": "Not Found"}})
+def get_tts_audio(request: Request, text: str):
+    """
+    Checks if audio for the text exists.
+    If YES: Returns the file directly (Audio Stream).
+    If NO: 404 (Signal for clients: 'You need to generate!')
+    """
+    auth_check(request)
+    
+    text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
+    # Check for wav and mp3
+    for ext in [".wav", ".mp3"]:
+        filepath = os.path.join(TTS_CACHE_DIR, f"{text_hash}{ext}")
+        if os.path.exists(filepath):
+            print(f"INFO:    TTS Cache HIT: Serve '{text[:20]}...'")
+            return FileResponse(filepath, media_type=f"audio/{ext.strip('.')}")
 
-    print(f"INFO:    TTS Cache MISS for: '{text_to_speak[:30]}...'. Generating...")
-    success = generate_speech_dummy(text_to_speak, filepath)
+    print(f"INFO:    TTS Cache MISS: '{text[:20]}...'")
+    raise HTTPException(status_code=404, detail="Audio not found in cache")
 
-    if success: return {"status": "created", "audio_path": filepath} # Use path
-    else: raise HTTPException(status_code=500, detail="Failed to generate speech file.")
-
-@app.post("/delete_user_memories")
-def delete_user_memories(request: Request, data: UserAction = Body(...)):
-    """Löscht ALLE Daten für einen User (JSON, Audio, RAM)."""
+@app.post("/delete_user_memories", responses={400: {"description": "Bad Request"}, 401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})
+def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)]):
+    """Deletes ALL data for a user (JSON, Audio, RAM)."""
     auth_check(request)
     uid = data.user_id
     
-    # 1. Input Sanitization: Entferne alles außer Alphanumerik, Bindestrich, Unterstrich
-    # .strip() entfernt Leerzeichen am Anfang/Ende
+    # 1. Input Sanitization: Remove everything except alphanumeric, hyphen, underscore
+    # .strip() removes spaces at the beginning/end
     safe_uid = "".join(c for c in uid if c.isalnum() or c in ('-', '_')).strip()
     
-    # 2. CRITICAL SECURITY CHECK: Verhindere leere Strings!
-    # Wenn safe_uid leer ist (z.B. weil User nur "..." gesendet hat), brechen wir sofort ab.
+    # 2. CRITICAL SECURITY CHECK: Prevent empty strings!
+    # If safe_uid is empty (e.g. because User only sent "..."), we abort immediately.
     if not safe_uid:
         print(f"WARN:    Invalid user_id provided for deletion: '{uid}' -> resulted in empty safe_uid.")
         raise HTTPException(status_code=400, detail="Invalid User ID for deletion.")
 
     print(f"WARN:    Deletion requested for user '{uid}' (safe: '{safe_uid}')")
 
-    filepath = memory_file(uid) # Nutzt intern auch safe_uid Logik, ist hier okay
+    filepath = memory_file(uid) # Internally uses safe_uid logic as well, which is fine here
     
-    # 3. Pfad sicher zusammenbauen
+    # 3. Build path securely
     user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
 
     # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
-    # Wir lösen den Pfad komplett auf und prüfen, ob er wirklich noch im USER_AUDIO_DIR liegt.
-    # Das verhindert theoretische "../"-Angriffe komplett.
+    # We fully resolve the path and check if it really still lies within USER_AUDIO_DIR.
+    # This completely prevents theoretical "../" attacks.
     try:
         real_audio_path = os.path.realpath(user_audio_subdir)
         real_base_path = os.path.realpath(USER_AUDIO_DIR)

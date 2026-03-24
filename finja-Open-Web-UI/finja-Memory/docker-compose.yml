@@ -1,42 +1,50 @@
-# =====================================================================
-#  Project: Finja Cloud Memory - Docker Compose
-#  Version: 1.1.1
-#  Author:  JohnV2002 (J. Apps / Sodakiller1)
-#  License: MIT
+# ======================================================================
+#          Finja Cloud Memory - Docker Compose
+# ======================================================================
 #
-# =====================================================================
-#  Updates v1.1.1:
-#  + Added backups Folder
+#   Project: Finja - Twitch Interactivity Suite
+#   Module: finja-cloud-memory
+#   Author: J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 4.4.2
 #
-#  Updates v1.1.0:
-#  + Added volume mounts for 'user_audio' and 'tts_cache'.
-#  + Added 'user' directive to fix permission issues on Linux hosts.
-# =====================================================================
-
-version: '3.8'
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License.
+#
+#
+# ----------------------------------------------------------------------
+#
+#   ✨ New in 4.4.2:
+#     • Added backups folder volume mount
+#
+#   ✨ New in 4.4.1:
+#     • Added volume mounts for 'user_audio' and 'tts_cache'
+#     • Added 'user' directive to fix permission issues on Linux hosts
+#
+# ======================================================================
 
 services:
-  # Definiert den Haupt-Service für den Memory-Server
+  # Main service for the memory server
   finja-memory-server:
-    # Baut das Docker-Image aus dem Dockerfile im aktuellen Verzeichnis
+    # Build Docker image from Dockerfile in current directory
     build: .
-    # Gibt dem Container einen festen, wiedererkennbaren Namen
+    # Fixed, recognizable container name
     container_name: finja-memory-server
-    # Liest die Konfiguration (API-Key) aus der .env-Datei
-    # Dies ist sicherer, als die Datei ins Image zu kopieren
+    # Load configuration (API key) from .env file
+    # Safer than copying the file into the image
     env_file:
       - .env
-    # Mappt den Ordner für die Speicherdaten auf den Host, damit die Daten
-    # auch nach einem Löschen des Containers erhalten bleiben
+    # Mount data folders to host for persistence across container rebuilds
     volumes:
-        - ./user_audio:/app/user_audio
-        - ./tts_cache:/app/tts_cache
-        - ./user_memories:/app/user_memories
-        - ./backups:/app/backups
-    # Leitet den Port 8000 des Hosts auf den Port 8000 im Container um
+      - ./user_audio:/app/user_audio
+      - ./tts_cache:/app/tts_cache
+      - ./user_memories:/app/user_memories
+      - ./backups:/app/backups
+    # Forward host port 8000 to container port 8000
     ports:
       - "8000:8000"
-
+    # Run as host user to avoid permission issues on Linux
     user: "${UID:-1000}:${GID:-1000}"
-    # Startet den Container automatisch neu, es sei denn, er wird manuell gestoppt
+    # Auto-restart unless manually stopped
     restart: unless-stopped

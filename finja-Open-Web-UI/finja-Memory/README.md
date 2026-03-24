@@ -1,157 +1,161 @@
-# 📚 Finja Cloud Memory v1.3.2 + v4.4.1
+# 📚 Finja Cloud Memory v4.4.2
 
-Ein leichtgewichtiger, blitzschneller und externer **Memory-Service**, der als Langzeitgedächtnis für KI-Projekte wie Finja dient. Dieses System ist für die nahtlose Integration mit **OpenWebUI** über das `adaptive_memory_v4` Plugin konzipiert.
-
----
-
-## 🚨 Wichtiger Hinweis: Externer Server Zwingend Erforderlich!
-
-Dieses System besteht aus zwei Teilen: dem **Server** (dieses Repository) und dem **Plugin**. Das Plugin funktioniert **NICHT** ohne den hier beschriebenen Memory-Server.
-
-> Bitte folge zuerst der Setup-Anleitung, um den Server via Docker zu starten, bevor du das Plugin in OpenWebUI installierst.
+A lightweight, lightning-fast external **Memory Service** acting as long-term memory for AI projects like Finja. This system is designed for seamless integration with **OpenWebUI** via the `adaptive_memory_v4` Plugin.
 
 ---
 
-### 🛡️ Kritisches Sicherheits-Update (v1.3.2)
+## 🚨 Important Note: External Server Required!
 
-⚠️ **Handlung erforderlich:** In älteren Versionen des Docker-Containers bestand eine Vulnerability durch eine veraltete Version / **library:** `starlette`.
+This system consists of two parts: the **Server** (this repository) and the **Plugin**. The plugin will **NOT** work without the memory server described here.
 
-Um diese Sicherheitslücke zu schließen, **muss zwingend die `requirements.txt` aktualisiert** und der Container anschließend neu gebaut werden!
+> Please follow the setup guide first to start the server via Docker before installing the plugin in OpenWebUI.
 
-**Schritt 1: `requirements.txt` aktualisieren**
-Lade die neueste Version der Datei herunter oder führe ein `git pull` aus, um sicherzustellen, dass `starlette>=0.49.1` (bzw. empfholen 0.50.0) enthalten ist.
+---
 
-**Schritt 2: Container neu bauen**
-Führe danach folgenden Befehl aus, um die Änderungen anzuwenden:
+### 🛡️ Critical Security Update
+
+⚠️ **Action required:** Older versions of the Docker container contained a vulnerability in the `starlette` library.
+
+To patch this vulnerability, **you must update `requirements.txt`** and rebuild the container!
+
+**Step 1: Update `requirements.txt`**
+Download the latest version of the file or run `git pull` to ensure that `starlette>=1.0.0` is included.
+
+**Step 2: Rebuild Container**
+Execute the following command to apply the changes:
 ```bash
 docker-compose up -d --build
 ```
 ---
 
-## 🆕 Updates & Changelog
+## 🆕 Updates & Changelog (v4.4.2 Unified)
 
-### Server v1.3.2
-* **Security Hardening (Path Traversal):** Kritische Sicherheitsverbesserungen in den Endpunkten `/delete_user_memories` und `/add_voice_memory` implementiert. Zusätzliche Checks (Empty-String & Path Canonicalization) verhindern nun potenzielle Path-Traversal-Angriffe oder das versehentliche Löschen von Hauptverzeichnissen durch manipulierte User-IDs.
-* **Dependency Security Fix:** `starlette` in der `requirements.txt` auf Version **0.50.0** aktualisiert, um eine bekannte Sicherheitslücke (Vulnerability) in der älteren Version zu schließen.
+This update unifies the Server and the Plugin under version 4.4.2 and brings massive improvements across the board.
+
+* **Massive SonarQube Refactoring:** Greatly reduced cognitive complexity across the plugin. Monolithic functions have been broken down into single-purpose helper methods for enhanced maintainability.
+* **Comprehensive Test Suite Added:** Introduced a full `pytest` test suite (`test_memory_server.py` and `test_adaptive_memory.py`) to verify both FastAPI endpoints and internal OpenWebUI Plugin logic. Ready for GitHub Actions CI!
+* **True TTS Network Caching:** Fully integrated robust `/upload_tts_cache` and `/get_tts_audio` endpoints, replacing previous placeholder logic. The server now natively accepts generated audio files (e.g., `.wav`) from OpenWebUI and streams them back instantaneously to clients, functioning as a real caching layer to save precious generation time.
+* **Security Hardening (Path Traversal):** Implemented critical security improvements in the `/delete_user_memories` and `/add_voice_memory` endpoints. Additional checks (Empty-String & Path Canonicalization) now prevent potential Path-Traversal attacks.
+* **Code Quality & Modernization:** Migrated FastAPI endpoints to the new `Annotated` syntax to resolve IDE warnings. Properly documented all HTTP Exceptions in the endpoint schemas. Resolved false-positive warnings for Hardcoded Credentials.
+* **Dependency Security Fix:** Updated `starlette` and other dependencies in `requirements.txt` to close known vulnerabilities.
 
 ---
 
 ## ✨ Features
 
-### Server (`memory-server.py` - v1.3.2)
--   **Intelligenter RAM-Cache:** Hält aktive User-Daten im Arbeitsspeicher für blitzschnelle Lesezugriffe und gibt den Speicher nach einer Zeit der Inaktivität automatisch wieder frei.
--   **Persistente Speicherung:** Sichert alle Erinnerungen als portable JSON-Dateien pro Benutzer in einem Docker-Volume.
--   **Voice-Memory-Gerüst:** Bietet API-Endpunkte zur Annahme von Sprachdateien (`/add_voice_memory`) und zum Caching von Sprachausgaben (`/get_or_create_speech`), vorbereitet für STT/TTS-Modelle.
--   **Datenkontrolle:** Enthält einen API-Endpunkt (`/delete_user_memories`), der es dem Plugin ermöglicht, alle Daten eines Benutzers auf Anfrage sicher und vollständig zu löschen.
--   **Sicherheit:** Der Zugriff wird über einen `X-API-Key` in einer `.env`-Datei abgesichert.
--   **Backup-Endpunkte:** Enthält `/backup_all_now` (Admin) zum Sichern aller Daten und `/backup_now` (Platzhalter für User-Backups).
+### Server (`memory-server.py`)
+-   **Intelligent RAM Cache:** Keeps active user data in memory for lightning-fast reads and automatically frees memory after a period of inactivity.
+-   **Persistent Storage:** Saves all memories as portable JSON files per user inside a Docker volume.
+-   **Voice-Memory Scaffold:** Provides API endpoints for accepting voice files (`/add_voice_memory`) and caching voice output (`/get_or_create_speech`), prepared for STT/TTS models.
+-   **Data Control:** Includes an API endpoint (`/delete_user_memories`) allowing the plugin to securely and completely delete all of a user's data upon request.
+-   **Security:** Access is secured via an `X-API-Key` defined in a `.env` file.
+-   **Backup Endpoints:** Includes `/backup_all_now` (Admin) to save all data and `/backup_now` (Placeholder for User backups).
 
-### Plugin (`adaptive_memory_v4.py` - v4.4.1)
--   **Flexible Provider-Wahl:**
-    -   **Extraktion:** Wähle zwischen OpenAI (`openai`) und einem lokalen LLM (`local`, z.B. Ollama).
-    -   **Relevanz:** Wähle zwischen OpenAI (`openai`), lokalem LLM (`local`) oder rein lokalen Embeddings (`embedding`).
-    -   **Lokale Embeddings:** Wähle zwischen der `sentence-transformers`-Bibliothek (`sentence_transformer`) oder der Ollama Embeddings API (`ollama`).
--   **Intelligente Extraktion:** Nutzt den konfigurierten LLM, um aus Gesprächen dauerhafte Fakten zu extrahieren und dabei von einmaligen Ereignissen zu generalisieren.
--   **Performance & Kosten-Optimierung:**
-    -   Ein **"Themen-Cache"** vermeidet unnötige API-Anfragen, solange das Gesprächsthema gleich bleibt (nutzt lokale Embeddings).
-    -   Eine **lokale Vor-Filterung** (nutzt lokale Embeddings) reduziert die Anzahl der an den LLM für die Relevanzprüfung gesendeten Erinnerungen drastisch.
--   **Robuste Duplikats-Erkennung:** Verwendet eine mehrstufige Prüfung (Cosine Similarity via OpenAI oder lokalem Embedding & Levenshtein-Distanz), um doppelte Erinnerungen zu blockieren.
--   **Fallback-System:** Nutzt lokale Embeddings als Fallback für Relevanz/Deduplikation, wenn der ausgewählte LLM-Provider fehlschlägt.
--   **Benutzerfreundlichkeit:**
-    -   Ein **Server-Verbindungs-Check** gibt beim Start eine klare Fehlermeldung, falls der Server nicht erreichbar ist.
-    -   **Klares User-Feedback** im Chat informiert über alle Aktionen des Plugins.
-    -   Eine **Zwei-Stufen-Bestätigung** per Chat-Befehl ermöglicht dem User, die Löschung seiner Daten selbst zu steuern.
--   **Stabilität:** Enthält diverse Bugfixes für Fehlerbehandlung, Provider-Logik und Statusmeldungen.
--   **Filter-Erweiterung:** Ein Regex-Filter in `_block_extract_patterns verhindert nun das Speichern von Bild-Generierungs-Prompts (z.B. "erstelle ein Bild...").
--   **Vision Update:** Das Plugin fängt jetzt auch Die ausgabe von Vision Modellen ab und Speichert diese im Memory.
+### Plugin (`adaptive_memory_v4.py`)
+-   **Flexible Provider Selection:**
+    -   **Extraction:** Choose between OpenAI (`openai`) and a local LLM (`local`, e.g., Ollama).
+    -   **Relevance:** Choose between OpenAI (`openai`), local LLM (`local`), or purely local embeddings (`embedding`).
+    -   **Local Embeddings:** Choose between the `sentence-transformers` library (`sentence_transformer`) or the Ollama Embeddings API (`ollama`).
+-   **Intelligent Extraction:** Uses the configured LLM to extract permanent facts from conversations while generalizing from one-time events.
+-   **Performance & Cost Optimization:**
+    -   A **"Topic Cache"** avoids unnecessary API requests as long as the conversation topic remains the same (uses local embeddings).
+    -   A **Local Pre-Filtering** (uses local embeddings) drastically reduces the number of memories sent to the LLM for relevance checks.
+-   **Robust Deduplication:** Employs multi-stage validation (Cosine Similarity via OpenAI or local embeddings & Levenshtein distance) to block duplicate memories.
+-   **Fallback System:** Uses local embeddings as a fallback for relevance/deduplication if the selected LLM provider fails.
+-   **User Experience:**
+    -   A **Server Connection Check** provides a clear error message on startup if the server is unreachable.
+    -   **Clear User Feedback** in chat informs about all plugin actions.
+    -   A **Two-Step Confirmation** via chat command allows users to control the deletion of their own data.
+-   **Vision Update:** The plugin intercepts the output of Vision Models and saves it into memory. It features "inlet" and "outlet" modes to parse AI payloads natively.
+-   **Filter Expansion:** A Regex filter natively blocks the storage of image generation prompts (e.g. "create an image...").
 
 ---
 
-## 🚀 Setup mit Docker Compose (Empfohlen)
+## 🚀 Setup with Docker Compose (Recommended)
 
-Dies ist die einfachste und sicherste Methode, den Server zu starten.
+This is the easiest and most secure method to start the server.
 
-### 1. Konfigurationsdatei erstellen
-Erstelle im Hauptverzeichnis eine `.env`-Datei. Hier werden deine geheimen API-Keys gespeichert.
+### 1. Create Configuration File
+Create a `.env` file in the root directory. This is where your secret API keys will be stored.
 
 ```ini
 # .env
-MEMORY_API_KEY="dein-super-sicherer-key-12345"
-# OPENAI_API_KEY="sk-dein-openai-key" # Optional, nur wenn OpenAI als Provider genutzt wird
+MEMORY_API_KEY="your-super-secure-key-12345"
+# OPENAI_API_KEY="sk-your-openai-key" # Optional, only if OpenAI is used as a provider
 ```
-> ⚠️ **Wichtig:** Füge die `.env`-Datei unbedingt zu deiner `.gitignore`-Datei hinzu, damit deine API-Keys niemals auf GitHub landen!
+> ⚠️ **Important:** Be sure to add the `.env` file to your `.gitignore` so your API keys never end up on GitHub!
 
-### 2. Server starten
-1.  **Berechtigungen korrigieren (einmalig):** Führe im Projektordner `sudo chown -R $(id -u):$(id -g) .` aus, um Berechtigungsprobleme mit Docker zu vermeiden.
-2.  **Container starten:** Führe den folgenden Befehl im Terminal aus:
+### 2. Start Server
+1.  **Correct Permissions (One-time):** Run `sudo chown -R $(id -u):$(id -g) .` in the project folder to avoid permission issues with Docker.
+2.  **Start Container:** Run the following command in the terminal:
     ```bash
     docker-compose up -d --build
     ```
-    -   `up`: Startet den Service.
-    -   `-d`: Startet den Container im Hintergrund (detached mode).
-    -   `--build`: Baut das Docker-Image neu, falls es Änderungen gab.
+    -   `up`: Starts the service.
+    -   `-d`: Starts the container in the background (detached mode).
+    -   `--build`: Rebuilds the Docker image if there were changes.
 
-### 3. API testen
-Nachdem der Container läuft, kannst du die API testen. Die erwartete Antwort bei einem leeren Server ist `[]`.
+### 3. Test API
+Once the container is running, you can test the API. The expected response on an empty server is `[]`.
 
-**Mit PowerShell:**
+**With PowerShell:**
 ```powershell
-Invoke-WebRequest -Uri "http://localhost:8000/get_memories?user_id=test" -Headers @{"X-API-Key" = "dein-super-sicherer-key-12345"}
+Invoke-WebRequest -Uri "http://localhost:8000/get_memories?user_id=test" -Headers @{"X-API-Key" = "your-super-secure-key-12345"}
 ```
 
-**Mit cURL:**
+**With cURL:**
 ```bash
-curl -X GET "http://localhost:8000/get_memories?user_id=test" -H "X-API-Key: dein-super-sicherer-key-12345"
+curl -X GET "http://localhost:8000/get_memories?user_id=test" -H "X-API-Key: your-super-secure-key-12345"
 ```
 
 ---
 
-## ⚙️ Plugin Konfiguration (Valves)
+## ⚙️ Plugin Configuration (Valves)
 
-Die wichtigsten Einstellungen für das `adaptive_memory_v4.py` Plugin findest du direkt in der `Valves`-Klasse im Code. Passe diese nach Bedarf an:
+You can find the core settings for the `adaptive_memory_v4.py` plugin directly in the `Valves` class in the code. Adjust these as needed:
 
--   `extraction_provider`: Wähle "openai" oder "local".
--   `relevance_provider`: Wähle "openai", "local" oder "embedding".
--   `openai_...`: Einstellungen für die OpenAI API (Key wird nur benötigt, wenn OpenAI als Provider gewählt ist).
--   `local_llm_...`: Einstellungen für deinen lokalen LLM (z.B. Ollama Chat API).
--   `local_embedding_provider`: Wähle "sentence_transformer" oder "ollama".
--   `sentence_transformer_model`: Modell für die `sentence-transformers` Bibliothek.
--   `ollama_embedding_...`: Einstellungen für die Ollama Embeddings API.
--   `memory_api_base`, `memory_api_key`: Verbindung zum Memory Server.
--   *...und weitere Thresholds und Filter.*
+-   `extraction_provider`: Choose "openai" or "local".
+-   `relevance_provider`: Choose "openai", "local", or "embedding".
+-   `openai_...`: Settings for the OpenAI API (Key is only required if OpenAI is selected as a provider).
+-   `local_llm_...`: Settings for your local LLM (e.g., Ollama Chat API).
+-   `local_embedding_provider`: Choose "sentence_transformer" or "ollama".
+-   `sentence_transformer_model`: Model for the `sentence-transformers` library.
+-   `ollama_embedding_...`: Settings for the Ollama Embeddings API.
+-   `memory_api_base`, `memory_api_key`: Connection to the Memory Server.
+-   *...and various other Thresholds & Filters.*
 
 ---
 
 ## 🛣️ Roadmap
 
-Die vollständige und aktuelle Roadmap wird jetzt in der Datei `ROADMAP.md` gepflegt, um diese README übersichtlich zu halten.
+The complete and up-to-date roadmap is maintained in the `ROADMAP.md` file to keep this README clean.
 
-[➡️ **Zur vollständigen Roadmap (ROADMAP.md)**](./ROADMAP.md)
-
----
-
-## 💖 Credits & Lizenz
-
-Ein großes Dankeschön geht an **gramanoid (aka diligent_chooser)**, dessen Arbeit die Inspiration für dieses Projekt war.
-
--   [Original Reddit-Post](https://www.reddit.com/r/OpenWebUI/comments/1kd0s49/adaptive_memory_v30_openwebui_plugin/)
--   [Open WebUI Plugin-Seite](https://openwebui.com/f/alexgrama7/adaptive_memory_v2)
-
-Dieses Projekt steht unter der **[Apache License 2.0](./LICENSE)**.
-Copyright © 2025 J. Apps
-
-> ⚠️ **Hinweis:** Die Lizenz gilt nur für dieses Memory-Projekt. Alle anderen Module des Finja-Ökosystems bleiben unter der MIT-Lizenz.
-
-![Berechtigungs-Screenshot](https://github.com/JohnV2002/Finja-AI-Ecosystem/blob/main/assets/Screenshot2025-09-12.png)
+[➡️ **View the full Roadmap (ROADMAP.md)**](./ROADMAP.md)
 
 ---
 
-## 🆘 Support & Kontakt
+## 💖 Credits & License
 
--   **E-Mail:** contact@jappshome.de
+A huge thank you goes out to **gramanoid (aka diligent_chooser)**, whose work was the inspiration for this project.
+
+-   [Original Reddit Post](https://www.reddit.com/r/OpenWebUI/comments/1kd0s49/adaptive_memory_v30_openwebui_plugin/)
+-   [Open WebUI Plugin Page](https://openwebui.com/f/alexgrama7/adaptive_memory_v2)
+
+This project is licensed under the **[Apache License 2.0](./LICENSE)**.
+Copyright © 2026 J. Apps
+
+> ⚠️ **Note:** The license applies only to this Memory project. All other modules within the Finja Ecosystem remain under the MIT License.
+
+![Permission Screenshot](https://github.com/JohnV2002/Finja-AI-Ecosystem/blob/main/assets/Screenshot2025-09-12.png)
+
+---
+
+## 🆘 Support & Contact
+
+-   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+-   **Support:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
 
 ---
 
-**Viel Erfolg mit deinem Memory-Server!** 🚀✨
+**Good luck with your Memory Server!** 🚀✨

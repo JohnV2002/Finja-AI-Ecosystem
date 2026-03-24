@@ -1,31 +1,38 @@
-# =====================================================================
-#  Project: Finja Cloud Memory - Dockerfile: v4.1.7 (Optimization)
-#  Author:  JohnV2002 (J. Apps / Sodakiller1)
-#  Inspired by: gramanoid (diligent_chooser)
-#  License: Apache License 2.0
-#  Copyright (c) 2025 J. Apps
+# ======================================================================
+#          Finja Cloud Memory - Dockerfile
+# ======================================================================
 #
-# =====================================================================
-# Updated in v4.1.7:
-# =====================================================================
-#   + Added backups Folder to the docker.
+#   Project: Finja - Twitch Interactivity Suite
+#   Module: finja-cloud-memory
+#   Author: J. Apps (JohnV2002 / Sodakiller1)
+#   Inspired by: gramanoid (diligent_chooser)
+#   Version: 4.4.2
 #
-# Updated in v4.1.6:
-# =====================================================================
-#   + LAYER OPTIMIZATION: Merged multiple RUN commands into a single layer
-#     to improve build efficiency and reduce final image size.
+# ----------------------------------------------------------------------
 #
-# Updated in v4.1.5:
-# =====================================================================
-#   + Switched from python:slim to python:alpine for minimal base.
-#   + Implemented a multi-stage build to keep the final image clean and small.
-#   + Added a non-root user for enhanced security (container runs unprivileged).
-#   + Optimized layer caching by copying requirements.txt first.
-#   + FIXED: Now copies both site-packages AND binaries (uvicorn, etc.).
-#   + FIXED: Added chown to solve user permission issues inside the container.
-# =====================================================================
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the Apache License 2.0
+#
+# ----------------------------------------------------------------------
+#
+#   ✨ New in 4.4.2:
+#     • Added backups folder to the container
+#
+#   ✨ New in 4.4.1:
+#     • Layer optimization: merged multiple RUN commands into a single
+#       layer for better build efficiency and smaller image size
+#
+#   ✨ New in 4.4.0:
+#     • Switched from python:slim to python:alpine for minimal base
+#     • Multi-stage build to keep the final image clean and small
+#     • Non-root user for enhanced security (unprivileged container)
+#     • Optimized layer caching by copying requirements.txt first
+#     • Fixed: now copies both site-packages AND binaries (uvicorn, etc.)
+#     • Fixed: added chown to solve permission issues inside container
+#
+# ======================================================================
 
-# Stage 1: Build Stage
+# --- Stage 1: Build Stage ---
 FROM python:3.12-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache gcc linux-headers musl-dev
@@ -33,24 +40,24 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Final Stage
+# --- Stage 2: Final Stage ---
 FROM python:3.12-alpine
 WORKDIR /app
 
-# Erstelle Verzeichnisse, User und setze Rechte in EINEM Schritt (optimiert für Docker Layers)
+# Create directories, user, and set permissions in ONE step (layer optimized)
 RUN mkdir -p user_memories user_audio tts_cache backups && \
     addgroup -S appgroup && \
     adduser -S appuser -G appgroup && \
-    chown -R appuser:appgroup /app user_memories user_audio tts_cache
+    chown -R appuser:appgroup /app user_memories user_audio tts_cache backups
 
-# Kopiere alles von der Build-Stage
+# Copy installed packages from build stage
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Kopiere den App-Code
+# Copy application code
 COPY memory-server.py .
 
-# Wechsle zum neuen User
+# Switch to non-root user
 USER appuser
 
 EXPOSE 8000

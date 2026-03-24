@@ -1,91 +1,91 @@
 # 🧠 Memory & Filter – Roadmap
 
-Eine Übersicht der verbleibenden Features für den Finja Memory-Service und das OpenWebUI-Plugin.
+An overview of the remaining features for the Finja Memory Service and the OpenWebUI Plugin.
 
 ---
 
-## 🟡 Prio 1: Security
+## 🟡 Priority 1: Security
 
-### DATEIN SICHER SPEICHERN (Verschlüsselung)
+### SECURE FILE STORAGE (Encryption)
 
-- **Grundgedanke:** User-Daten at rest verschlüsseln, um sie vor unbefugtem Zugriff (auch durch den Admin) zu schützen.
+- **Core idea:** Encrypt user data at rest to protect it from unauthorized access (even by the admin).
 
-- **Ansätze:** Server-seitig (Master-Key oder User-spezifisch abgeleitet) vs. Client-seitig (Plugin verschlüsselt vor dem Senden).
+- **Approaches:** Server-side (master key or user-specific derived key) vs. Client-side (plugin encrypts before sending).
 
-- **Herausforderung:** Schlüsselverwaltung ohne User-Passwort, Schutz vor Admin vs. Editierbarkeit.
+- **Challenge:** Key management without a user password, protection from admin vs. editability.
 
 ### NEED HELP with this!
 
-### Private Memory Lock (Verschlüsselung - Teil von Prio 1)
+### Private Memory Lock (Encryption - Part of Priority 1)
 
-- **Anwendung:** Gilt für die Memory-Bank "Secrets".
+- **Application:** Applies to the "Secrets" memory bank.
 
-- **Umsetzung:** Eine optionale Passphrase pro user_id wird genutzt, um Erinnerungen clientseitig im Plugin (via AES-GCM) zu ver- und entschlüsseln. Der Server speichert nur den verschlüsselten Ciphertext.
+- **Implementation:** An optional passphrase per user_id is used to encrypt and decrypt memories client-side in the plugin (via AES-GCM). The server only stores the encrypted ciphertext.
 
 ### I NEED HELP with this!
 
 ---
 
-## 🟡 Prio 0.5: Backups & besseres User-Feedback
+## 🟡 Priority 0.5: Backups & Better User Feedback
 
-### Offline-Backup (Docker-integriert)
+### Offline Backup (Docker Integrated)
 
--   **Speicherort:** `/backups/YYYY-MM-DD/<user_id>.tar.gz` im Docker-Volume.
--   **Aufbewahrung (Retention):** Eine Code-Konstante `BACKUP_RETENTION_DAYS = 14` in `memory-server.py` legt fest, wie lange Backups behalten werden. (optional anmachbar oder auschaltbar)
--   **Endpunkte:** `POST /backup_all_now` (Admin) und eine erweiterte `POST /backup_now`-Funktion.
-
----
-
-## 🟢 Prio 0.4: Erweiterte Memory-Funktionen
-
-### Memory-Chaining (Graph/Cluster)
-
--   **Logik (nur im Plugin):** Beim Speichern einer neuen Erinnerung werden thematisch ähnliche "Nachbarn" (cosine ≥ 0.85) gefunden. Die IDs dieser Nachbarn werden in `meta.links` gespeichert.
+-   **Storage Location:** `/backups/YYYY-MM-DD/<user_id>.tar.gz` inside the Docker volume.
+-   **Retention:** A code constant `BACKUP_RETENTION_DAYS = 14` in `memory-server.py` defines how long backups are kept. (Optionally toggleable)
+-   **Endpoints:** `POST /backup_all_now` (Admin) and an extended `POST /backup_now` function.
 
 ---
 
-## 🔵 Prio 0.3: Struktur & Interaktion
+## 🟢 Priority 0.4: Advanced Memory Features
 
-### Memory-Banks (Kategorien)
+### Memory Chaining (Graph/Cluster)
 
--   **(Teilweise umgesetzt)** Der `/get_memories`-Endpoint muss noch um einen `bank`-Parameter erweitert werden, um nach Kategorien filtern zu können. Die Grundstruktur existiert bereits.
-
-### "Search+Ask"-Modus
-
--   **Nutzerfrage:** "Finja, was weißt du über XYZ?"
--   **Prozess:** Das Plugin erkennt die Absicht und ruft den neuen Endpoint `GET /search_ask?user_id&query=...` auf. Der Server gibt die Top-K relevantesten Erinnerungen zurück, die das Plugin zu einer Antwort zusammenfasst.
-
-### Memory-Stats Dashboard (Basis)
-
--   **(Teilweise umgesetzt)** Der `GET /memory_stats`-Endpoint existiert, muss aber um detailliertere Statistiken wie `hits`, `rejects`, `duplicates` und eine Aufschlüsselung nach `bank` erweitert werden.
+-   **Logic (Plugin only):** When saving a new memory, thematically similar "neighbors" (cosine ≥ 0.85) are found. The IDs of these neighbors are stored in `meta.links`.
 
 ---
 
-## 🟣 Prio 0.2: Live-Updates & On-Demand-Zusammenfassungen
+## 🔵 Priority 0.3: Structure & Interaction
 
--   **WebSocket Push:** Ein `/ws`-Endpoint auf dem Server sendet Live-Events (`added`, `rejected`, `duplicate`, `backup_done`) an ein potenzielles Dashboard.
--   **Memory-Story Mode:** Auf die Frage "Erzähl mir, was du über mich weißt" ruft das Plugin `GET /story?user_id` auf, holt repräsentative Erinnerungen und lässt sie vom LLM zu einer Geschichte zusammenfassen.
--   **Plugin-API-Verbesserungen:** Einführung von API-Keys mit Scopes (read/write) und optionalen Webhooks.
+### Memory Banks (Categories)
+
+-   **(Partially implemented)** The `/get_memories` endpoint still needs to be extended with a `bank` parameter to filter by categories. The basic structure already exists.
+
+### "Search+Ask" Mode
+
+-   **User query:** "Finja, what do you know about XYZ?"
+-   **Process:** The plugin recognizes the intent and calls the new endpoint `GET /search_ask?user_id&query=...`. The server returns the top K most relevant memories, which the plugin aggregates into an answer.
+
+### Memory Stats Dashboard (Base)
+
+-   **(Partially implemented)** The `GET /memory_stats` endpoint exists, but needs to be expanded with more detailed statistics like `hits`, `rejects`, `duplicates`, and a breakdown by `bank`.
 
 ---
 
-## 🟤 Prio 0.1: Langzeit-Management & Visualisierung
+## 🟣 Priority 0.2: Live Updates & On-Demand Summaries
 
--   **Memory-Expiry:** **(Teilweise umgesetzt)** Das `expires_at`-Feld existiert. Es fehlt die serverseitige Logik, die abgelaufene Erinnerungen automatisch löscht.
--   **Auto-Prune:** Löscht optional unwichtige Erinnerungen (niedriger Score, keine Zugriffe) nach N Tagen.
--   **Memory-Visualizer (Langzeitvision):** Ein Frontend, das auf den Statistik- und WebSocket-Endpunkten aufbaut.
--   **Abruf:** Über einen neuen Endpoint `GET /download_backup?user_id&date=...` (HARD! muss wie beim Daten löschen schwer gemacht werden umsetzung uff)
+-   **WebSocket Push:** A `/ws` endpoint on the server sends live events (`added`, `rejected`, `duplicate`, `backup_done`) to a potential dashboard.
+-   **Memory Story Mode:** When asked "Tell me what you know about me", the plugin calls `GET /story?user_id`, fetches representative memories, and has the LLM summarize them into a story.
+-   **Plugin API Improvements:** Introduction of API keys with scopes (read/write) and optional webhooks.
 
 ---
 
-## ✍️ Verbleibende Mini-Specs
+## 🟤 Priority 0.1: Long-term Management & Visualization
 
-### Erweiterte Felder (MemoryItem)
+-   **Memory Expiry:** **(Partially implemented)** The `expires_at` field exists. The server-side logic that automatically deletes expired memories is missing.
+-   **Auto-Prune:** Optionally deletes unwelcomed/unimportant memories (low score, no access) after N days.
+-   **Memory Visualizer (Long-term vision):** A frontend built on top of the statistics and WebSocket endpoints.
+-   **Retrieval:** Via a new endpoint `GET /download_backup?user_id&date=...` (HARD! Must be made difficult to use just like deleting data to prevent misuse - implementation uff)
+
+---
+
+## ✍️ Remaining Mini Specs
+
+### Extended Fields (MemoryItem)
 ```python
-vector: Optional[List[float]] = None # Für persistenten Vektor-Cache
+vector: Optional[List[float]] = None # For persistent vector cache
 ```
 
-### Neue Endpunkte
+### New Endpoints
 - `POST /add_voice_memory`
 - `GET /search_ask`
 - `GET /story`
@@ -93,7 +93,7 @@ vector: Optional[List[float]] = None # Für persistenten Vektor-Cache
 - `POST /backup_all_now`
 - `GET /download_backup`
 
-### Wichtige Konfigurationsvariablen
+### Important Configuration Variables
 - `EMBEDDINGS_MODEL=all-MiniLM-L6-v2`
 - `MIN_RELEVANCE_ON_UPLOAD=0.45`
 - `DUP_COSINE=0.92`
