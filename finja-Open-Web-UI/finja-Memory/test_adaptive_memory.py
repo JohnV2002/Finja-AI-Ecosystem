@@ -59,9 +59,10 @@ async def test_check_memory_server_down(adaptive_memory_plugin):
         is_up = await adaptive_memory_plugin._check_memory_server(None)
         assert is_up is False
 
-def test_is_duplicate_candidate_empty_list(adaptive_memory_plugin):
+@pytest.mark.asyncio
+async def test_is_duplicate_candidate_empty_list(adaptive_memory_plugin):
     """Should return False if there are no existing memories to check against."""
-    res, _ = adaptive_memory_plugin._is_duplicate_candidate({"text": "New memo"}, False, [], [], None)
+    res, _ = await adaptive_memory_plugin._is_duplicate_candidate({"text": "New memo"}, False, [], [], None)
     assert res is False
 
 if __name__ == '__main__':
