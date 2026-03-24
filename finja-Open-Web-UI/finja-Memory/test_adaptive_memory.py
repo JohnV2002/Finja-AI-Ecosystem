@@ -45,7 +45,7 @@ async def test_check_memory_server_up(adaptive_memory_plugin):
         mock_resp.status = 200
         mock_get.return_value.__aenter__.return_value = mock_resp
         
-        is_up = await adaptive_memory_plugin._check_memory_server()
+        is_up = await adaptive_memory_plugin._check_memory_server(None)
         assert is_up is True
         
 @pytest.mark.asyncio
@@ -56,12 +56,12 @@ async def test_check_memory_server_down(adaptive_memory_plugin):
         mock_resp.status = 500
         mock_get.return_value.__aenter__.return_value = mock_resp
         
-        is_up = await adaptive_memory_plugin._check_memory_server()
+        is_up = await adaptive_memory_plugin._check_memory_server(None)
         assert is_up is False
 
 def test_is_duplicate_candidate_empty_list(adaptive_memory_plugin):
     """Should return False if there are no existing memories to check against."""
-    res = adaptive_memory_plugin._is_duplicate_candidate("New memo", [])
+    res, _ = adaptive_memory_plugin._is_duplicate_candidate({"text": "New memo"}, False, [], [], None)
     assert res is False
 
 if __name__ == '__main__':

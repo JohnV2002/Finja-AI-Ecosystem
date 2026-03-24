@@ -202,6 +202,9 @@ Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 #### 🔨 Docker Builds
 
 
+#### ✅ Automated Tests
+
+
 
 
 ---
