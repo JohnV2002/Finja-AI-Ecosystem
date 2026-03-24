@@ -17,3 +17,23 @@ jobs:
       - name: Build Docker image for Memory
         working-directory: ./finja-Open-Web-UI/finja-Memory
         run: docker build . --file Dockerfile --tag finja-memory:latest
+        
+      - name: Test Docker Container Live API
+        working-directory: ./finja-Open-Web-UI/finja-Memory
+        run: |
+          # Container im Hintergrund starten mit API Key
+          docker run -d -p 8000:8000 -e MEMORY_API_KEY="test-key-123" --name memory-test finja-memory:latest
+          
+          # Kurz warten, bis FastAPI / Uvicorn gebootet ist
+          sleep 5
+          
+          # API call testen! Wir erwarten eine leere Liste [] wenn der Server läuft
+          RESPONSE=$(curl -s -X GET "http://localhost:8000/get_memories?user_id=dockertest" -H "X-API-Key: test-key-123")
+          
+          if [[ "$RESPONSE" == "[]" ]]; then
+            echo "✅ Docker Test Passed! Container is alive and responding perfectly."
+          else
+            echo "❌ Docker Test Failed! Unexpected response from API: $RESPONSE"
+            docker logs memory-test
+            exit 1
+          fi

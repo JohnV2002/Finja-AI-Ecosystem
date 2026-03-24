@@ -57,7 +57,7 @@ Finja ist kein einzelner Bot, sondern ein **komplettes Ökosystem**. Jedes Modul
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.0.1** | 🟢 Stabil | Docker-Version (Spotify only) | 5 False Postive |
 | &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Klassisches modulares System | WONT BE UPDATED PLEASE USE THE ABOVE ONCE |
 | **finja-Open-Web-UI** | | 🔵 Stabil | Module einsatzbereit | |
-| &nbsp;&nbsp;└─ finja-Memory | | 🔵 Update | Voice hinzugefügt, Checks laufen | |
+| &nbsp;&nbsp;└─ finja-Memory | **v4.4.2** | 🔵 Testing | Voice added, Checks running | |
 | &nbsp;&nbsp;└─ finja-ocr | | 🔵 Stabil | Funktioniert einwandfrei | |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | | 🟢 Stabil | Setup fertig, Tests fehlen | |
 | &nbsp;&nbsp;└─ finja-tts | | 🟡 WIP | Release geplant | |
@@ -212,6 +212,7 @@ Jetzt können wir die primäre Schnittstelle für die Interaktion einrichten.
 [![OpenWebUI Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml)
 [![Code Quality](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml)
 [![Comprehensive Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/comprehensive-tests.yml)
+
 
 
 ---
