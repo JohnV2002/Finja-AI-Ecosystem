@@ -51,15 +51,19 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 # Copy executable files (like uvicorn) - Set to read-only (SonarQube Security)
 COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 
-# Copy specific application files and directories (SonarQube Security docker:S7020)
-COPY --chown=appuser:appgroup --chmod=555 app.py .
-COPY --chown=appuser:appgroup --chmod=555 config_min.json .
-COPY --chown=appuser:appgroup --chmod=555 requirements.txt .
+# Copy read-only application files as root-owned (SonarQube S6504 + S7020)
+# appuser can still read/execute via chmod=555, but cannot modify application code
+COPY --chown=root:root --chmod=555 app.py .
+COPY --chown=root:root --chmod=555 config_min.json .
+COPY --chown=root:root --chmod=555 requirements.txt .
+
+# Copy writable data directories as appuser-owned (app needs write access at runtime)
 COPY --chown=appuser:appgroup --chmod=555 Memory ./Memory
 COPY --chown=appuser:appgroup --chmod=555 SongsDB ./SongsDB
 
 # Ensure data directories are writable at runtime for the appuser (required for app data storage)
-RUN chmod -R 750 Nowplaying Memory SongsDB cache
+RUN chown -R appuser:appgroup Nowplaying Memory SongsDB cache && \
+    chmod -R 750 Nowplaying Memory SongsDB cache
 
 # Switch to non-privileged user
 USER appuser
