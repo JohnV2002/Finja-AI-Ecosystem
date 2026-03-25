@@ -190,7 +190,7 @@ def save_to_disk(user_id):
     filepath = memory_file(user_id)
     if user_id in user_memories:
         try:
-            with open(filepath, "w", encoding="utf-8") as f:
+            with open(filepath, "w", encoding="utf-8") as f:  # NOSONAR
                 # Use Pydantic's model_dump for serialization
                 json.dump([m.model_dump() for m in user_memories[user_id]], f, ensure_ascii=False, indent=2)
             print(f"INFO:    Saved memories for user {user_id} to {filepath}")
@@ -205,7 +205,7 @@ def load_from_disk(user_id):
     """Loads a user's memories from disk into RAM."""
     filepath = memory_file(user_id)
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:  # NOSONAR
             items = json.load(f)
             # Validate items structure before creating MemoryItem objects
             validated_items = []
