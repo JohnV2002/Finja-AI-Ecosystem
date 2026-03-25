@@ -203,6 +203,12 @@ Now we can set up the primary interface for interaction.
 
 ### Build & Test Status
 
+#### 📊 SonarCloud
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
+
+
 #### 🔨 Docker Builds
 
 [![Memory Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-build.yml)
