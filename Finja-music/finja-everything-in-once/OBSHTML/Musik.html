@@ -313,7 +313,7 @@
      */
     async function handleArtistReview() {
       await sendCommand('/deactivate', 'Stopping active stream for artist review...');
-      window.open('http://localhost:8022/ArtistNotSure.html', '_blank');
+      window.open('http://localhost:8022/ArtistNotSure.html', '_blank', 'noopener,noreferrer');
       statusElement.textContent = 'Stream stopped. Artist review web UI opened.';
     }
 

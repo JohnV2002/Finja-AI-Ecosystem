@@ -21,8 +21,8 @@
 ======================================================================
 """
 
-import random
+import secrets
 import string
 
-token = ''.join(random.choice(string.ascii_letters) for _ in range(64))
+token = ''.join(secrets.choice(string.ascii_letters) for _ in range(64))
 print(token)

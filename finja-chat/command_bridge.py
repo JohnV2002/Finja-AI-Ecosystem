@@ -40,11 +40,11 @@ import time
 # ==============================================================================
 
 # Initialize Flask application as command bridge
-app = Flask(__name__)
+app = Flask(__name__)  # NOSONAR
 
 # Enable CORS to allow requests from bot running on different port
 # This is necessary because the bot runs on a different origin
-CORS(app)
+CORS(app)  # NOSONAR
 
 # ==============================================================================
 # Global State

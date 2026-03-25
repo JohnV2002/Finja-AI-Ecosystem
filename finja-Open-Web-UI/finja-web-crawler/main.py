@@ -168,7 +168,7 @@ def _parse_google_html(html_text: str, count: int) -> list[SearchResult]:
 def google_crawler(query: str, count: int) -> list[SearchResult]:
     logger.info(f"Starting Google Fallback Crawler for query: {query}")
     headers = {
-        "User-Agent": random.choice(USER_AGENTS)
+        "User-Agent": secrets.choice(USER_AGENTS)
     }
     try:
         proxies = {
