@@ -4057,180 +4057,147 @@ class Writer:
             return False, 0.0, 0.0, "", "", False
 
 
+    # ------------------------------------------------------------------
+    # Run-loop helper methods (extracted for cognitive complexity S3776)
+    # ------------------------------------------------------------------
+
+    def _handle_sleep_transition(self, was_sleeping: bool) -> bool:
+        """Check sleep state and handle transitions. Returns new was_sleeping value."""
+        should_sleep = is_finja_sleeping()
+
+        if should_sleep and not was_sleeping:
+            log(f"{self.log_prefix} 💤 Sleep time detected! (Auto/Manual). Stopping music.")
+            trigger_media_pause()
+            atomic_write_safe(self.input_path, "Shhh... Finja is Sleeping 💤")
+            atomic_write_safe(self.out_genres, "Sleep Sleep Sleep")
+            atomic_write_safe(self.out_react, "Comeback for Musik! Its sleep time :3")
+            return True
+
+        if not should_sleep and was_sleeping:
+            log(f"{self.log_prefix} ☀️ Wake up time! Starting music.")
+            trigger_media_pause()
+            atomic_write_safe(self.input_path, "")
+            atomic_write_safe(self.out_genres, "Waking up...")
+            atomic_write_safe(self.out_react, "Good morning!")
+            return False
+
+        return was_sleeping
+
+    def _process_new_song(self, current_raw: str, now: float) -> None:
+        """Handle a newly detected song: lookup, react, output."""
+        title, artist = parse_title_artist(current_raw)
+
+        if not title:
+            atomic_write_safe(self.out_genres, "")
+            atomic_write_safe(self.out_react, "")
+            self._is_listening = False
+            return
+
+        log(f"{self.log_prefix} Detected: {title} — {artist or 'Unknown'}")
+
+        # Database Lookup & Tags
+        kb_entry = self.kb_index.fuzzy(title, artist) if self.kb_index else None
+        tags = kb_entry.get("tags", []) if kb_entry else []
+        if not tags and kb_entry:
+            tags = extract_genres(kb_entry) or []
+
+        genres_text = self.genres_joiner.join(tags) if tags else self.genres_fallback
+        uniq_key = f"{title}::{artist}".lower()
+
+        # Reaction Engine Decision
+        react_text, bucket = self.rx.decide(
+            title=title, artist=artist or "",
+            genres_text=genres_text, tags_for_scoring=tags, uniq_key=uniq_key
+        )
+
+        # Memory Update
+        if self.memory and self.memory.enabled:
+            ctx = self.rx.ctx.get_active_profile().get("name", "neutral")
+            self.memory.update(uniq_key, title, artist or "", ctx, bucket, tags)
+            self.memory.save()
+
+        # Write genres output
+        atomic_write_safe(self.out_genres, genres_text)
+        if self.mirror_legacy:
+            atomic_write_safe(self.legacy_gernres, genres_text)
+
+        # Listening Phase vs. Immediate output
+        if self.listening_enabled:
+            self._start_listening(react_text, bucket, now)
+        else:
+            atomic_write_safe(self.out_react, react_text)
+            log(f"{self.log_prefix} Wrote: [{bucket}] {react_text}")
+            self._is_listening = False
+
+    def _start_listening(self, react_text: str, bucket: str, now: float) -> None:
+        """Enter listening phase: hold back the reaction for a delay."""
+        if self.use_random_delay and self.rand_max_s > self.rand_min_s:
+            delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)  # NOSONAR - CSPRNG
+        else:
+            delay = self.delay_s
+
+        self._reveal_ts = now + delay
+        self._mid_switch_ts = now + self.mid_switch_after if self.mid_switch_after > 0 else 0.0
+        self._pending_reaction = react_text
+        self._pending_bucket = bucket
+        self._is_listening = True
+        self._has_shown_mid = False
+
+        atomic_write_safe(self.out_react, self.listening_text)
+        log(f"{self.log_prefix} Listening for {delay}s... (Reaction held back)")
+
+    def _update_listening_phase(self, now: float) -> None:
+        """Tick the listening phase: reveal reaction or show mid-text."""
+        if now >= self._reveal_ts:
+            atomic_write_safe(self.out_react, self._pending_reaction)
+            log(f"{self.log_prefix} Revealed: [{self._pending_bucket}] {self._pending_reaction}")
+            self._is_listening = False
+        elif self.mid_texts and not self._has_shown_mid and self._mid_switch_ts > 0 and now >= self._mid_switch_ts:
+            mid_text = secrets.choice(self.mid_texts)
+            atomic_write_safe(self.out_react, mid_text)
+            log(f"{self.log_prefix} Mid-Text update: {mid_text}")
+            self._has_shown_mid = True
+
+    # ------------------------------------------------------------------
+
     def run(self) -> None:
         """Main processing loop (runs in thread)."""
         log(f"{self.log_prefix} Loop started. Watching: {self.input_path}")
-        
-        last_raw = None
-        
-        # State variables for the Listening Phase
-        reveal_ts = 0.0          # When do we reveal the decision?
-        mid_switch_ts = 0.0      # When do we show "Deep listening..."?
-        pending_reaction = ""    # The decision held back
-        pending_bucket = ""      # The bucket for the pending decision
-        is_listening = False     # Are we currently in listening mode?
-        has_shown_mid = False    # Have we shown a mid-text yet?
-        
-        # State tracker for Auto-Sleep-Mode
-        was_sleeping = False 
 
-        # Initial wait on startup
+        last_raw = None
+        was_sleeping = False
+
+        # Initialize listening state on instance
+        self._reveal_ts = 0.0
+        self._mid_switch_ts = 0.0
+        self._pending_reaction = ""
+        self._pending_bucket = ""
+        self._is_listening = False
+        self._has_shown_mid = False
+
         time.sleep(1.0)
 
         while not self.stop_event.is_set():
-            # ==================================================================
-            # 1. AUTO-MODE LOGIC (The Watchdog)
-            # ==================================================================
-            
-            # Check: Do we need to sleep? (Considers manual button AND time)
-            # This function uses the global is_finja_sleeping() helper
-            should_sleep = is_finja_sleeping()
-            
-            # DETECT STATE CHANGE
-            if should_sleep and not was_sleeping:
-                # It just turned 02:30 (or "Sleep" button pressed) -> GOOD NIGHT
-                log(f"{self.log_prefix} 💤 Sleep time detected! (Auto/Manual). Stopping music.")
-                trigger_media_pause() # Press virtual Pause key
-                
-                # Overwrite output files to show sleep status in OBS/Overlay
-                atomic_write_safe(self.input_path, "Shhh... Finja is Sleeping 💤")
-                atomic_write_safe(self.out_genres, "Sleep Sleep Sleep")
-                atomic_write_safe(self.out_react, "Comeback for Musik! Its sleep time :3")
-                
-                was_sleeping = True
-                
-            elif not should_sleep and was_sleeping:
-                # It just turned 10:30 (or "Wake" button pressed) -> GOOD MORNING
-                log(f"{self.log_prefix} ☀️ Wake up time! Starting music.")
-                trigger_media_pause() # Press virtual Play key
-                
-                # Clear files so the next song is detected immediately
-                atomic_write_safe(self.input_path, "") 
-                atomic_write_safe(self.out_genres, "Waking up...")
-                atomic_write_safe(self.out_react, "Good morning!")
-                
-                was_sleeping = False
+            was_sleeping = self._handle_sleep_transition(was_sleeping)
 
-            # IF SLEEPING -> DO NOTHING (Short-circuit the loop)
-            if should_sleep:
-                time.sleep(5.0) # Wait patiently to save resources
+            if is_finja_sleeping():
+                time.sleep(5.0)
                 continue
 
-            # ==================================================================
-            # 2. NORMAL MUSIC LOGIC (Only executed when awake)
-            # ==================================================================
             try:
-                # 1. Check if input file exists
                 if not self.input_path.exists():
                     time.sleep(self.interval_s)
                     continue
 
-                # Read current content with stability check
                 current_raw = read_file_stable(self.input_path, settle_ms=200)
                 now = time.time()
-                
-                # 2. Did the song change?
+
                 if current_raw != last_raw:
-                    # Parsing title and artist
-                    title, artist = parse_title_artist(current_raw)
-                    
-                    if title:
-                        # === NEW SONG DETECTED ===
-                        log(f"{self.log_prefix} Detected: {title} — {artist or 'Unknown'}")
-                        
-                        # A) Database Lookup
-                        kb_entry = self.kb_index.fuzzy(title, artist) if self.kb_index else None
-                        
-                        # B) Extract Tags & Genres
-                        tags = kb_entry.get("tags", []) if kb_entry else []
-                        if not tags and kb_entry:
-                             tags = extract_genres(kb_entry) or []
-
-                        # Format genres for display
-                        genres_text = self.genres_joiner.join(tags) if tags else self.genres_fallback
-                        uniq_key = f"{title}::{artist}".lower()
-                        
-                        # C) Reaction Engine Decision
-                        react_text, bucket = self.rx.decide(
-                            title=title,
-                            artist=artist or "",
-                            genres_text=genres_text,
-                            tags_for_scoring=tags,
-                            uniq_key=uniq_key
-                        )
-                        
-                        # D) Memory Update (store decision immediately)
-                        if self.memory and self.memory.enabled:
-                            ctx = self.rx.ctx.get_active_profile().get("name", "neutral")
-                            self.memory.update(uniq_key, title, artist or "", ctx, bucket, tags)
-                            self.memory.save()
-
-                        # E) Output Logic (Listening Phase vs. Immediate)
-                        atomic_write_safe(self.out_genres, genres_text)
-                        
-                        if self.mirror_legacy:
-                            atomic_write_safe(self.legacy_gernres, genres_text)
-
-                        # === LISTENING LOGIC START ===
-                        if self.listening_enabled:
-                            # 1. Calculate wait duration (Random or Fixed)
-                            if self.use_random_delay and self.rand_max_s > self.rand_min_s:
-                                delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)  # NOSONAR - CSPRNG
-                            else:
-                                delay = self.delay_s
-                            
-                            reveal_ts = now + delay
-                            
-                            # Calculate when to show a mid-text (e.g., "Deep listening...")
-                            if self.mid_switch_after > 0:
-                                mid_switch_ts = now + self.mid_switch_after
-                            else:
-                                mid_switch_ts = 0.0
-
-                            # Store decision for later
-                            pending_reaction = react_text
-                            pending_bucket = bucket
-                            is_listening = True
-                            has_shown_mid = False
-                            
-                            # Write "Listening..." immediately
-                            atomic_write_safe(self.out_react, self.listening_text)
-                            log(f"{self.log_prefix} Listening for {delay}s... (Reaction held back)")
-
-                        else:
-                            # No Listening Mode -> Write output immediately
-                            atomic_write_safe(self.out_react, react_text)
-                            log(f"{self.log_prefix} Wrote: [{bucket}] {react_text}")
-                            is_listening = False
-                        
-                    else:
-                        # File is empty -> Clear outputs
-                        atomic_write_safe(self.out_genres, "")
-                        atomic_write_safe(self.out_react, "")
-                        is_listening = False
-                    
+                    self._process_new_song(current_raw, now)
                     last_raw = current_raw
+                elif self._is_listening:
+                    self._update_listening_phase(now)
 
-                else:
-                    # === SAME SONG (Check for Listening Phase updates) ===
-                    if is_listening:
-                        
-                        # 1. Is it time to reveal the decision?
-                        if now >= reveal_ts:
-                            # TIME IS UP -> Reveal true reaction
-                            atomic_write_safe(self.out_react, pending_reaction)
-                            log(f"{self.log_prefix} Revealed: [{pending_bucket}] {pending_reaction}")
-                            is_listening = False  # Done
-                        
-                        # 2. Is it time for a mid-text update?
-                        elif self.mid_texts and not has_shown_mid and mid_switch_ts > 0 and now >= mid_switch_ts:
-                            # Show a random mid-text
-                            mid_text = secrets.choice(self.mid_texts)
-                            atomic_write_safe(self.out_react, mid_text)
-                            log(f"{self.log_prefix} Mid-Text update: {mid_text}")
-                            has_shown_mid = True
-
-                # Wait until next tick
                 time.sleep(self.interval_s)
 
             except Exception as e:

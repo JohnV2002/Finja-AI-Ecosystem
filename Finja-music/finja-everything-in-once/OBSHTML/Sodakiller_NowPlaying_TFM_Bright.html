@@ -475,9 +475,8 @@
     // ===========================================
     
     // Run initial update immediately
-    // Note: Top-level await not used here for broader browser compatibility
-    // in OBS browser sources (NOSONAR: S7785 - intentional for compatibility)
-    update();
+    // Not using top-level await for OBS browser compatibility
+    update(); // NOSONAR
     
     // Then poll at configured interval (default: 3000ms)
     // Can be customized via #ms=5000 in URL

@@ -138,6 +138,7 @@ USER_MEMORY_DIR = "user_memories"
 USER_AUDIO_DIR = "user_audio"
 TTS_CACHE_DIR = "tts_cache"
 BACKUP_DIR = "backups" # New backup directory
+SECURITY_CHECK_FAILED = "Security check failed."
 
 # Create all necessary folders on startup
 os.makedirs(USER_MEMORY_DIR, exist_ok=True)
@@ -538,7 +539,7 @@ async def add_voice_memory(request: Request, user_id: Annotated[str, Form(...)],
         real_base_path = os.path.realpath(USER_AUDIO_DIR)
         if not real_target_path.startswith(real_base_path):
              print(f"CRITICAL: Path Traversal attempt in audio upload! {real_target_path}")
-             raise HTTPException(status_code=400, detail="Security check failed.")
+             raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
     except Exception as e:
         print(f"ERROR:   Path security check failed: {e}")
         raise HTTPException(status_code=500, detail="Internal security check error.")
@@ -638,7 +639,7 @@ def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)
         real_base_path = os.path.realpath(USER_AUDIO_DIR)
         if not real_audio_path.startswith(real_base_path):
              print(f"CRITICAL: Path Traversal attempt detected! {real_audio_path}")
-             raise HTTPException(status_code=400, detail="Security check failed.")
+             raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
     except Exception as e:
         print(f"ERROR:    Path security check failed: {e}")
         raise HTTPException(status_code=500, detail="Internal security check error.")
@@ -666,7 +667,7 @@ def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)
     real_memory_base = os.path.realpath(USER_MEMORY_DIR)
     if not real_memory_path.startswith(real_memory_base):
         print(f"CRITICAL: Path Traversal attempt on memory file! {real_memory_path}")
-        raise HTTPException(status_code=400, detail="Security check failed.")
+        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
 
     if os.path.exists(filepath):
         try:

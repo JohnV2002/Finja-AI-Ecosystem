@@ -475,8 +475,8 @@
     // ===========================================
     
     // Run initial update immediately
-    // Note: Not using top-level await for OBS browser compatibility (NOSONAR: S7785)
-    tick();
+    // Not using top-level await for OBS browser compatibility
+    tick(); // NOSONAR
     
     // Poll every 2 seconds
     setInterval(tick, 2000);
