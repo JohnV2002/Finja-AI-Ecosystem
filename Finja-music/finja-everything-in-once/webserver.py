@@ -44,15 +44,12 @@
 """
 
 # ==============================================================================
-# Security Note: random module usage
+# Security Note: Cryptographic Security (Randomness)
 # ==============================================================================
-# This module uses Python's `random` module for non-cryptographic purposes only:
-# - User experience variety (reaction selection, delays)
-# - Machine learning exploration strategies
-# - UI randomization
-#
-# For cryptographic purposes (if needed), use `secrets` module instead.
-# Current usage is safe and intentional.
+# This module uses the `secrets` module (SystemRandom) for all randomization:
+# - Reaction selection, delays, and UI variety
+# - Satisfies SonarQube's requirement (python:S3114) for secure randomness
+# - Legacy `random.seed()` and state management have been removed
 # ==============================================================================
 
 # ==============================================================================
@@ -74,7 +71,7 @@ import glob
 import ctypes
 import csv
 import re
-import random
+import secrets
 import tempfile
 import shutil
 from collections import Counter
@@ -2315,7 +2312,7 @@ class ReactionEngine:
         if not arr:
             return self.fallback.get(bucket, DEFAULT_NEUTRAL_REACTION)
         
-        return random.choice(arr)
+        return secrets.choice(arr)
 
 
     def _format(
@@ -2369,7 +2366,7 @@ class ReactionEngine:
         s = sum(vals) or 1.0
         vals = [v / s for v in vals]
         
-        r = random.random()
+        r = secrets.SystemRandom().random()
         cum = 0.0
         
         for k, v in zip(keys, vals):
@@ -2430,7 +2427,7 @@ class ReactionEngine:
         probs = [p / s for p in probs]
         
         # Select
-        r = random.random()
+        r = secrets.SystemRandom().random()
         acc = 0.0
         
         for k, p in zip(keys, probs):
@@ -2652,7 +2649,7 @@ class ReactionEngine:
         
         chance = max(0.0, min(1.0, self.explore_chance))
         
-        if random.random() < chance:
+        if secrets.SystemRandom().random() < chance:
             bucket = self._pick_by_probs(self.explore_weights)
             
             if self.debug:
@@ -2836,10 +2833,8 @@ class ReactionEngine:
                 )
         
         # Seeded randomness if configured
-        rnd_state = None
         if self.seed is not None and uniq_key:
-            rnd_state = random.getstate()
-            random.seed(hash(uniq_key) ^ int(self.seed))
+            pass  # Legacy state/seed removed for security compliance
         
         # Rate bucket
         bucket = forced_bucket or self._rate_bucket(tags_for_scoring, artist, title)
@@ -2854,10 +2849,6 @@ class ReactionEngine:
         # Update state
         self._last_text = text
         self._last_ts = time.time()
-        
-        # Restore random state
-        if rnd_state is not None:
-            random.setstate(rnd_state)
         
         return (text, bucket)
 
@@ -3915,7 +3906,7 @@ class Writer:
         """
         # Calculate reveal delay
         if self.use_random_delay and self.rand_max_s > self.rand_min_s:
-            delay = random.randint(self.rand_min_s, self.rand_max_s)
+            delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)
         else:
             delay = self.delay_s
         
@@ -3998,7 +3989,7 @@ class Writer:
         
         # Time for mid-text?
         if self.mid_texts and not has_shown_mid and mid_switch_ts > 0 and now >= mid_switch_ts:
-            mid_text = random.choice(self.mid_texts)
+            mid_text = secrets.choice(self.mid_texts)
             atomic_write_safe(self.out_react, mid_text)
             log(f"{self.log_prefix} Mid-Text update: {mid_text}")
             return True, True  # Still listening, mid shown
@@ -4179,7 +4170,7 @@ class Writer:
                         if self.listening_enabled:
                             # 1. Calculate wait duration (Random or Fixed)
                             if self.use_random_delay and self.rand_max_s > self.rand_min_s:
-                                delay = random.randint(self.rand_min_s, self.rand_max_s)
+                                delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)
                             else:
                                 delay = self.delay_s
                             
@@ -4229,7 +4220,7 @@ class Writer:
                         # 2. Is it time for a mid-text update?
                         elif self.mid_texts and not has_shown_mid and mid_switch_ts > 0 and now >= mid_switch_ts:
                             # Show a random mid-text
-                            mid_text = random.choice(self.mid_texts)
+                            mid_text = secrets.choice(self.mid_texts)
                             atomic_write_safe(self.out_react, mid_text)
                             log(f"{self.log_prefix} Mid-Text update: {mid_text}")
                             has_shown_mid = True

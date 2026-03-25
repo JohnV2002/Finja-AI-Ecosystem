@@ -39,7 +39,7 @@
 
 ======================================================================
 """
-import os, time, json, random, re, pickle, hashlib, threading
+import os, time, json, secrets, re, pickle, hashlib, threading
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 from datetime import datetime, timezone
@@ -291,11 +291,11 @@ def _resolve_cross_context_tail(contexts: dict, current_ctx: str, tier: str, t: 
     if best_ctx != current_ctx and best_data.get("score", 0.0) > current_score + margin:
         pool = v.get("better_other", {}).get(tier, [])
         if pool:
-            return " " + random.choice(pool).replace("{best}", best_ctx)
+            return " " + secrets.choice(pool).replace("{best}", best_ctx)
     elif best_ctx == current_ctx:
         pool = v.get("fits_here", {}).get(tier, [])
         if pool:
-            return " " + random.choice(pool).replace("{here}", current_ctx)
+            return " " + secrets.choice(pool).replace("{here}", current_ctx)
     return ""
 
 def memory_tail(entry, current_ctx, tier) -> str:
@@ -312,7 +312,7 @@ def memory_tail(entry, current_ctx, tier) -> str:
     if seen_here > 1 and seen_total >= t.get("min_seen_for_repeat",2):
         pool = v.get("repeat", {}).get(tier, [])
         if pool:
-            return " " + random.choice(pool)
+            return " " + secrets.choice(pool)
     
     # Check for cross-context reaction (extracted to helper for S3776)
     if seen_total >= t.get("min_seen_for_cross_context",2) and len(contexts) > 1:
@@ -336,7 +336,7 @@ def reaction_from_tier(tier: str) -> str:
     """Selects a random reaction string for a given tier."""
     sets = REACTIONS.get("sets", {}).get(tier, [])
     if sets:
-        return random.choice(sets)
+        return secrets.choice(sets)
     return REACTIONS.get("fallback", {}).get(tier, "...")
 
 ARTIST_PREFS = REACTIONS.get("artist_preferences", {})  # score_bias + optional flip map per tier
@@ -345,7 +345,7 @@ def apply_artist_flip(tier: str, artists_norm: list) -> str:
     """Applies artist-specific tier flips (e.g. force dislike to neutral)."""
     for a in artists_norm:
         flip = ARTIST_PREFS.get(a, {}).get("flip", {})
-        if tier in flip and random.random() < float(flip[tier]):
+        if tier in flip and secrets.SystemRandom().random() < float(flip[tier]):
             return {"dislike":"neutral","neutral":"like","like":"neutral"}.get(tier, tier)
     return tier
 
@@ -515,7 +515,7 @@ def _handle_unknown_policy(rx_cfg: dict, special_version: Optional[str], config:
     """Helper: Handles logic when no KB entry is found (Unknown Policy)."""
     pol = rx_cfg.get("unknown_policy", {"enabled": True, "like": 0.35, "neutral": 0.40, "dislike": 0.25})
     if pol.get("enabled", True):
-        bucket = random.choices(["like", "neutral", "dislike"], 
+        bucket = secrets.SystemRandom().choices(["like", "neutral", "dislike"], 
                               weights=[pol["like"], pol["neutral"], pol["dislike"]], k=1)[0]
     else:
         bucket = "neutral"
@@ -591,9 +591,9 @@ def _calculate_dynamic_tier(ctx: str, ment: dict, profile: dict, kb_entry: Optio
     tier_before_explore = tier
     if expl.get("enabled", False):
         chance = float(expl.get("chance", 0.0))
-        if random.random() < chance:
+        if secrets.SystemRandom().random() < chance:
             w = expl.get("weights", {"like":0.45, "neutral":0.35, "dislike":0.20})
-            tier = random.choices(["like","neutral","dislike"],
+            tier = secrets.SystemRandom().choices(["like","neutral","dislike"],
                                   weights=[w.get("like",0), w.get("neutral",0), w.get("dislike",0)], k=1)[0]
 
     # 6. Probabilistic Flip
@@ -703,7 +703,7 @@ def compute_reaction(title:str, artists:str) -> Tuple[str,str]:
 def _init_new_song_state(title: str, artists: str, ctx: str, now: float) -> Tuple[float, float, float, dict]:
     """Helper: Initializes state when a new song is detected."""
     # Timings
-    p_until = now + random.uniform(LISTEN_CFG.get("random_delay", {}).get("min_s", 40),
+    p_until = now + secrets.SystemRandom().uniform(LISTEN_CFG.get("random_delay", {}).get("min_s", 40),
                                    LISTEN_CFG.get("random_delay", {}).get("max_s", 60))
     m_from = now + float(LISTEN_CFG.get("mid_switch_after_s", 50))
     c_until = now + 4.0
@@ -731,9 +731,9 @@ def _init_new_song_state(title: str, artists: str, ctx: str, now: float) -> Tupl
 
 def _process_pending_mode(now: float, mid_from: float, cooldown_until: float, current_output: dict) -> Tuple[float, dict]:
     """Helper: Handles updates during the listening/pending phase."""
-    if now > mid_from and random.random() < 0.25:
+    if now > mid_from and secrets.SystemRandom().random() < 0.25:
         mids = LISTEN_CFG.get("mid_texts", [DEFAULT_LISTENING_TEXT])
-        mid = random.choice(mids)
+        mid = secrets.choice(mids)
         if time.time() > cooldown_until:
             write_reaction(mid)
             cooldown_until = time.time() + 1.5
