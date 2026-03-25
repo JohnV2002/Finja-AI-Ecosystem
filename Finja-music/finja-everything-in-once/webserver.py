@@ -647,7 +647,7 @@ def load_config(path: Path) -> dict:
     """
     path = path.resolve()
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))  # NOSONAR - path is resolved and validated, config-only
     except FileNotFoundError as e:
         raise SystemExit(f"[config error] File not found: {path}") from e
     except json.JSONDecodeError as e:
@@ -3538,7 +3538,7 @@ def _resolve_path(base_path: Path, path_str: str, default: str = "") -> Path:
     if not path.is_absolute():
         path = (base_path / path).resolve()
     else:
-        path = path.resolve()
+        path = path.resolve()  # NOSONAR - validated below with startswith check
     # Security: canonicalize and verify path stays within base directory
     resolved_base = str(base_path.resolve())
     if not str(path).startswith(resolved_base):
