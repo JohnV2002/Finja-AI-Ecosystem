@@ -345,7 +345,7 @@ def apply_artist_flip(tier: str, artists_norm: list) -> str:
     """Applies artist-specific tier flips (e.g. force dislike to neutral)."""
     for a in artists_norm:
         flip = ARTIST_PREFS.get(a, {}).get("flip", {})
-        if tier in flip and secrets.SystemRandom().random() < float(flip[tier]):
+        if tier in flip and secrets.SystemRandom().random() < float(flip[tier]):  # NOSONAR - CSPRNG
             return {"dislike":"neutral","neutral":"like","like":"neutral"}.get(tier, tier)
     return tier
 
@@ -515,7 +515,7 @@ def _handle_unknown_policy(rx_cfg: dict, special_version: Optional[str], config:
     """Helper: Handles logic when no KB entry is found (Unknown Policy)."""
     pol = rx_cfg.get("unknown_policy", {"enabled": True, "like": 0.35, "neutral": 0.40, "dislike": 0.25})
     if pol.get("enabled", True):
-        bucket = secrets.SystemRandom().choices(["like", "neutral", "dislike"], 
+        bucket = secrets.SystemRandom().choices(["like", "neutral", "dislike"],  # NOSONAR - CSPRNG
                               weights=[pol["like"], pol["neutral"], pol["dislike"]], k=1)[0]
     else:
         bucket = "neutral"
@@ -591,9 +591,9 @@ def _calculate_dynamic_tier(ctx: str, ment: dict, profile: dict, kb_entry: Optio
     tier_before_explore = tier
     if expl.get("enabled", False):
         chance = float(expl.get("chance", 0.0))
-        if secrets.SystemRandom().random() < chance:
+        if secrets.SystemRandom().random() < chance:  # NOSONAR - CSPRNG
             w = expl.get("weights", {"like":0.45, "neutral":0.35, "dislike":0.20})
-            tier = secrets.SystemRandom().choices(["like","neutral","dislike"],
+            tier = secrets.SystemRandom().choices(["like","neutral","dislike"],  # NOSONAR - CSPRNG
                                   weights=[w.get("like",0), w.get("neutral",0), w.get("dislike",0)], k=1)[0]
 
     # 6. Probabilistic Flip
@@ -731,7 +731,7 @@ def _init_new_song_state(title: str, artists: str, ctx: str, now: float) -> Tupl
 
 def _process_pending_mode(now: float, mid_from: float, cooldown_until: float, current_output: dict) -> Tuple[float, dict]:
     """Helper: Handles updates during the listening/pending phase."""
-    if now > mid_from and secrets.SystemRandom().random() < 0.25:
+    if now > mid_from and secrets.SystemRandom().random() < 0.25:  # NOSONAR - CSPRNG
         mids = LISTEN_CFG.get("mid_texts", [DEFAULT_LISTENING_TEXT])
         mid = secrets.choice(mids)
         if time.time() > cooldown_until:

@@ -10,7 +10,7 @@
 
 # Basis: offizielles Tika-Server-Image mit eingebautem Tesseract-Support
 # NOTE!!: Last updated 3 years ago.!
-FROM logicalspark/docker-tikaserver:latest
+FROM logicalspark/docker-tikaserver:1.28.4
 
 # Root für Paketinstallation
 USER root

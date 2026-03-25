@@ -30,7 +30,7 @@ def test_extract_text_from_content_list(adaptive_memory_plugin):
     """Test extraction from a multimodal list payload (e.g. from Vision models)."""
     payload = [
         {"type": "text", "text": "Part one"},
-        {"type": "image_url", "image_url": "http://example.com/img.png"},
+        {"type": "image_url", "image_url": "http://example.com/img.png"},  # NOSONAR - test data
         {"type": "text", "text": "Part two"}
     ]
     res = adaptive_memory_plugin._extract_text_from_content(payload)

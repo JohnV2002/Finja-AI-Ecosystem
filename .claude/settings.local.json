@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -L https://sonarcloud.io/project/overview?id=JohnV2002_Finja-AI-Ecosystem)",
+      "Bash(curl -s -L https://sonarcloud.io/project/security_hotspots?id=JohnV2002_Finja-AI-Ecosystem)",
+      "Bash(curl -s -L https://sonarcloud.io/project/issues?id=JohnV2002_Finja-AI-Ecosystem)",
+      "WebFetch(domain:sonarcloud.io)",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/comfy.js@1.1.1/dist/comfy.min.js\")",
+      "Bash(openssl dgst:*)",
+      "Bash(openssl base64:*)",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-ws.min.js\")",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js\")",
+      "Bash(curl -s \"https://data.jsdelivr.com/v1/packages/npm/comfy.js\")",
+      "WebSearch",
+      "Bash(python -m py_compile \"Finja-music/finja-everything-in-once/webserver.py\")",
+      "Bash(python -m py_compile \"finja-Open-Web-UI/finja-Memory/memory-server.py\")",
+      "Bash(python -m py_compile \"Finja-music/finja-music-docker-spotify/app.py\")",
+      "Bash(python -m py_compile \"finja-Open-Web-UI/finja-Memory/function-adaptive_memory_v4.py\")"
+    ]
+  }
+}

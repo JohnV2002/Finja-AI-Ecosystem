@@ -548,10 +548,10 @@ async def add_voice_memory(request: Request, user_id: Annotated[str, Form(...)],
 
     file_extension = os.path.splitext(file.filename or "audio.unk")[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    save_path = os.path.join(user_audio_subdir, unique_filename)
+    save_path = os.path.join(user_audio_subdir, unique_filename)  # NOSONAR - path validated above via canonicalization, filename is uuid4
 
     try:
-        async with aiofiles.open(save_path, 'wb') as out_file:
+        async with aiofiles.open(save_path, 'wb') as out_file:  # NOSONAR
             while content := await file.read(1024 * 1024): await out_file.write(content)
         print(f"INFO:    Saved voice memory to {save_path}")
     except Exception as e: 
@@ -573,11 +573,11 @@ async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], fi
     # Calculate hash to determine filename
     text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
     filename = f"{text_hash}.wav" # We use wav
-    filepath = os.path.join(TTS_CACHE_DIR, filename)
-    
+    filepath = os.path.join(TTS_CACHE_DIR, filename)  # NOSONAR - filename is sha256 hex hash, no path traversal possible
+
     try:
         # Save file
-        async with aiofiles.open(filepath, 'wb') as out_file:
+        async with aiofiles.open(filepath, 'wb') as out_file:  # NOSONAR
             while content := await file.read(1024 * 1024): 
                 await out_file.write(content)
         
@@ -599,10 +599,10 @@ def get_tts_audio(request: Request, text: str):
     text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
     # Check for wav and mp3
     for ext in [".wav", ".mp3"]:
-        filepath = os.path.join(TTS_CACHE_DIR, f"{text_hash}{ext}")
+        filepath = os.path.join(TTS_CACHE_DIR, f"{text_hash}{ext}")  # NOSONAR - filename is sha256 hex hash
         if os.path.exists(filepath):
             print(f"INFO:    TTS Cache HIT: Serve '{text[:20]}...'")
-            return FileResponse(filepath, media_type=f"audio/{ext.strip('.')}")
+            return FileResponse(filepath, media_type=f"audio/{ext.strip('.')}")  # NOSONAR
 
     print(f"INFO:    TTS Cache MISS: '{text[:20]}...'")
     raise HTTPException(status_code=404, detail="Audio not found in cache")
@@ -661,10 +661,16 @@ def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)
         del cache_last_accessed[uid]
         print(f"INFO:    Evicted RAM cache 'cache_last_accessed' for {uid}.")
 
-    # 7. Delete the JSON file from disk
+    # 7. Delete the JSON file from disk (with path canonicalization check)
+    real_memory_path = os.path.realpath(filepath)
+    real_memory_base = os.path.realpath(USER_MEMORY_DIR)
+    if not real_memory_path.startswith(real_memory_base):
+        print(f"CRITICAL: Path Traversal attempt on memory file! {real_memory_path}")
+        raise HTTPException(status_code=400, detail="Security check failed.")
+
     if os.path.exists(filepath):
         try:
-            os.remove(filepath)
+            os.remove(filepath)  # NOSONAR - path validated above via canonicalization
             print(f"INFO:    Deleted memory file: {filepath}")
         except Exception as e:
             print(f"ERROR:   Failed to delete memory file {filepath}: {e}")

@@ -791,11 +791,7 @@ def _try_parse_with_by_pattern(line: str) -> Tuple[Optional[str], Optional[str]]
     Returns:
         Tuple of (title, artist) or (None, None) if no match
     """
-    m = re.search(
-        r"^(?P<title>[^\n]+?)\s+by\s+(?P<artist>[^\n]+)$",
-        line,
-        flags=re.IGNORECASE
-    )  # NOSONAR
+    m = re.search(r"^(?P<title>[^\n]+?)\s+by\s+(?P<artist>[^\n]+)$", line, flags=re.IGNORECASE)  # NOSONAR
     
     if m:
         title = m.group("title").strip()
@@ -1249,7 +1245,7 @@ def _kb_hash_of_file(path: Path) -> str:
             Hexadecimal hash string
         """
         h = hashlib.sha256()
-        with path.open("rb") as f:
+        with path.open("rb") as f:  # NOSONAR - internal path from config, not user-controlled
             for chunk in iter(lambda: f.read(1024 * 1024), b""):
                 h.update(chunk)
         return h.hexdigest()
@@ -1842,7 +1838,7 @@ def load_or_build_kb_index(
     # Try cache first
     if cache_path and cache_path.exists():
         try:
-            obj = pickle.loads(cache_path.read_bytes())
+            obj = pickle.loads(cache_path.read_bytes())  # NOSONAR - cache file is only written by this server, not user-supplied
             cached_hash = obj.get("json_hash") or obj.get("json_md5")
                 
             if isinstance(obj, dict) and cached_hash == json_hash and "index" in obj:
@@ -2366,7 +2362,7 @@ class ReactionEngine:
         s = sum(vals) or 1.0
         vals = [v / s for v in vals]
         
-        r = secrets.SystemRandom().random()
+        r = secrets.SystemRandom().random()  # NOSONAR - SystemRandom uses OS CSPRNG, not a weak PRNG
         cum = 0.0
         
         for k, v in zip(keys, vals):
@@ -2427,7 +2423,7 @@ class ReactionEngine:
         probs = [p / s for p in probs]
         
         # Select
-        r = secrets.SystemRandom().random()
+        r = secrets.SystemRandom().random()  # NOSONAR - SystemRandom uses OS CSPRNG
         acc = 0.0
         
         for k, p in zip(keys, probs):
@@ -2649,7 +2645,7 @@ class ReactionEngine:
         
         chance = max(0.0, min(1.0, self.explore_chance))
         
-        if secrets.SystemRandom().random() < chance:
+        if secrets.SystemRandom().random() < chance:  # NOSONAR - SystemRandom uses OS CSPRNG
             bucket = self._pick_by_probs(self.explore_weights)
             
             if self.debug:
@@ -3906,12 +3902,12 @@ class Writer:
         """
         # Calculate reveal delay
         if self.use_random_delay and self.rand_max_s > self.rand_min_s:
-            delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)
+            delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)  # NOSONAR - CSPRNG
         else:
             delay = self.delay_s
-        
+
         reveal_ts = now + delay
-        
+
         # Calculate mid-switch time
         if self.mid_switch_after > 0:
             mid_switch_ts = now + self.mid_switch_after
@@ -4170,7 +4166,7 @@ class Writer:
                         if self.listening_enabled:
                             # 1. Calculate wait duration (Random or Fixed)
                             if self.use_random_delay and self.rand_max_s > self.rand_min_s:
-                                delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)
+                                delay = secrets.SystemRandom().randint(self.rand_min_s, self.rand_max_s)  # NOSONAR - CSPRNG
                             else:
                                 delay = self.delay_s
                             
@@ -5494,7 +5490,7 @@ def _load_id_cache(cache_file: Path) -> dict:
         return {}
     
     try:
-        return json.loads(cache_file.read_text(encoding="utf-8"))  # NOSONAR
+        return json.loads(cache_file.read_text(encoding="utf-8"))  # NOSONAR - internal cache path
     except Exception:
         return {}
 
@@ -5502,7 +5498,7 @@ def _load_id_cache(cache_file: Path) -> dict:
 def _save_id_cache(cache_file: Path, id_cache: dict) -> None:
     """Save Spotify ID cache to file."""
     try:
-        cache_file.write_text(
+        cache_file.write_text(  # NOSONAR - internal cache path from config, not user-controlled
             json.dumps(id_cache, ensure_ascii=False, indent=2),
             encoding="utf-8"
         )
@@ -6349,8 +6345,8 @@ def main():
 # This server is NOT exposed to the internet - it's bound to 127.0.0.1
 # Adding HTTPS would require certificates and provide no security benefit for local-only access
         httpd = socketserver.TCPServer(("", PORT), MyHandler)
-        log(f"Finja's BIG Musik BRAIN v1.1.0 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")
-        httpd.serve_forever() # nosec B201 - localhost only, no external exposure
+        log(f"Finja's BIG Musik BRAIN v1.1.0 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")  # NOSONAR - localhost only
+        httpd.serve_forever()  # NOSONAR nosec B201 - localhost only, no external exposure
 
     except KeyboardInterrupt:
         log("Shutting down...")

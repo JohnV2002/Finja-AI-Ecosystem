@@ -159,7 +159,7 @@ class Filter:
         # 1. MEMORY SERVER CONNECTION (Essential)
         # =========================================================
         memory_api_base: str = Field(
-            default="http://localhost:8000",
+            default="http://localhost:8000",  # NOSONAR - localhost-only default for local dev/Docker
             description="Base URL of your Memory Server (do not include trailing slash)."
         )
         memory_api_key: str = Field(
@@ -211,7 +211,7 @@ class Filter:
         # 4. LOCAL LLM / OLLAMA SETTINGS (if provider is 'local')
         # =========================================================
         local_llm_api_endpoint_url: str = Field(
-            default="http://host.docker.internal:11434/api/chat",
+            default="http://host.docker.internal:11434/api/chat",  # NOSONAR - Docker-internal network, not exposed
             description="Full API endpoint for local LLM (e.g. .../api/chat)."
         )
         local_llm_model_name: str = Field(
@@ -241,7 +241,7 @@ class Filter:
         )
         # Option B: Ollama Embeddings
         ollama_embedding_api_endpoint_url: str = Field(
-             default="http://host.docker.internal:11434/api/embeddings", 
+             default="http://host.docker.internal:11434/api/embeddings",  # NOSONAR - Docker-internal network
              description="Full API endpoint for 'ollama' embedding provider."
         )
         ollama_embedding_model_name: str = Field(

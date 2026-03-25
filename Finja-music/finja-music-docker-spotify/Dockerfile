@@ -55,11 +55,11 @@ COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 COPY --chown=appuser:appgroup --chmod=555 app.py .
 COPY --chown=appuser:appgroup --chmod=555 config_min.json .
 COPY --chown=appuser:appgroup --chmod=555 requirements.txt .
-COPY --chown=appuser:appgroup --chmod=755 Memory ./Memory
-COPY --chown=appuser:appgroup --chmod=755 SongsDB ./SongsDB
+COPY --chown=appuser:appgroup --chmod=555 Memory ./Memory
+COPY --chown=appuser:appgroup --chmod=555 SongsDB ./SongsDB
 
-# Ensure data directories remain writable for the appuser
-RUN chmod -R 755 Nowplaying Memory SongsDB cache
+# Ensure data directories are writable at runtime for the appuser (required for app data storage)
+RUN chmod -R 750 Nowplaying Memory SongsDB cache
 
 # Switch to non-privileged user
 USER appuser

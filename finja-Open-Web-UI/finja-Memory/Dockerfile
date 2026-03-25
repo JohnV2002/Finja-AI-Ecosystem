@@ -52,10 +52,10 @@ RUN mkdir -p user_memories user_audio tts_cache backups && \
 
 # Copy installed packages from build stage
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY memory-server.py .
+COPY --chown=appuser:appgroup --chmod=555 memory-server.py .
 
 # Switch to non-root user
 USER appuser
