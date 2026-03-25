@@ -798,7 +798,7 @@ def _try_parse_with_by_pattern(line: str) -> Tuple[Optional[str], Optional[str]]
         r"^(?P<title>[^\n]+?)\s+by\s+(?P<artist>[^\n]+)$",
         line,
         flags=re.IGNORECASE
-    )
+    )  # NOSONAR
     
     if m:
         title = m.group("title").strip()

@@ -51,8 +51,12 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 # Copy executable files (like uvicorn) - Set to read-only (SonarQube Security)
 COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 
-# Copy the entire application code - Set to read-only
-COPY --chown=appuser:appgroup --chmod=555 . .
+# Copy specific application files and directories (SonarQube Security docker:S7020)
+COPY --chown=appuser:appgroup --chmod=555 app.py .
+COPY --chown=appuser:appgroup --chmod=555 config_min.json .
+COPY --chown=appuser:appgroup --chmod=555 requirements.txt .
+COPY --chown=appuser:appgroup --chmod=755 Memory ./Memory
+COPY --chown=appuser:appgroup --chmod=755 SongsDB ./SongsDB
 
 # Ensure data directories remain writable for the appuser
 RUN chmod -R 755 Nowplaying Memory SongsDB cache

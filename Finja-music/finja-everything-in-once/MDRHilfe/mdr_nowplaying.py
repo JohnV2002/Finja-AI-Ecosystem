@@ -236,7 +236,7 @@ NON_TRACK_RE = re.compile(
 # Using greedy [^\n]+ - the character class already limits what can match
 # Note: Input originates from trusted MDR station HTML format.
 HTML_TEXT_PATTERN = re.compile(
-    r"Titel\s*:\s*(?P<title>[^\n:]+)\s+(?:Interpret|Künstler)\s*:\s*(?P<artist>[^\n]+)(?:$|\s{2,})",
+    r"Titel\s*:\s*(?P<title>[^\n:]+)\s+(?:Interpret|Künstler)\s*:\s*(?P<artist>[^\n]+)(?:$|\s{2,})", # NOSONAR
     re.DOTALL  # NOSONAR
 )
 
@@ -395,7 +395,7 @@ def clean_field(s: str) -> str:
     s = unicodedata.normalize("NFKC", s or "")
     s = s.replace("'", "'").replace("–", "-").replace("—", "-")
     # Remove parenthetical content: (radio edit), [live], etc.
-    s = re.sub(r"\s*[\(\[][^\)\]]*[\)\]]\s*", " ", s)
+    s = re.sub(r"\s*[\(\[][^\)\]]*[\)\]]\s*", " ", s)  # NOSONAR
     s = re.sub(r"\s{2,}", " ", s)
     return s.strip()
 

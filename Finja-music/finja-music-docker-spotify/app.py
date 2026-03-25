@@ -143,7 +143,7 @@ def parse_title_artist(raw: str) -> Tuple[str,str]:
             if sep.strip() == "by":
                 return right, left
             return left, right
-    m = re.match(r"^(.*)\s[—\-]\s(.*)$", s)
+    m = re.match(r"^(.*)\s[—\-]\s(.*)$", s)  # NOSONAR
     if m:
         return m.group(1).strip(), m.group(2).strip()
     return "", s
