@@ -1,309 +1,146 @@
 """
-Unit tests for main.py (Web Crawler API)
-Tests the hybrid web crawler with DuckDuckGo and fallback functionality
+======================================================================
+               Web Crawler API – Test Suite
+======================================================================
+
+  Project: Finja - Twitch Interactivity Suite
+  Module: finja-web-crawler
+  Author: J. Apps (JohnV2002 / Sodakiller1)
+
+----------------------------------------------------------------------
+  Description:
+    Real unit tests for the Web Crawler using pytest and FastAPI
+    TestClient. It mocks external search engines (DDGS and requests)
+    to verify internal router and fallback logic securely.
+======================================================================
 """
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock, Mock
-import os
+from unittest.mock import patch, MagicMock
 
+# IMPORTANT: We must patch the environment variable BEFORE importing main, 
+# or we patch the module variable directly.
+from main import app, SearchResult
+import main
 
-@pytest.fixture
-def client():
-    """Create test client with mocked environment"""
-    with patch.dict(os.environ, {'BEARER_TOKEN': 'test-bearer-token-12345'}):
-        from main import app
-        return TestClient(app)
+# Force the expected token for tests
+main.EXPECTED_BEARER_TOKEN = "test-bearer-token-12345"
 
+client = TestClient(app)
 
 @pytest.fixture
 def auth_headers():
-    """Return authentication headers"""
     return {"Authorization": "Bearer test-bearer-token-12345"}
 
-
 class TestAuthentication:
-    """Tests for API authentication"""
+    """Tests for API authentication via Bearer Token."""
 
-    def test_missing_bearer_token(self, client):
-        """Test that requests without bearer token are rejected"""
-        response = client.post("/search", json={"query": "test"})
+    def test_missing_bearer_token(self):
+        """Test that requests without a bearer token are rejected."""
+        response = client.post("/search", json={"query": "test", "count": 5})
         assert response.status_code == 401
+        assert response.json()["detail"] == "Unauthorized"
 
-    def test_invalid_bearer_token(self, client):
-        """Test that requests with invalid bearer token are rejected"""
+    def test_invalid_bearer_token(self):
+        """Test that requests with an invalid bearer token are rejected."""
         headers = {"Authorization": "Bearer invalid-token"}
-        response = client.post("/search", json={"query": "test"}, headers=headers)
+        response = client.post("/search", json={"query": "test", "count": 5}, headers=headers)
         assert response.status_code == 401
+        assert response.json()["detail"] == "Unauthorized"
 
-    def test_valid_bearer_token(self, client, auth_headers):
-        """Test that requests with valid bearer token are accepted"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_ddgs.return_value.text.return_value = [
-                {"title": "Test", "href": "https://test.com", "body": "Test result"}
-            ]
-            response = client.post("/search", json={"query": "test"}, headers=auth_headers)
-            # Should not be 401
-            assert response.status_code != 401
+    @patch('main.ddg_search')
+    def test_valid_bearer_token(self, mock_ddg, auth_headers):
+        """Test that requests with a valid bearer token are accepted."""
+        mock_ddg.return_value = [SearchResult(link="https://test.com", title="Test", snippet="Test")]
+        response = client.post("/search", json={"query": "test", "count": 1}, headers=auth_headers)
+        assert response.status_code == 200
 
+class TestSearchLogic:
+    """Tests for the hybrid external search endpoint and its fallback mechanism."""
 
-class TestSearchEndpoint:
-    """Tests for /search endpoint"""
+    @patch('main.ddg_search')
+    def test_ddgs_search_success(self, mock_ddg, auth_headers):
+        """Test DuckDuckGo returns the full requested count of results without triggering fallback."""
+        mock_results = [
+            SearchResult(link=f"https://test.com/{i}", title=f"Title {i}", snippet="Snippet")
+            for i in range(3)
+        ]
+        mock_ddg.return_value = mock_results
 
-    def test_search_with_valid_query(self, client, auth_headers):
-        """Test search with valid query returns results"""
-        with patch('main.DDGS') as mock_ddgs:
-            # Mock DuckDuckGo response
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {
-                    "title": "Test Result 1",
-                    "href": "https://example.com/1",
-                    "body": "This is a test result"
-                },
-                {
-                    "title": "Test Result 2",
-                    "href": "https://example.com/2",
-                    "body": "Another test result"
-                }
-            ]
-            mock_ddgs.return_value = mock_instance
+        response = client.post("/search", json={"query": "python", "count": 3}, headers=auth_headers)
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 3
+        assert data[0]["title"] == "Title 0"
+        
+        # Verify the mock was called correctly
+        mock_ddg.assert_called_once_with("python", 3)
 
-            response = client.post(
-                "/search",
-                json={"query": "python programming"},
-                headers=auth_headers
-            )
+    @patch('main.ddg_search')
+    @patch('main.google_crawler')
+    def test_fallback_triggered(self, mock_google, mock_ddg, auth_headers):
+        """Test fallback triggered when DuckDuckGo returns fewer results than requested."""
+        # DDG returns only 1 result, but we ask for 3
+        mock_ddg.return_value = [SearchResult(link="https://ddg.com", title="DDG", snippet="DDG")]
+        
+        # Google should be called for the remaining 2 results (3 - 1 = 2)
+        mock_google.return_value = [
+            SearchResult(link="https://google.com/1", title="G1", snippet="G1"),
+            SearchResult(link="https://google.com/2", title="G2", snippet="G2")
+        ]
 
-            assert response.status_code == 200
-            data = response.json()
-            assert "results" in data
-            assert isinstance(data["results"], list)
-            assert len(data["results"]) > 0
+        response = client.post("/search", json={"query": "test fallback", "count": 3}, headers=auth_headers)
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 3
+        
+        # Ensure order: DDG results first, then Google results seamlessly appended
+        assert data[0]["title"] == "DDG"
+        assert data[1]["title"] == "G1"
+        assert data[2]["title"] == "G2"
 
-    def test_search_empty_query(self, client, auth_headers):
-        """Test search with empty query"""
-        response = client.post(
-            "/search",
-            json={"query": ""},
-            headers=auth_headers
-        )
-        # Should handle gracefully
-        assert response.status_code in [200, 400, 422]
+        # Verify google_crawler was called requesting exactly 2 results (the deficit)
+        mock_google.assert_called_once_with("test fallback", 2)
 
-    def test_search_missing_query_field(self, client, auth_headers):
-        """Test search without query field"""
-        response = client.post(
-            "/search",
-            json={},
-            headers=auth_headers
-        )
-        assert response.status_code == 422  # Validation error
+    @patch('main.ddg_search')
+    @patch('main.google_crawler')
+    def test_tabby_cat_fallback_ultimate(self, mock_google, mock_ddg, auth_headers):
+        """Test the absolute ultimate fallback when both engines return absolutely nothing."""
+        # Both engines fail to provide results
+        mock_ddg.return_value = []
+        mock_google.return_value = []
 
-    def test_search_with_special_characters(self, client, auth_headers):
-        """Test search with special characters in query"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {"title": "Result", "href": "https://test.com", "body": "Result body"}
-            ]
-            mock_ddgs.return_value = mock_instance
+        response = client.post("/search", json={"query": "impossible query", "count": 5}, headers=auth_headers)
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        
+        # Tabby Cat logic expected here
+        assert "Tabby Cat Fallback" in data[0]["title"]
+        assert data[0]["link"] == "https://en.wikipedia.org/wiki/Tabby_cat"
+        assert "I couldn't find anything" in data[0]["snippet"]
 
-            special_queries = [
-                "C++ programming",
-                "what is AI?",
-                "search: test & demo",
-                "unicode: 你好世界"
-            ]
-
-            for query in special_queries:
-                response = client.post(
-                    "/search",
-                    json={"query": query},
-                    headers=auth_headers
-                )
-                assert response.status_code == 200
-
-
-class TestDuckDuckGoIntegration:
-    """Tests for DuckDuckGo search integration"""
-
-    def test_ddgs_search_success(self, client, auth_headers):
-        """Test successful DuckDuckGo search"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {
-                    "title": "Python.org",
-                    "href": "https://python.org",
-                    "body": "Official Python website"
-                }
-            ]
-            mock_ddgs.return_value = mock_instance
-
-            response = client.post(
-                "/search",
-                json={"query": "python"},
-                headers=auth_headers
-            )
-
-            assert response.status_code == 200
-            data = response.json()
-            assert len(data["results"]) > 0
-            assert data["results"][0]["title"] == "Python.org"
-
-    def test_ddgs_returns_empty_results(self, client, auth_headers):
-        """Test when DuckDuckGo returns no results"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = []
-            mock_ddgs.return_value = mock_instance
-
-            response = client.post(
-                "/search",
-                json={"query": "very obscure query"},
-                headers=auth_headers
-            )
-
-            # Should either return empty results or trigger fallback
-            assert response.status_code == 200
-            data = response.json()
-            assert "results" in data
-
-    def test_ddgs_exception_handling(self, client, auth_headers):
-        """Test handling of DuckDuckGo exceptions"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.side_effect = Exception("Connection error")
-            mock_ddgs.return_value = mock_instance
-
-            # Mock fallback mechanism
-            with patch('main.requests.get') as mock_requests:
-                mock_response = MagicMock()
-                mock_response.status_code = 200
-                mock_response.text = "<html><body>Test</body></html>"
-                mock_requests.return_value = mock_response
-
-                response = client.post(
-                    "/search",
-                    json={"query": "test"},
-                    headers=auth_headers
-                )
-
-                # Should handle error gracefully
-                assert response.status_code in [200, 500]
-
-
-class TestFallbackMechanism:
-    """Tests for fallback search mechanism"""
-
-    def test_fallback_triggered_on_few_results(self, client, auth_headers):
-        """Test that fallback is triggered when DuckDuckGo returns too few results"""
-        with patch('main.DDGS') as mock_ddgs:
-            # Return only 1 result to trigger fallback (if threshold is > 1)
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {"title": "One Result", "href": "https://test.com", "body": "Only one"}
-            ]
-            mock_ddgs.return_value = mock_instance
-
-            # Mock the fallback HTML scraping
-            with patch('main.requests.get') as mock_requests:
-                mock_response = MagicMock()
-                mock_response.status_code = 200
-                mock_response.text = """
-                <html>
-                    <div class="g">
-                        <h3>Fallback Result</h3>
-                        <a href="https://fallback.com">Link</a>
-                        <span>Fallback description</span>
-                    </div>
-                </html>
-                """
-                mock_requests.return_value = mock_response
-
-                response = client.post(
-                    "/search",
-                    json={"query": "test"},
-                    headers=auth_headers
-                )
-
-                assert response.status_code == 200
-
-
-class TestResultFormatting:
-    """Tests for search result formatting"""
-
-    def test_result_structure(self, client, auth_headers):
-        """Test that results have correct structure"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {
-                    "title": "Test Title",
-                    "href": "https://test.com",
-                    "body": "Test description"
-                }
-            ]
-            mock_ddgs.return_value = mock_instance
-
-            response = client.post(
-                "/search",
-                json={"query": "test"},
-                headers=auth_headers
-            )
-
-            assert response.status_code == 200
-            data = response.json()
-            assert "results" in data
-
-            if len(data["results"]) > 0:
-                result = data["results"][0]
-                # Check expected fields exist
-                assert "title" in result or "href" in result
-
-    def test_url_validation_in_results(self, client, auth_headers):
-        """Test that returned URLs are valid"""
-        with patch('main.DDGS') as mock_ddgs:
-            mock_instance = MagicMock()
-            mock_instance.text.return_value = [
-                {
-                    "title": "Valid URL",
-                    "href": "https://example.com/page",
-                    "body": "Description"
-                },
-                {
-                    "title": "Another URL",
-                    "href": "http://test.org",
-                    "body": "Another description"
-                }
-            ]
-            mock_ddgs.return_value = mock_instance
-
-            response = client.post(
-                "/search",
-                json={"query": "test"},
-                headers=auth_headers
-            )
-
-            assert response.status_code == 200
-            data = response.json()
-
-            for result in data["results"]:
-                if "href" in result:
-                    # Basic URL validation
-                    assert result["href"].startswith("http://") or result["href"].startswith("https://")
-
-
-class TestHealthCheck:
-    """Tests for health check endpoint"""
-
-    def test_health_endpoint(self, client):
-        """Test health check endpoint (if exists)"""
-        response = client.get("/health")
-        # Should be accessible without auth
-        assert response.status_code in [200, 404]  # 404 if not implemented
-
+class TestDataModels:
+    """Tests for validating Data Model Edge Cases"""
+    
+    @patch('main.ddg_search')
+    def test_search_missing_query_field(self, mock_ddg, auth_headers):
+        """Test API behavior when query is missing from JSON payload."""
+        response = client.post("/search", json={"count": 5}, headers=auth_headers)
+        # Should raise a Pydantic Validation Error since query is required
+        assert response.status_code == 422 
+        
+    @patch('main.ddg_search')
+    def test_search_missing_count_field(self, mock_ddg, auth_headers):
+        """Test API behavior when count is missing from JSON payload."""
+        response = client.post("/search", json={"query": "python"}, headers=auth_headers)
+        # Should raise a Pydantic Validation Error since count is currently required and has no default
+        assert response.status_code == 422 
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

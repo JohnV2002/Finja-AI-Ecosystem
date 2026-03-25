@@ -1,82 +1,85 @@
-# 📄 OCR-Service mit Apache Tika 🧠
+# 📄 OCR Service with Apache Tika 🧠
 
-Ein eigenständiger OCR-Service, basierend auf **[Apache Tika](https://github.com/apache/tika-docker)** und **[Docker](https://www.docker.com/)**, der perfekt mit der **[OpenWebUI Document Extraction](https://docs.openwebui.com/features/document-extraction/apachetika)** Funktion zusammenarbeitet. 💖
+A standalone OCR service, based on **[Apache Tika](https://github.com/apache/tika-docker)** and **[Docker](https://www.docker.com/)**, that works perfectly with the **[OpenWebUI Document Extraction](https://docs.openwebui.com/features/document-extraction/apachetika)** feature. 💖
 
-Er extrahiert Text aus Bildern, PDFs und Office-Dokumenten, inklusive eingebautem **Tesseract-OCR** für gescannte Inhalte. 🖼️➡️📄
+It extracts text from images, PDFs, and Office documents, including built-in **Tesseract OCR** for scanned content. 🖼️➡️📄
+
+> [!WARNING]
+> **Outdated Base Image:** The base Docker image used for this service (`logicalspark/docker-tikaserver:latest`) was last updated over **3 years ago**. Please use it with caution and be aware that it may lack recent security patches or features.
 
 ---
 
-## ⚠️ WICHTIG – Datenschutz & Speicherung
+## ⚠️ IMPORTANT – Privacy & Storage
 
-Bitte lies diese Punkte sorgfältig durch, bevor du den Service nutzt:
+Please read these points carefully before using the service:
 
--   **Temporäre Speicherung:** Der Tika-Container selbst ist "stateless" und speichert nichts dauerhaft, legt aber während der Verarbeitung kurzzeitig temporäre Dateien an.
--   **Speicherung in OpenWebUI:** OpenWebUI **speichert** die extrahierten Texte in seiner eigenen Vektor-Datenbank, damit dein LLM später darauf zugreifen kann.
--   **Adaptive Memory Risiko:** Wenn du in OpenWebUI das **"Adaptive Memory v4"**-Feature aktiviert hast, können extrahierte Inhalte **an eine externe API (z.B. OpenAI) gesendet** und dort **dauerhaft gespeichert werden!**
-    -   **Beispiel:** Ein Bild mit dem Text "Mein Hund ist glücklich" könnte dazu führen, dass Adaptive Memory den Fakt "Der Hund des Nutzers ist glücklich" speichert.
--   **Haftungsausschluss:** Die Nutzung erfolgt auf eigene Gefahr. Ich übernehme keine Haftung für eure Daten. Wenn du unsicher bist, deaktiviere die entsprechenden Features in OpenWebUI.
+-   **Temporary Storage:** The Tika container itself is "stateless" and does not store anything permanently, but it creates temporary files for a short time during processing.
+-   **Storage in OpenWebUI:** OpenWebUI **stores** the extracted texts in its own vector database so your LLM can access them later.
+-   **Adaptive Memory Risk:** If you have enabled the **"Adaptive Memory v4"** feature in OpenWebUI, extracted content can be **sent to an external API (e.g., OpenAI)** and **stored there permanently!**
+    -   **Example:** An image containing the text "My dog is happy" could lead Adaptive Memory to store the fact "The user's dog is happy."
+-   **Disclaimer:** Use at your own risk. I assume no liability for your data. If you are unsure, disable the corresponding features in OpenWebUI.
 
 ---
 
 ## ⚡ Features
 
--   🖼️ Vollautomatische **OCR** für gescannte Dokumente (PDF, JPG, PNG, etc.).
--   📑 **Metadaten-Extraktion** aus Office-Dateien (DOCX, PPTX, XLSX).
--   🤖 Kompatibel mit der **OpenWebUI Document Extraction**.
--   🐋 Läuft isoliert in **Docker**, keine lokale Installation nötig.
--   🌍 **Mehrsprachige OCR** (Deutsch & Englisch sind im Setup enthalten).
--   🧪 Unterstützt die Endpunkte `/tika`, `/rmeta/text` und `/unpack`.
+-   🖼️ Fully automated **OCR** for scanned documents (PDF, JPG, PNG, etc.).
+-   📑 **Metadata Extraction** from Office files (DOCX, PPTX, XLSX).
+-   🤖 Compatible with **OpenWebUI Document Extraction**.
+-   🐋 Runs isolated in **Docker**, no local installation required.
+-   🌍 **Multilingual OCR** (German & English are included in the setup).
+-   🧪 Supports the endpoints `/tika`, `/rmeta/text`, and `/unpack`.
 
 ---
 
-## 🚀 Setup: Wähle deine Methode
+## 🚀 Setup: Choose Your Method
 
-Für dieses Setup wird ein benutzerdefiniertes Docker-Image gebaut, um deutsche Sprachpakete für die Texterkennung (OCR) hinzuzufügen. Die dafür nötigen Dateien (`docker-compose.yml` und `Dockerfile`) sind bereits im Projektordner enthalten.
+This setup builds a custom Docker image to add German language packages for text recognition (OCR). The necessary files (`docker-compose.yml` and `Dockerfile`) are already included in the project folder.
 
-### Methode 1: Docker Compose im Terminal (Empfohlen)
+### Method 1: Docker Compose in Terminal (Recommended)
 
-Dies ist der schnellste und direkteste Weg, um den Service zu starten.
+This is the fastest and most direct way to start the service.
 
-**1. Projektordner öffnen**
-Lade dieses Projekt herunter (z.B. als ZIP) und entpacke es. Öffne danach ein Terminal und navigiere in den Projektordner, in dem sich die `docker-compose.yml` befindet.
+**1. Open Project Folder**
+Download this project (e.g., as a ZIP) and extract it. Then open a terminal and navigate to the project folder where the `docker-compose.yml` is located.
 
-**2. Service starten und bauen**
-Führe den folgenden Befehl aus. Er baut das Docker-Image mit den deutschen Sprachpaketen und startet anschließend den Container. Das `--build` Flag ist nur beim ersten Start notwendig.
+**2. Build and Start Service**
+Run the following command. It builds the Docker image with the German language packages and then starts the container. The `--build` flag is only necessary for the first start.
 ```bash
 docker compose up --build -d
 ```
 
-**3. Überprüfen**
-Warte einen Moment und prüfe dann mit diesem Befehl, ob der Server korrekt antwortet:
+**3. Verify**
+Wait a moment and then check if the server responds correctly with this command:
 ```bash
 curl -s http://localhost:9998/tika | head
 ```
-Wenn die Antwort `Apache Tika Server` enthält, ist alles bereit! ✨
+If the response contains `Apache Tika Server`, everything is ready! ✨
 
-### Methode 2: Portainer Web-Oberfläche (Anfängerfreundlich)
+### Method 2: Portainer Web Interface (Beginner Friendly)
 
-Diese Methode ist ideal, wenn du deine Container lieber über eine grafische Oberfläche verwaltest. Da ein benutzerdefiniertes Image gebaut werden muss, ist ein kleiner Schritt im Terminal trotzdem notwendig.
+This method is ideal if you prefer managing your containers via a graphical interface. Since a custom image needs to be built, a small terminal step is still required.
 
-**1. Vorbereitung im Terminal (einmalig)**
-Lade das Projekt auf deinen Docker-Host herunter und navigiere im Terminal in den Projektordner. Führe dort einmalig den `build`-Befehl aus, um das Image mit den deutschen Sprachpaketen zu erstellen:
+**1. Preparation in Terminal (One-time)**
+Download the project to your Docker host and navigate to the project folder in the terminal. Run the `build` command once to create the image with the German language packages:
 ```bash
-# Stelle sicher, dass du im richtigen Ordner bist
+# Make sure you are in the correct folder
 docker compose build
 ```
-Dieser Befehl baut nur das Image `tika-ocr-deu:latest`, ohne den Container zu starten.
+This command only builds the `tika-ocr-deu:latest` image without starting the container.
 
-**2. Stack in Portainer anlegen**
-1.  Logge dich in Portainer ein.
-2.  Gehe zu **Stacks** und klicke auf **"Add stack"**.
-3.  Gib dem Stack einen Namen, z.B. `tika-service`.
-4.  Wähle als Build-Methode **"Web editor"**.
-5.  Füge einen **angepassten** `docker-compose`-Inhalt ein. Dieser ist fast identisch mit der Datei im Projekt, aber **ohne den `build:`-Abschnitt**, da wir das Image ja bereits erstellt haben:
+**2. Create Stack in Portainer**
+1.  Log into Portainer.
+2.  Gehe to **Stacks** and click on **"Add stack"**.
+3.  Give the stack a name, e.g., `tika-service`.
+4.  Select **"Web editor"** as the build method.
+5.  Paste a **customized** `docker-compose` content. This is almost identical to the file in the project, but **without the `build:` section**, since we already created the image:
     ```yaml
     version: "3.9"
 
     services:
       tika:
-        image: tika-ocr-deu:latest # Wir verweisen auf das zuvor gebaute Image
+        image: tika-ocr-deu:latest # We reference the previously built image
         container_name: tika
         ports:
           - "9998:9998"
@@ -89,60 +92,60 @@ Dieser Befehl baut nur das Image `tika-ocr-deu:latest`, ohne den Container zu st
           retries: 10
         restart: unless-stopped
     ```
-6.  Klicke auf **"Deploy the stack"**. Portainer startet nun den Container aus dem lokal gebauten Image.
+6.  Click on **"Deploy the stack"**. Portainer will now start the container from the locally built image.
 
 ---
 
-## 💬 Nutzung mit OpenWebUI
+## 💬 Usage with OpenWebUI
 
-1.  Gehe in deine **OpenWebUI Einstellungen → Document Extraction**.
-2.  Aktiviere **"Apache Tika"**.
-3.  Trage die URL deines Tika-Servers ein:
+1.  Go to your **OpenWebUI Settings → Document Extraction**.
+2.  Enable **"Apache Tika"**.
+3.  Enter the URL of your Tika server:
     ```http
-    http://<DEINE-IP>:9998
+    http://<YOUR-IP>:9998
     ```
-    (Nutze `127.0.0.1`, wenn OpenWebUI auf derselben Maschine läuft).
-4.  Speichern. **Fertig!** 💖
+    (Use `127.0.0.1` if OpenWebUI is running on the same machine).
+4.  Save. **Done!** 💖
 
 ---
 
-## 🧪 Beispiel-Requests via `curl`
+## 🧪 Example Requests via `curl`
 
-Du kannst den Service auch direkt testen:
+You can also test the service directly:
 
-**Nur den reinen Text extrahieren:**
+**Extract plain text only:**
 ```bash
-curl -H "Accept: text/plain" -T dein-dokument.pdf http://localhost:9998/tika
+curl -H "Accept: text/plain" -T your-document.pdf http://localhost:9998/tika
 ```
 
-**Text inklusive Metadaten als JSON erhalten:**
+**Get text including metadata as JSON:**
 ```bash
-curl -H "Accept: application/json" -T dein-dokument.pdf http://localhost:9998/rmeta/text
+curl -H "Accept: application/json" -T your-document.pdf http://localhost:9998/rmeta/text
 ```
 
 ---
 
-## 💡 Tipps & Tricks
+## 💡 Tips & Tricks
 
--   **Große PDFs:** Erhöhe den Arbeitsspeicher für Java in der `docker-compose.yml`, z.B. `JAVA_OPTS=-Xmx2g`.
--   **Mehr Sprachen:** Füge weitere `tesseract-ocr-<lang>` Pakete in der `Dockerfile` hinzu (z.B. `tesseract-ocr-fra` für Französisch).
--   **Sicherheit:** Setze optional einen Reverse Proxy (z.B. Traefik oder Nginx) vor den Service, um ihn abzusichern.
-
----
-
-## 📜 Lizenz
-
-Dieses Setup basiert auf dem offiziellen Docker-Image `apache/tika-docker` und `logicalspark/docker-tikaserver`.
-
--   **Apache Tika Lizenz:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
--   **Anpassungen & Setup-Anleitung:** © 2025 J. Apps
+-   **Large PDFs:** Increase the RAM for Java in the `docker-compose.yml`, e.g., `JAVA_OPTS=-Xmx2g`.
+-   **More Languages:** Add more `tesseract-ocr-<lang>` packages in the `Dockerfile` (e.g., `tesseract-ocr-fra` for French).
+-   **Security:** Optionally set up a reverse proxy (e.g., Traefik or Nginx) in front of the service to secure it.
 
 ---
 
-## 🆘 Support & Kontakt
+## 📜 License
 
-Bei Fragen oder Problemen erreichst du uns hier:
+This setup is based on the official Docker images `apache/tika-docker` and `logicalspark/docker-tikaserver`.
 
--   **E-Mail:** contact@jappshome.de
+-   **Apache Tika License:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+-   **Modifications & Setup Guide:** © 2026 J. Apps
+
+---
+
+## 🆘 Support & Contact
+
+If you have any questions or problems, you can reach me here:
+
+-   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+-   **Support:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)

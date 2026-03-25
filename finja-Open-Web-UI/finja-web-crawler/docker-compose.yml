@@ -1,5 +1,20 @@
-version: '3.8'
+# ======================================================================
+#          Finja Web Crawler - Docker Compose
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module: finja-web-crawler
+#   Author: J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.0
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the Apache License 2.0
+#
+# ======================================================================
 
+version: '3.8'
 services:
   tor:
     image: dperson/torproxy
@@ -16,5 +31,5 @@ services:
     depends_on:
       - tor
     restart: unless-stopped
-    env_file:                 # 👈 DAS IST DER SCHLÜSSEL!
-      - .env                  # 👈 Liest die .env-Datei automatisch ein
+    env_file:
+      - .env

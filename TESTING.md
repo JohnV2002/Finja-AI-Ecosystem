@@ -2,29 +2,30 @@
 
 ## Overview
 
-This document describes the testing infrastructure for the Finja AI Ecosystem. The project now includes comprehensive unit tests, integration tests, and automated CI/CD pipelines.
+This document describes the testing infrastructure for the Finja AI Ecosystem. The project consists of independent, modular microservices. Therefore, testing is performed on a **per-module basis** within their respective directories rather than using a global setup. We employ comprehensive unit tests, integration tests, and automated CI/CD pipelines.
 
 ## Test Structure
 
-```
+```text
 Finja-AI-Ecosystem/
 ├── finja-chat/
 │   ├── test_command_bridge.py          # Tests for VPet command bridge
 │   └── test_spotify_request_server.py  # Tests for Spotify integration
 ├── finja-Open-Web-UI/
 │   ├── finja-Memory/
-│   │   └── test_memory_server.py       # Tests for memory system
+│   │   ├── test_memory_server.py       # FastAPI endpoints, CRUD, Auth
+│   │   └── test_adaptive_memory.py     # OpenWebUI plugin Filter logic
 │   └── finja-web-crawler/
-│       └── test_web_crawler.py         # Tests for web crawler
+│       └── test_web_crawler.py         # DDG/Google scraping & fallback logic
 ├── Finja-music/
 │   └── finja-everthing-in-once/
 │       └── test_music_webserver.py     # Tests for music engine
 └── .github/workflows/
     ├── finja-chat-tests.yml            # Chat module CI/CD
-    ├── openweb-ui-tests.yml            # OpenWebUI modules CI/CD
+    ├── memory-tests.yml                # Memory module CI/CD
+    ├── web-crawler-tests.yml           # Web Crawler CI/CD
     ├── music-engine-tests.yml          # Music engine CI/CD
     ├── code-quality.yml                # Linting & security
-    ├── comprehensive-tests.yml         # Full test suite
     ├── memory-build.yml                # Docker build for Memory
     ├── ocr-build.yml                   # Docker build for OCR
     └── web-crawler-build.yml           # Docker build for Web Crawler
@@ -32,263 +33,122 @@ Finja-AI-Ecosystem/
 
 ## Running Tests Locally
 
-### Prerequisites
+Because of the modular ecosystem architecture, you must navigate into the specific module directory to run its tests.
+
+### 🧠 Memory Module Tests
+
+This suite tests the FastAPI memory backend and the OpenWebUI Adaptive Memory plugin.
 
 ```bash
-# Install test dependencies
-pip install -r test-requirements.txt
+cd finja-Open-Web-UI/finja-Memory
+
+# Install dependencies (including test libraries)
+pip install -r requirements.txt
+pip install pytest httpx pytest-asyncio aiohttp numpy scikit-learn rapidfuzz
+
+# Run the test suite
+pytest test_memory_server.py test_adaptive_memory.py -v
 ```
 
-### Running Individual Test Suites
+### 🌐 Web Crawler Tests
 
-#### Finja Chat Tests
+This suite tests the hybrid DuckDuckGo/Google search crawler, fallback logic, and token authentication.
+
+```bash
+cd finja-Open-Web-UI/finja-web-crawler
+
+# Install dependencies
+pip install -r requirements.txt
+pip install pytest httpx
+
+# Run the test suite
+pytest test_web_crawler.py -v
+```
+
+### 💬 Finja Chat Tests
+
 ```bash
 cd finja-chat
+pip install -r requirements.txt
+pip install pytest
+
 pytest test_command_bridge.py -v
 pytest test_spotify_request_server.py -v
 ```
 
-#### Memory Module Tests
-```bash
-cd finja-Open-Web-UI/finja-Memory
-export MEMORY_API_KEY="test-api-key-12345"
-pytest test_memory_server.py -v
-```
+### 🎵 Music Engine Tests
 
-#### Web Crawler Tests
-```bash
-cd finja-Open-Web-UI/finja-web-crawler
-export BEARER_TOKEN="test-bearer-token-12345"
-pytest test_web_crawler.py -v
-```
-
-#### Music Engine Tests
 ```bash
 cd Finja-music/finja-everthing-in-once
+pip install -r requirements.txt
+pip install pytest
+
 pytest test_music_webserver.py -v
-```
-
-### Running All Tests
-
-```bash
-# From project root
-pytest --tb=short
-```
-
-### Running with Coverage
-
-```bash
-# Generate coverage report
-pytest --cov=. --cov-report=html --cov-report=term
-
-# View HTML report
-open htmlcov/index.html  # macOS
-xdg-open htmlcov/index.html  # Linux
 ```
 
 ## GitHub Actions Workflows
 
-### Automated Test Workflows
+We use rigorous CI/CD to protect the main branch. Any Pull Request or Push to `main` or `dev` triggers automated tests isolated to the modified module.
 
-1. **Finja Chat Tests** (`finja-chat-tests.yml`)
-   - Triggers on: Push/PR to `finja-chat/**`
-   - Tests: Command bridge, Spotify integration
-   - Python versions: 3.9, 3.10, 3.11
+1. **Memory Tests** (`memory-tests.yml`)
+   - Triggers on modifications to `finja-Open-Web-UI/finja-Memory/**`
+   - Executes Pytest suite using Python 3.11.
 
-2. **OpenWebUI Modules Tests** (`openweb-ui-tests.yml`)
-   - Triggers on: Push/PR to `finja-Open-Web-UI/**`
-   - Tests: Memory server, Web crawler
-   - Python versions: 3.9, 3.10, 3.11
+2. **Web Crawler Tests** (`web-crawler-tests.yml`)
+   - Triggers on modifications to `finja-Open-Web-UI/finja-web-crawler/**`
+   - Executes Pytest suite using Python 3.12.
 
-3. **Music Engine Tests** (`music-engine-tests.yml`)
-   - Triggers on: Push/PR to `Finja-music/**`
-   - Tests: Music webserver, database functions
-   - Python versions: 3.9, 3.10, 3.11
+3. **Finja Chat Tests** (`finja-chat-tests.yml`)
+   - Tests Command Bridge and Spotify integrations.
 
 4. **Code Quality Checks** (`code-quality.yml`)
-   - Triggers on: All pushes/PRs to main
-   - Checks: flake8, black, isort, bandit, safety
-   - Security scanning included
+   - Checks code using flake8, black, isort, bandit, and safety.
 
-5. **Comprehensive Test Suite** (`comprehensive-tests.yml`)
-   - Triggers on: All pushes/PRs + daily at 2 AM UTC
-   - Runs: All test suites + Docker builds
-   - Matrix: All Python versions × All modules
-
-6. **Docker Build Checks**
-   - `memory-build.yml` - Tests Memory module Docker build
-   - `ocr-build.yml` - Tests OCR module Docker build
-   - `web-crawler-build.yml` - Tests Web Crawler Docker build
-
-## Test Coverage
-
-### Current Test Coverage by Module
-
-| Module | Test File | Coverage Areas |
-|--------|-----------|----------------|
-| **finja-chat** | `test_command_bridge.py` | Flask endpoints, command storage, timestamps |
-| **finja-chat** | `test_spotify_request_server.py` | Spotify API, song requests, cooldowns, mod commands |
-| **finja-Memory** | `test_memory_server.py` | CRUD operations, authentication, persistence, security |
-| **finja-web-crawler** | `test_web_crawler.py` | DuckDuckGo search, fallback, auth, result formatting |
-| **finja-music** | `test_music_webserver.py` | Database building, CSV parsing, file operations |
-
-### What's Tested
-
-✅ **API Endpoints**
-- Authentication & authorization
-- Request validation
-- Response formats
-- Error handling
-
-✅ **Business Logic**
-- Song request cooldowns
-- Memory CRUD operations
-- Search result processing
-- Database operations
-
-✅ **Security**
-- Path traversal prevention
-- API key validation
-- Input sanitization
-- Bearer token authentication
-
-✅ **Data Persistence**
-- File I/O operations
-- Atomic writes
-- Directory creation
-- JSON serialization
-
-✅ **Integration Points**
-- Spotify API mocking
-- DuckDuckGo search mocking
-- VPet command bridge
-- Database lookups
+5. **Docker Build Checks**
+   - Verification builds (`memory-build.yml`, `web-crawler-build.yml`, etc.) are triggered to ensure container compilation succeeds.
 
 ## Writing New Tests
 
-### Test Naming Convention
+If you contribute to a module, please observe the following Pytest conventions:
+
+### Fixture Usage & FastAPI
+Modern Finja API components (like Memory and Crawler) rely heavily on FastAPI. Always use `fastapi.testclient.TestClient`.
 
 ```python
-# Class names: Test + FeatureName
-class TestAuthentication:
-    pass
+import pytest
+from fastapi.testclient import TestClient
+from main import app
 
-# Method names: test_ + specific_case
-def test_valid_api_key(self):
-    pass
-```
-
-### Fixture Usage
-
-```python
-@pytest.fixture
-def client():
-    """Create test client for FastAPI app"""
-    return TestClient(app)
+client = TestClient(app)
 
 @pytest.fixture
 def auth_headers():
-    """Return authentication headers"""
-    return {"X-API-Key": "test-key"}
+    return {"Authorization": "Bearer test-token"}
+
+def test_secure_endpoint(auth_headers):
+    response = client.get("/secure", headers=auth_headers)
+    assert response.status_code == 200
 ```
 
 ### Mocking External Dependencies
+Never run active network requests against external APIs (like DDGS, Google, or Spotify) in automated pipelines to avoid IP blocks and rate limits. Mock them using `unittest.mock.patch` or `pytest-mock`.
 
 ```python
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-@patch('module.external_api')
-def test_with_mock(self, mock_api):
-    mock_api.return_value = {"data": "test"}
-    # Test code here
+@patch('main.ddg_search')
+def test_fallback_logic(mock_ddg):
+    mock_ddg.return_value = [{"title": "Mock", "link": "http://mock"}]
+    # Assert your internal logic using the mock
 ```
-
-## Best Practices
-
-1. **Isolation**: Each test should be independent
-2. **Mocking**: Mock external APIs and services
-3. **Cleanup**: Use fixtures with cleanup for file operations
-4. **Assertions**: Use clear, specific assertions
-5. **Coverage**: Aim for >80% code coverage
-6. **Documentation**: Add docstrings to test methods
-7. **Fast Tests**: Keep unit tests fast (<1s each)
-
-## Continuous Integration
-
-### Build Status Badges
-
-Add these to your README:
-
-```markdown
-[![Finja Chat Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-chat-tests.yml)
-[![OpenWebUI Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/openweb-ui-tests.yml)
-[![Code Quality](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/code-quality.yml)
-```
-
-### On Pull Requests
-
-All tests must pass before merging:
-- Python tests across 3 versions
-- Docker builds successful
-- Code quality checks pass
-- Security scans clean
-
-## Troubleshooting
-
-### Common Issues
-
-**Import Errors**
-```bash
-# Ensure you're in the correct directory
-cd module-directory
-pytest test_file.py
-```
-
-**Missing Dependencies**
-```bash
-# Install all dependencies
-pip install -r requirements.txt
-pip install -r test-requirements.txt
-```
-
-**Environment Variables**
-```bash
-# Set required env vars before testing
-export MEMORY_API_KEY="test-key"
-export BEARER_TOKEN="test-token"
-```
-
-## Future Enhancements
-
-- [ ] Add end-to-end tests
-- [ ] Implement performance benchmarks
-- [ ] Add mutation testing
-- [ ] Create mock Spotify/Twitch servers
-- [ ] Add browser-based UI tests
-- [ ] Implement stress testing
-- [ ] Add API contract testing
-- [ ] Create test data generators
-
-## Contributing
-
-When adding new features:
-
-1. Write tests first (TDD approach)
-2. Ensure all existing tests pass
-3. Add new tests for your feature
-4. Update this documentation
-5. Run code quality checks
-6. Submit PR with test results
 
 ## Support
 
 For test-related issues:
-- Check GitHub Actions logs
-- Review test output locally
-- Open an issue with test failures
+- Check GitHub Actions execution logs
+- Ensure all Python dependencies for the specific module are installed
 - Contact: contact@jappshome.de
 
 ---
-
 **Built with ❤️ by J. Apps**
 *"Quality code deserves quality tests"*

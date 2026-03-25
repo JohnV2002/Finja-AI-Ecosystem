@@ -9,6 +9,7 @@
 # Siehe LICENSE-Datei oder https://www.apache.org/licenses/LICENSE-2.0
 
 # Basis: offizielles Tika-Server-Image mit eingebautem Tesseract-Support
+# NOTE!!: Last updated 3 years ago.!
 FROM logicalspark/docker-tikaserver:latest
 
 # Root für Paketinstallation
@@ -17,10 +18,10 @@ USER root
 # Deutsche + Englische Tesseract-Sprachdaten installieren
 # (weitere Sprachen: tesseract-ocr-<lang>, z. B. tesseract-ocr-fra, -ita, -spa ...)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      tesseract-ocr-deu \
-      tesseract-ocr-eng \
-    && rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends \
+  tesseract-ocr-deu \
+  tesseract-ocr-eng \
+  && rm -rf /var/lib/apt/lists/*
 
 # Tesseract-Datenpfad (typisch für Debian/Ubuntu)
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata

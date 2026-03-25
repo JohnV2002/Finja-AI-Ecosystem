@@ -1,81 +1,78 @@
 # 🤖 Finja AI Ecosystem for OpenWebUI
 
-Willkommen zum Finja AI Ecosystem! 💖
+Welcome to the Finja AI Ecosystem! 💖
 
-Dieses Projekt ist eine Sammlung von modularen, Docker-basierten Microservices, die entwickelt wurden, um **[OpenWebUI](https://openwebui.com/)** zu erweitern und eine reichhaltigere, interaktivere KI-Erfahrung zu schaffen. Jedes Modul ist ein eigenständiger Baustein, der eine spezifische Fähigkeit wie Gedächtnis, Websuche oder Bilderzeugung hinzufügt.
+This project is a collection of modular, Docker-based microservices designed to extend **[OpenWebUI](https://openwebui.com/)** and create a richer, more interactive AI experience. Each module is an independent building block that adds a specific capability such as memory, web search, or image generation.
 
 ---
 
-## ✨ Das Ökosystem im Überblick
+## ✨ Ecosystem Overview
 
-Alle Module sind so konzipiert, dass sie nahtlos mit OpenWebUI zusammenarbeiten und einfach per Docker und Docker Compose bereitgestellt werden können.
+All modules are designed to work seamlessly with OpenWebUI and can be easily deployed via Docker and Docker Compose. We maintain strict security standards and automated CI/CD testing across the ecosystem.
 
-| Modul | Beschreibung | Status |
+| Module | Description | Status |
 | :--- | :--- | :--- |
-| 🧠 **Cloud Memory** | Speichert Langzeit-Erinnerungen pro Nutzer für persönliche Gespräche. | ✅ Einsatzbereit |
-| 📄 **OCR Service** | Extrahiert Text aus hochgeladenen Dokumenten und Bildern (PDFs, JPGs etc.). | ✅ Einsatzbereit |
-| 🎨 **Image Generation** | Generiert Bilder lokal auf deiner eigenen Hardware via Stable Diffusion. | ✅ Einsatzbereit |
-| 🌐 **Web Crawler** | Führt anonyme Websuchen durch, um der KI aktuelle Informationen zu liefern. | ✅ Einsatzbereit |
-| 🗣️ **Text-to-Speech (TTS)** | Wandelt Textantworten der KI in gesprochene Sprache um. | 🚧 In Planung |
+| 🧠 **Cloud Memory** | Long-term memory storage per user and **True TTS Network Caching**. | ✅ Ready (v4.4.2) |
+| 🌐 **Web Crawler** | Anonymous web searches via Tor + DDG + Fallbacks to provide up-to-date data. | ✅ Ready (v1.0.0) |
+| 📄 **OCR Service** | Extracts text from uploaded documents and images (PDFs, JPGs, etc.). | ✅ Ready |
+| 🎨 **Image Generation** | Generates images locally on your own hardware via Stable Diffusion. | ✅ Ready |
+| 🗣️ **Text-to-Speech (TTS)** | *Moved:* Speech synthesis module. | 🚧 Moved to Neural System |
 
 ---
 
-## 📦 Die Module im Detail
+## 📦 The Modules in Detail
 
-Jedes Modul befindet sich in einem eigenen Unterordner und enthält eine detaillierte `README.md` mit spezifischen Setup-Anweisungen.
+Each module is located in its own subfolder and contains a detailed `readme.md` with specific setup instructions.
 
 ### 🧠 Finja Cloud Memory
-Dieses Modul stellt einen leichtgewichtigen Server bereit, der es der KI ermöglicht, sich an Fakten und Details aus früheren Gesprächen zu erinnern. Es ist die Grundlage für eine personalisierte Interaktion.
+This module provides a lightweight server that allows the AI to remember facts and details from previous conversations. It is the foundation for personalized interactions.
+-   **Key Features:** Stores memories as JSON per user, prevents Path Traversal attacks, includes **True TTS Network Caching** for caching generated voice files, and integrates with the `adaptive_memory_v4` plugin for OpenWebUI. Features a 100% passing Pytest CI/CD pipeline.
+-   **Technology:** FastAPI, Python, Docker, Pytest.
 
--   **Hauptmerkmale:** Speichert Erinnerungen als JSON pro Benutzer, bietet eine sichere REST-API und integriert sich in das `adaptive_memory_v4` Plugin von OpenWebUI.
--   **Technologie:** FastAPI, Python, Docker.
-
-[➡️ **Zur ausführlichen Anleitung & Setup für das Memory-Modul...**](./finja-cloud-memory/README.md)
-
-### 📄 OCR-Service mit Apache Tika
-Ermöglicht es deiner KI, den Inhalt von Dokumenten zu "lesen". Lade eine PDF, ein Bild oder eine Office-Datei hoch, und dieses Modul extrahiert den Text, damit das LLM ihn verarbeiten kann.
-
--   **Hauptmerkmale:** Nutzt Apache Tika und Tesseract-OCR für eine breite Formatunterstützung, läuft isoliert in Docker und ist für Deutsch und Englisch vorkonfiguriert.
--   **Technologie:** Apache Tika, Tesseract, Docker.
-
-[➡️ **Zur ausführlichen Anleitung & Setup für den OCR-Service...**](./tika-ocr-service/README.md)
-
-### 🎨 Image Generation mit Stable Diffusion
-Gib deiner KI die Fähigkeit, Bilder zu malen! Dieses Modul betreibt eine lokale Instanz der beliebten Automatic1111 WebUI und ermöglicht die Text-zu-Bild-Generierung direkt aus dem Chat.
-
--   **Hauptmerkmale:** Läuft komplett lokal (CPU-fokussiert), speichert generierte Bilder dauerhaft und ist vollständig mit der OpenWebUI-Bilderzeugungsfunktion kompatibel.
--   **Technologie:** Stable Diffusion (Automatic1111), Docker.
-
-[➡️ **Zur ausführlichen Anleitung & Setup für die Image Generation...**](./stable-diffusion-cpu/README.md)
+[➡️ **Go to the detailed setup guide for the Memory module...**](./finja-Memory/readme.md)
 
 ### 🌐 Web Crawler
-Mit diesem Modul kann deine KI auf aktuelle Informationen aus dem Internet zugreifen. Es führt Suchanfragen anonym über Tor durch und liefert saubere Ergebnisse zurück.
+With this module, your AI can access up-to-date information from the internet. It performs search queries anonymously.
+-   **Key Features:** Hybrid search using DuckDuckGo with Google fallback (and Wikipedia Tabby Cat emergency fallback). Anonymized via Tor, protected by bearer tokens, and heavily refactored for low Cognitive Complexity. Features a 100% passing Pytest CI/CD pipeline.
+-   **Technology:** FastAPI, Python, Tor, Docker, Pytest.
 
--   **Hauptmerkmale:** Hybrid-Suche über DuckDuckGo mit Google-Fallback, Anonymisierung via Tor, Schutz per Bearer-Token.
--   **Technologie:** FastAPI, Python, Tor, Docker.
+[➡️ **Go to the detailed setup guide for the Web Crawler...**](./finja-web-crawler/readme.md)
 
-[➡️ **Zur ausführlichen Anleitung & Setup für den Web Crawler...**](./finja-web-crawler/README.md)
+### 📄 OCR Service with Apache Tika
+Allows your AI to "read" the content of documents. Upload a PDF, an image, or an Office file, and this module extracts the text so the LLM can process it.
+-   **Key Features:** Uses Apache Tika and Tesseract-OCR for broad format support, runs isolated in Docker, and is pre-configured for German and English. *(Note: Base image is outdated; use with caution).*
+-   **Technology:** Apache Tika, Tesseract, Docker.
 
-### 🗣️ Text-to-Speech (TTS) - In Planung!
-Dieses Modul wird es Finja ermöglichen, ihre Antworten laut auszusprechen. Es ist derzeit noch in der Konzeptionsphase.
+[➡️ **Go to the detailed setup guide for the OCR Service...**](./finja-ocr/readme.md)
 
--   **Hauptmerkmale (geplant):** Anbindung an OpenWebUI, um Textantworten in eine Audiodatei umzuwandeln und im Frontend abzuspielen.
--   **Status:** Work in Progress. Die `README.md` im Ordner ist aktuell ein Platzhalter.
+### 🎨 Image Generation with Stable Diffusion
+Give your AI the ability to paint pictures! This module runs a local instance of the popular Automatic1111 WebUI and enables text-to-image generation directly from the chat.
+-   **Key Features:** Runs completely locally (CPU-focused), permanently stores generated images, and is fully compatible with the OpenWebUI image generation feature.
+-   **Technology:** Stable Diffusion (Automatic1111), Docker.
 
-[➡️ **Zur Platzhalter-README für das TTS-Modul...**](./finja-tts-service/README.md)
+[➡️ **Go to the detailed setup guide for Image Generation...**](./finja-stable-diffsion/readme.md)
+
+### 🗣️ Text-to-Speech (TTS) - Architecture Change!
+This module was originally intended to give Finja a voice inside OpenWebUI. 
+-   **Status Statement:** **No Longer an OpenWebUI Module!** The architecture has changed. The standalone TTS module will instead be integrated directly into **Finja's Neural System** as a core component for voice and speech synthesis in streams and games. (However, note that TTS *caching* is now successfully handled by the `Cloud Memory` module).
+
+[➡️ **Go to the placeholder README for the TTS module...**](./finja-tts/readme.md)
 
 ---
 
-## 📜 Lizenzen
+## 📜 Licenses
 
-Dieses Projekt verwendet verschiedene Lizenzen für seine Komponenten. Die meisten Module stehen unter der **MIT-Lizenz**, mit Ausnahme des **Finja Cloud Memory**, das unter der **Apache License 2.0** veröffentlicht wird. Bitte beachte die `LICENSE`-Dateien in den jeweiligen Unterordnern und oder Datein.
+This project uses various licenses for its components. Most modules are under the **MIT License**, with the exception of the **Finja Cloud Memory**, which is released under the **Apache License 2.0**. Please note the `LICENSE` and `NOTICE` files in the respective subfolders.
 
 ---
 
-## 🆘 Support & Kontakt
+## 🆘 Support & Contact
 
-Bei Fragen oder Problemen erreichst du uns hier:
+If you have any questions or problems, you can reach me here:
 
--   **E-Mail:** contact@jappshome.de
+-   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+-   **Support:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+
+---
+*© 2026 J. Apps*

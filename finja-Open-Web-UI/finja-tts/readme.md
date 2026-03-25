@@ -1,7 +1,7 @@
 # 🗣️ Finja – TTS (Text-to-Speech)
 
 > ⚡ **WORK IN PROGRESS**  
-> Dieses Modul ist aktuell noch nicht implementiert.
+> This module is currently not implemented.
 
 ---
 
@@ -17,51 +17,59 @@
 
 ---
 
+## ⚠️ IMPORTANT NOTICE: Architecture Change
+
+> [!IMPORTANT]
+> **No Longer an OpenWebUI Module!**
+> This TTS module was originally planned as an extension for OpenWebUI. However, the architecture has changed. **It will NO LONGER be developed for OpenWebUI.** Instead, it will be integrated later directly into **Finja's Neural System** as a core component for voice and speech synthesis.
+
+---
+
 ## 📢 Status
 
-🚧 Hier entsteht bald das **TTS-Modul von Finja**  
-– für Sprachsynthese in Streams, Games & Chatbots 🎙️
+🚧 The **Finja TTS Module** will be built here soon  
+– for speech synthesis in streams, games & chatbots 🎙️
 
-💖 Aktuell: Nur Konzeptphase → noch kein Code vorhanden  
+💖 Currently: Conceptual phase only → no code available yet  
 📅 Check back later ✨
 
 ---
 
-## 💡 Geplante Features
+## 💡 Planned Features
 
-- 🧠 OpenWebUI-kompatible TTS-Schnittstelle
-- 🗣️ Emotionale Stimmen (Fröhlich, Genervt, Chill …)
-- 🔊 Direkte Audio-Ausgabe in OBS / Streams
-- 📁 Voice-Caching für wiederkehrende Texte
-- ⚙️ Modularer Voice-Provider (wahlweise lokal oder Cloud)
+- 🧠 Core integration into **Finja's Neural System**
+- 🗣️ Emotional voices (Happy, Annoyed, Chill …)
+- 🔊 Direct audio output into OBS / Streams
+- 📁 Voice caching for recurring texts
+- ⚙️ Modular voice provider (optional local or Cloud)
 
 ---
 
 ## 📌 Roadmap
 
-- [ ] Basis-TTS-Engine einbauen
-- [ ] Stimmen-System und Emotionen
-- [ ] OpenWebUI-Connector
-- [ ] OBS-Integration
-- [ ] Erste Beta veröffentlichen
+- [ ] Build base TTS engine
+- [ ] Voice system and emotions
+- [ ] Integrate into Finja's Neural System
+- [ ] OBS Integration
+- [ ] Release first Beta
 
 ---
 
-## 📜 Lizenz
+## 📜 License
 
-MIT © 2025 – J. Apps  
-**Finja-TTS ist derzeit ein Platzhalter-Modul**
+MIT © 2026 – J. Apps  
+**Finja-TTS is currently a placeholder module**
 
 ---
 
-## 🆘 Support & Kontakt
+## 🆘 Support & Contact
 
-Bei Fragen oder Problemen erreichst du uns hier:
+If you have questions or problems, you can reach me here:
 
--   **E-Mail:** contact@jappshome.de
+-   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+-   **Support:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
 
 ---
 
-🩷 _„I can’t speak yet… but I’m practicing, promise!“_ – Finja
+🩷 *"I can’t speak yet… but I’m practicing, promise!"* – Finja

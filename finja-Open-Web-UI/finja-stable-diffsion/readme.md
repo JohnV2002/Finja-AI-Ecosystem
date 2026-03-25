@@ -1,89 +1,89 @@
 # 🎨 Stable Diffusion – Image Generation
 
-Ein lokales Image-Generation-Modul mit **Stable Diffusion** über die **Automatic1111 WebUI** — betrieben in **Docker (CPU-Only)** 🐳🖌️
+A local image generation module using **Stable Diffusion** via the **Automatic1111 WebUI** — running in **Docker (CPU-Only)** 🐳🖌️
 
-Perfekt für Text-zu-Bild-Generierung direkt aus OpenWebUI heraus 💖  
-(Integration siehe: [OpenWebUI Docs – Images](https://docs.openwebui.com/tutorials/images))
+Perfect for Text-to-Image generation directly from OpenWebUI 💖  
+(Integration see: [OpenWebUI Docs – Images](https://docs.openwebui.com/tutorials/images))
 
 ---
 
-## ⚠️ Hinweis
+## ⚠️ Note
 
-- Läuft **komplett lokal**, keine Cloud nötig.
-- **Sehr langsam auf CPU** – aber ideal, wenn keine GPU zur Verfügung steht.
-- **Speichert generierte Bilder dauerhaft** im Container-Volume.
-- **Keine Inhalte werden an Dritte gesendet** (außer du nutzt externe Modelle von Drittanbietern).
+- Runs **completely locally**, no cloud required.
+- **Very slow on CPU** – but ideal if no GPU is available.
+- **Saves generated images permanently** in the container volume.
+- **No content is sent to third parties** (unless you use external third-party models).
 
 ---
 
 ## 💡 Features
 
-- 🖼️ **Stable Diffusion WebUI (Automatic1111)** als Backend.
-- 🧠 Unterstützung für **Prompt → Bild** sowie **Negative Prompts**.
-- 📦 Läuft gekapselt in einem **Docker-Container** (kein kompliziertes Setup am Host-System nötig).
-- 💾 Alle Modelle, generierten Bilder und Einstellungen werden **persistent auf dem Host** gespeichert.
-- 🧩 Volle Kompatibilität mit der **OpenWebUI Image Generation** Funktion.
+- 🖼️ **Stable Diffusion WebUI (Automatic1111)** as backend.
+- 🧠 Support for **Prompt → Image** as well as **Negative Prompts**.
+- 📦 Runs encapsulated in a **Docker container** (no complicated setup on the host system required).
+- 💾 All models, generated images, and settings are **saved persistently on the host**.
+- 🧩 Full compatibility with the **OpenWebUI Image Generation** feature.
 
 ---
 
 ## 📦 Setup
 
-Wir nutzen das hervorragende Open-Source-Projekt [stable-diffusion-webui-docker](https://github.com/AbdBarho/stable-diffusion-webui-docker) und folgen dessen offiziellem Setup-Guide:
-- 🔗 **Offizielles Wiki:** [Setup Guide](https://github.com/AbdBarho/stable-diffusion-webui-docker/wiki/Setup)
+We use the excellent open-source project [stable-diffusion-webui-docker](https://github.com/AbdBarho/stable-diffusion-webui-docker) and follow its official setup guide:
+- 🔗 **Official Wiki:** [Setup Guide](https://github.com/AbdBarho/stable-diffusion-webui-docker/wiki/Setup)
 
-### 🛠️ Schritt-für-Schritt-Anleitung
+### 🛠️ Step-by-Step Guide
 
-1.  **Repository klonen und Container starten:**
-    Öffne ein Terminal. Die folgenden Befehle laden zuerst den Code herunter und starten dann direkt den Docker-Container im CPU-Modus.
+1.  **Clone repository and start container:**
+    Open a terminal. The following commands will first download the code and then start the Docker container in CPU mode directly.
     ```bash
-    # 1. Projekt herunterladen und in den Ordner wechseln
-    git clone [https://github.com/AbdBarho/stable-diffusion-webui-docker.git](https://github.com/AbdBarho/stable-diffusion-webui-docker.git)
+    # 1. Download project and change into the folder
+    git clone https://github.com/AbdBarho/stable-diffusion-webui-docker.git
     cd stable-diffusion-webui-docker
 
-    # 2. Container im CPU-Modus starten. Das --build Flag ist nur beim ersten Mal nötig.
+    # 2. Start container in CPU mode. The --build flag is only required the first time.
     docker compose --profile auto-cpu up --build
     ```
-    Lasse dieses Terminalfenster geöffnet. Es zeigt die Logs des Containers an.
+    Leave this terminal window open. It will show the container logs.
 
-2.  **Modelle herunterladen (Anfänger-Guide für Civitai):**
-    Da der Container nun im Hintergrund läuft, können wir Modelle direkt hineinladen. Diese Methode ist ideal, um Modelle an den richtigen Ort herunterzuladen, ohne sie auf deinem Host-PC zwischenzuspeichern.
+2.  **Download models (Beginner's Guide for Civitai):**
+    Since the container is now running in the background, we can load models directly into it. This method is ideal for downloading models to the correct location without caching them on your host PC.
 
-    **Teil A: Civitai API-Key erstellen**
-    1.  Melde dich auf [civitai.com](https://civitai.com/) an oder erstelle einen Account.
-    2.  Klicke auf dein Profilbild und gehe zu den **Account-Einstellungen** (Zahnrad-Symbol).
-    3.  Scrolle nach unten zum Abschnitt **API Keys** und klicke auf **"Add API Key"**.
-    4.  Gib dem Key einen Namen (z.B. "Docker-Download") und kopiere den angezeigten Key. **Bewahre ihn sicher auf!**
+    **Part A: Create Civitai API Key**
+    1.  Log in to [civitai.com](https://civitai.com/) or create an account.
+    2.  Click on your profile picture and go to the **Account Settings** (gear icon).
+    3.  Scroll down to the **API Keys** section and click on **"Add API Key"**.
+    4.  Give the key a name (e.g. "Docker-Download") and copy the displayed key. **Keep it safe!**
 
-    **Teil B: Modell im Docker-Container herunterladen**
-    1.  Öffne ein **zweites Terminal** (das erste Terminalfenster bleibt offen).
-    2.  Finde den Namen deines Containers (meistens `stable-diffusion-webui-docker-auto-cpu-1`). Du kannst dies mit `docker ps` überprüfen.
-    3.  Öffne eine Shell **innerhalb** des laufenden Containers:
+    **Part B: Download Model inside the Docker Container**
+    1.  Open a **second terminal** (leave the first terminal window open).
+    2.  Find the name of your container (usually `stable-diffusion-webui-docker-auto-cpu-1`). You can check this with `docker ps`.
+    3.  Open a shell **inside** the running container:
         ```bash
-        # Ersetze den Namen, falls deiner abweicht
+        # Replace the name if yours is different
         docker exec -it stable-diffusion-webui-docker-auto-cpu-1 /bin/bash
         ```
-    4.  Navigiere im Container zum richtigen Ordner:
+    4.  Navigate to the correct folder inside the container:
         ```bash
         cd /data/Stable-diffusion
         ```
-    5.  Suche dir auf der Civitai-Webseite ein Modell aus (z.B. *Nova Anime XL*).
-    6.  Klicke auf den **Download-Button** Mit **Rechtsklick** auf den Link der spezifischen Version, die du laden möchtest, und wähle **"Link-Adresse kopieren"**.
-    7.  Füge den Link in deinem Terminal nach dem `wget`-Befehl ein und hänge deinen API-Key an:
+    5.  Pick a model on the Civitai website (e.g. *Nova Anime XL*).
+    6.  **Right-click** on the **Download button** for the specific version you want to download and select **"Copy link address"**.
+    7.  Paste the link into your terminal after the `wget` command and append your API key:
         ```bash
-        wget "[https://civitai.com/api/download/models/1854228?type=Model&format=SafeTensor&token=DEIN_API_KEY](https://civitai.com/api/download/models/1854228?type=Model&format=SafeTensor&token=DEIN_API_KEY)" --content-disposition
+        wget "https://civitai.com/api/download/models/1854228?type=Model&format=SafeTensor&token=YOUR_API_KEY" --content-disposition
         ```
-    8.  **WICHTIG:** Ersetze `DEIN_API_KEY` am Ende der URL durch deinen echten API-Key.
-    9.  Drücke Enter. Der Download startet. Der Parameter `--content-disposition` sorgt dafür, dass die Datei automatisch den korrekten Namen erhält.
+    8.  **IMPORTANT:** Replace `YOUR_API_KEY` at the end of the URL with your real API key.
+    9.  Press Enter. The download will start. The `--content-disposition` parameter ensures that the file automatically gets the correct name.
 
-    **Fehlerbehebung: `wget: command not found`**
-    Falls `wget` im Container fehlt, installiere es mit diesen Befehlen (innerhalb der Container-Shell):
+    **Troubleshooting: `wget: command not found`**
+    If `wget` is missing in the container, install it using these commands (inside the container shell):
     ```bash
     apt update && apt upgrade -y && apt install wget -y
     ```
-    Versuche den `wget`-Befehl danach erneut.
+    Try the `wget` command again afterwards.
 
-3.  **WebUI öffnen und nutzen:**
-    Sobald Modelle heruntergeladen sind, kannst du die WebUI in deinem Browser öffnen und sie verwenden:
+3.  **Open and use WebUI:**
+    Once models are downloaded, you can open the WebUI in your browser and use it:
     ```http
     http://localhost:7860
     ```
@@ -92,54 +92,54 @@ Wir nutzen das hervorragende Open-Source-Projekt [stable-diffusion-webui-docker]
 
 ## 💬 Integration in OpenWebUI
 
-Navigiere in OpenWebUI zu `Einstellungen → Image Generation`:
+Navigate in OpenWebUI to `Settings → Image Generation`:
 
 -   **Backend:** `Automatic1111`
--   **URL:** `http://<deine-ip>:7860` (Ersetze `<deine-ip>` mit der IP-Adresse des Computers, auf dem der Docker-Container läuft. Wenn es derselbe PC ist, nutze `127.0.0.1`.)
+-   **URL:** `http://<your-ip>:7860` (Replace `<your-ip>` with the IP address of the computer running the Docker container. If it's the same PC, use `127.0.0.1`.)
 
-Danach kannst du Bild-Prompts direkt aus dem OpenWebUI-Chat an deine lokale Stable Diffusion Instanz senden.
+Afterwards, you can send image prompts directly from the OpenWebUI chat to your local Stable Diffusion instance.
 
 ---
 
-## ⚙️ Performance-Tipps
+## ⚙️ Performance Tips
 
--   **Geduld:** CPU-Only ist **sehr langsam** (mehrere Minuten pro Bild sind normal).
--   **GPU-Upgrade:** Du kannst später jederzeit auf ein GPU-Profil umsteigen, indem du den Container mit folgendem Befehl startest:
+-   **Patience:** CPU-Only is **very slow** (several minutes per image are normal).
+-   **GPU Upgrade:** You can always switch to a GPU profile later by starting the container with the following command:
     ```bash
     docker compose --profile auto up --build
     ```
--   **Modellgröße:** Beachte, dass Modelle oft sehr groß sind (4GB+). Kleinere Modelle sind für den CPU-Betrieb besser geeignet.
+-   **Model Size:** Keep in mind that models are often very large (4GB+). Smaller models are better suited for CPU operation.
 
 ---
 
-## 📂 Wo liegen meine Daten?
+## 📂 Where is my data?
 
-Alle wichtigen Daten werden im `data/` Ordner des Projekts gespeichert und bleiben auch nach einem Neustart des Containers erhalten:
+All important data is saved in the project's `data/` folder and will persist even after restarting the container:
 
--   `data/Stable-diffusion/` → Deine Modelle (`.safetensors`)
--   `data/outputs/` → Alle generierten Bilder
--   `data/config.json` → Einstellungen der WebUI
+-   `data/Stable-diffusion/` → Your models (`.safetensors`)
+-   `data/outputs/` → All generated images
+-   `data/config.json` → Settings of the WebUI
 
-Du kannst diesen Ordner einfach sichern oder verschieben.
-
----
-
-## 📜 Lizenz
-
-### Lizenz dieser Anleitung
-Der Inhalt dieser `README.md`-Anleitung steht unter der **MIT-Lizenz**. Du kannst sie frei verwenden, verändern und teilen, solange der ursprüngliche Copyright-Hinweis beibehalten wird.
-
-### Lizenz der besprochenen Software
-Diese Anleitung beschreibt die Nutzung von Software von Drittanbietern. Diese unterliegen ihren eigenen Lizenzen:
--   **Stable Diffusion WebUI Docker:** [MIT-Lizenz](https://github.com/AbdBarho/stable-diffusion-webui-docker/blob/master/LICENSE)
--   **Stable Diffusion Modelle:** Die Modelle selbst unterliegen oft der **CreativeML Open RAIL-M Lizenz**. Diese enthält wichtige nutzungsbasierte Einschränkungen. Lies und verstehe die Lizenz des jeweiligen Modells, bevor du es nutzt.
+You can easily backup or move this folder.
 
 ---
 
-## 🆘 Support & Kontakt
+## 📜 License
 
-Bei Fragen oder Problemen erreichst du uns hier:
+### License of this guide
+The content of this `README.md` guide is provided under the **MIT License**. You may freely use, modify, and share it as long as the original copyright notice is retained.
 
--   **E-Mail:** contact@jappshome.de
+### License of the discussed software
+This guide describes the use of third-party software. These are subject to their own licenses:
+-   **Stable Diffusion WebUI Docker:** [MIT License](https://github.com/AbdBarho/stable-diffusion-webui-docker/blob/master/LICENSE)
+-   **Stable Diffusion Models:** The models themselves are often subject to the **CreativeML Open RAIL-M License**. This contains important usage-based restrictions. Read and understand the license of the respective model before using it.
+
+---
+
+## 🆘 Support & Contact
+
+If you have questions or problems, you can reach me here:
+
+-   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
--   **Unterstützung:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
+-   **Support:** [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)
