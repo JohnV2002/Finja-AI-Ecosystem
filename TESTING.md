@@ -25,7 +25,6 @@ Finja-AI-Ecosystem/
     ├── memory-tests.yml                # Memory module CI/CD
     ├── web-crawler-tests.yml           # Web Crawler CI/CD
     ├── music-engine-tests.yml          # Music engine CI/CD
-    ├── code-quality.yml                # Linting & security
     ├── memory-build.yml                # Docker build for Memory
     ├── ocr-build.yml                   # Docker build for OCR
     └── web-crawler-build.yml           # Docker build for Web Crawler

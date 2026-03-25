@@ -89,7 +89,7 @@ class SearchResult(BaseModel):
 @app.post("/search", responses={401: {"description": "Unauthorized"}})
 async def external_search(
     search_request: Annotated[SearchRequest, Body(...)],
-    authorization: Annotated[str | None, Header(None)] = None,
+    authorization: Annotated[str | None, Header()] = None,
 ):
     if EXPECTED_BEARER_TOKEN:
         expected_auth_header = f"Bearer {EXPECTED_BEARER_TOKEN}"
