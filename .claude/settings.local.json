@@ -16,7 +16,8 @@
       "Bash(python -m py_compile \"Finja-music/finja-everything-in-once/webserver.py\")",
       "Bash(python -m py_compile \"finja-Open-Web-UI/finja-Memory/memory-server.py\")",
       "Bash(python -m py_compile \"Finja-music/finja-music-docker-spotify/app.py\")",
-      "Bash(python -m py_compile \"finja-Open-Web-UI/finja-Memory/function-adaptive_memory_v4.py\")"
+      "Bash(python -m py_compile \"finja-Open-Web-UI/finja-Memory/function-adaptive_memory_v4.py\")",
+      "Bash(python -m py_compile \"finja-Open-Web-UI/finja-web-crawler/main.py\")"
     ]
   }
 }

@@ -51,7 +51,7 @@ from bs4 import BeautifulSoup, Tag
 from ddgs import DDGS
 import logging
 import time
-import random
+import secrets
 from dotenv import load_dotenv
 import os
 from urllib.parse import urlparse, parse_qs
@@ -98,8 +98,9 @@ async def external_search(
 
     query = search_request.query
     count = search_request.count
+    safe_query = query.replace("\n", "").replace("\r", "")
 
-    logger.info(f"Search started: {query} (max {count} results)")
+    logger.info("Search started: %s (max %d results)", safe_query, count)
 
     results = ddg_search(query, count)
 
@@ -166,7 +167,8 @@ def _parse_google_html(html_text: str, count: int) -> list[SearchResult]:
     return results
 
 def google_crawler(query: str, count: int) -> list[SearchResult]:
-    logger.info(f"Starting Google Fallback Crawler for query: {query}")
+    safe_query = query.replace("\n", "").replace("\r", "")
+    logger.info("Starting Google Fallback Crawler for query: %s", safe_query)
     headers = {
         "User-Agent": secrets.choice(USER_AGENTS)
     }

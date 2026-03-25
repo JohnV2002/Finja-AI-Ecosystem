@@ -635,18 +635,19 @@ def read_file_stable(
 def load_config(path: Path) -> dict:
     """
     Load JSON configuration file.
-    
+
     Args:
         path: Path to JSON config file
-        
+
     Returns:
         Configuration dictionary
-        
+
     Raises:
         SystemExit: If config file cannot be loaded
     """
+    path = path.resolve()
     try:
-        return json.loads(path.read_text(encoding="utf-8"))  # NOSONAR
+        return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as e:
         raise SystemExit(f"[config error] File not found: {path}") from e
     except json.JSONDecodeError as e:
@@ -1603,21 +1604,22 @@ def _handle_rtl_start_browser(handler) -> None:
 def load_songs_kb(path: Path) -> List[Dict[str, Any]]:
     """
     Load songs knowledge base from JSON file.
-    
+
     Args:
         path: Path to songs_kb.json
-        
+
     Returns:
         List of song entries
-        
+
     Raises:
         FileNotFoundError: If KB file doesn't exist
         ValueError: If KB format is unexpected
     """
+    path = path.resolve()
     if not path.exists():
         raise FileNotFoundError(f"songs_kb not found: {path}")
-        
-    data = json.loads(path.read_text(encoding="utf-8"))  # NOSONAR
+
+    data = json.loads(path.read_text(encoding="utf-8"))
     
     # Handle both {"songs": [...]} and [...] formats
     if isinstance(data, dict) and isinstance(data.get("songs"), list):
@@ -1833,8 +1835,9 @@ def load_or_build_kb_index(
     Returns:
         KBIndex instance
     """
+    kb_json_path = kb_json_path.resolve()
     json_hash = _kb_hash_of_file(kb_json_path)
-        
+
     # Try cache first
     if cache_path and cache_path.exists():
         try:
@@ -3530,10 +3533,16 @@ def spotify_nowplaying_main_loop(
 
 # Helper functions AUSSERHALB der Class!
 def _resolve_path(base_path: Path, path_str: str, default: str = "") -> Path:
-    """Resolve path relative to base if not absolute."""
+    """Resolve path relative to base if not absolute. Validates against path traversal."""
     path = Path(path_str or default)
     if not path.is_absolute():
         path = (base_path / path).resolve()
+    else:
+        path = path.resolve()
+    # Security: canonicalize and verify path stays within base directory
+    resolved_base = str(base_path.resolve())
+    if not str(path).startswith(resolved_base):
+        raise ValueError(f"Path traversal blocked: {path} is outside {resolved_base}")
     return path
 
 
