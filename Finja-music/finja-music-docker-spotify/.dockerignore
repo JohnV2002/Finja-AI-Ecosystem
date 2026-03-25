@@ -1,0 +1,16 @@
+.git
+.env
+__pycache__
+*.pyc
+*.pyo
+venv
+.venv
+.dockerignore
+Dockerfile
+.github
+.vscode
+.idea
+*.log
+Memory/*.json
+Nowplaying/*.txt
+cache/*.pkl

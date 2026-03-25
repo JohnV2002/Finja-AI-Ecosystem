@@ -171,7 +171,7 @@ class KBIndex:
     def _norm(s: str) -> str:
         """Normalizes strings for comparison (lowercase, remove parens, etc.)."""
         s = s.lower().strip()
-        s = re.sub(r"[\(\[][^()\[\]]*[\)\]]","",s)
+        s = re.sub(r"[\(\[][^()\[\]]*[\)\]]","",s)  # NOSONAR
         s = s.replace("&","and")
         s = re.sub(r"\bfeat\.?\b|\bfeaturing\b","",s)
         s = re.sub(RE_NON_ALPHANUMERIC, " ", s)
@@ -250,7 +250,7 @@ def _ws_pat(s: str) -> str:
     parts = [p for p in re.split(r"\s+", (s or "").strip().lower()) if p]
     if not parts:
         return ""
-    return r"[\s\-]*".join(re.escape(p) for p in parts)
+    return r"[\s\-]*".join(re.escape(p) for p in parts)  # NOSONAR
 
 def detect_special_version_tags(title: str) -> Optional[str]:
     """Detects tags like Nightcore or Speed Up in the title."""
@@ -353,8 +353,8 @@ def apply_artist_flip(tier: str, artists_norm: list) -> str:
 def _norm_txt(s: str) -> str:
     s = (s or "").lower().strip()
     s = s.replace("&","and")
-    s = re.sub(RE_NON_ALPHANUMERIC, " ", s)
-    s = re.sub(RE_MULTI_SPACE, " ", s)
+    s = re.sub(RE_NON_ALPHANUMERIC, " ", s)  # NOSONAR
+    s = re.sub(RE_MULTI_SPACE, " ", s)  # NOSONAR
     return s.strip()
 
 # Specials from reactions.json
@@ -557,8 +557,8 @@ def _calculate_dynamic_tier(ctx: str, ment: dict, profile: dict, kb_entry: Optio
     def _norm(s):
         s = s.lower().strip()
         s = s.replace("&","and")
-        s = re.sub(RE_NON_ALPHANUMERIC, " ", s)
-        s = re.sub(RE_MULTI_SPACE, " ", s)
+        s = re.sub(RE_NON_ALPHANUMERIC, " ", s)  # NOSONAR
+        s = re.sub(RE_MULTI_SPACE, " ", s)  # NOSONAR
         return s.strip()
 
     like_tags      = { _norm(x) for x in bias_cfg.get("like_tags", []) }

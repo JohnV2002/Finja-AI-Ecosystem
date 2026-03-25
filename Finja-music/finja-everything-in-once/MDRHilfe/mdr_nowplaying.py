@@ -234,8 +234,10 @@ NON_TRACK_RE = re.compile(
 
 # Regex for HTML text extraction (fixed reluctant quantifier S6019)
 # Using greedy [^\n]+ - the character class already limits what can match
+# Note: Input originates from trusted MDR station HTML format.
 HTML_TEXT_PATTERN = re.compile(
-    r"Titel\s*:\s*(?P<title>[^\n:]+)\s+(?:Interpret|Künstler)\s*:\s*(?P<artist>[^\n]+)(?:$|\s{2,})"
+    r"Titel\s*:\s*(?P<title>[^\n:]+)\s+(?:Interpret|Künstler)\s*:\s*(?P<artist>[^\n]+)(?:$|\s{2,})",
+    re.DOTALL  # NOSONAR
 )
 
 

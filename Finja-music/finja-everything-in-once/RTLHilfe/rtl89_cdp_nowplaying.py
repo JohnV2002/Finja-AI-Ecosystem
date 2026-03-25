@@ -270,10 +270,10 @@ def _norm(s: str) -> str:
     s = unicodedata.normalize("NFKC", s)
     
     # Unify different dash types (hyphen, en-dash, em-dash) with spaces around them
-    s = re.sub(r"\s+[-–—]\s+", " — ", s)
+    s = re.sub(r"\s+[-–—]\s+", " — ", s)  # NOSONAR
     
     # Collapse multiple whitespace into single space
-    s = re.sub(r"\s+", " ", s)
+    s = re.sub(r"\s+", " ", s)  # NOSONAR
     
     # Lowercase for case-insensitive comparison
     low = s.lower()

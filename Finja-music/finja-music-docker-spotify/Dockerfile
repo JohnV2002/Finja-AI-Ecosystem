@@ -48,11 +48,14 @@ RUN addgroup -S appgroup && \
 # Copy installed packages from the builder stage
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-# Copy executable files (like uvicorn)
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy executable files (like uvicorn) - Set to read-only (SonarQube Security)
+COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 
-# Copy the entire application code
-COPY --chown=appuser:appgroup . .
+# Copy the entire application code - Set to read-only
+COPY --chown=appuser:appgroup --chmod=555 . .
+
+# Ensure data directories remain writable for the appuser
+RUN chmod -R 755 Nowplaying Memory SongsDB cache
 
 # Switch to non-privileged user
 USER appuser
