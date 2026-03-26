@@ -7,11 +7,11 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Core logic for Spotify integration, knowledge base
                lookups, and reaction generation.
 
-  ✨ New in 1.0.1:
+  ✨ New in 1.1.0:
     • Translated all comments, logs, and documentation to English
     • Updated fallback text to "Unknown"
     • Updated copyright to 2026 and standard file header
@@ -804,6 +804,19 @@ def tick_loop():
 # --- FastAPI ---
 app = FastAPI()
 
+@app.get("/")
+def root():
+    """Landing page with required backlinks for API providers."""
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse("""
+    <html><head><title>Finja Music Brain</title></head>
+    <body style="font-family:sans-serif;background:#1a1a2e;color:#eee;padding:2em;">
+        <h1>Finja Music Brain</h1>
+        <p>Powered by <a href="https://getsongbpm.com">GetSongBPM</a></p>
+    </body></html>
+    """)
+
+
 @app.get("/health")
 def health():
     return {"ok": True, "time": datetime.now(timezone.utc).isoformat()}
@@ -811,6 +824,89 @@ def health():
 @app.get("/get/Finja")
 def get_finja():
     return JSONResponse(current_output)
+
+
+@app.get("/get/songs")
+def get_songs(artist: str = "", genre: str = "", limit: int = 500):
+    """
+    Returns enriched songs from the KB with BPM, Energy, Key etc.
+
+    Query params:
+        artist: Filter by artist name (fuzzy, case-insensitive)
+        genre:  Filter by genre/tag (case-insensitive)
+        limit:  Max results (default 500)
+
+    Returns: {"songs": [...], "total": N, "filtered": N}
+    """
+    songs = []
+    for e in KB.entries:
+        song = {
+            "title": e.get("title", ""),
+            "artist": e.get("artist", ""),
+            "album": e.get("album", ""),
+            "tags": e.get("tags", []),
+            "spotify_id": e.get("spotify_id", ""),
+            "bpm": e.get("bpm"),
+            "key": e.get("key"),
+            "energy": e.get("energy"),
+            "danceability": e.get("danceability"),
+            "valence": e.get("valence"),
+            "acousticness": e.get("acousticness"),
+        }
+
+        if artist and artist.lower() not in song["artist"].lower():
+            continue
+
+        if genre:
+            genre_lower = genre.lower()
+            if not any(genre_lower in t.lower() for t in song["tags"]):
+                continue
+
+        songs.append(song)
+
+    total = len(KB.entries)
+    filtered = songs[:limit]
+
+    return JSONResponse({
+        "songs": filtered,
+        "total": total,
+        "filtered": len(filtered),
+        "has_enrichment": any(s.get("bpm") is not None for s in filtered[:10]),
+    })
+
+
+@app.get("/get/song_features")
+def get_song_features(title: str = "", artist: str = ""):
+    """
+    Returns enriched features for a specific song.
+
+    Query params:
+        title:  Song title
+        artist: Artist name
+
+    Returns: Song entry with BPM, Key, Energy etc. or 404
+    """
+    if not title and not artist:
+        return JSONResponse({"error": "title or artist required"}, status_code=400)
+
+    entry = find_kb_entry(title, artist)
+    if not entry:
+        return JSONResponse({"error": "Song not found in KB", "title": title, "artist": artist}, status_code=404)
+
+    return JSONResponse({
+        "title": entry.get("title", ""),
+        "artist": entry.get("artist", ""),
+        "album": entry.get("album", ""),
+        "tags": entry.get("tags", []),
+        "spotify_id": entry.get("spotify_id", ""),
+        "bpm": entry.get("bpm"),
+        "key": entry.get("key"),
+        "energy": entry.get("energy"),
+        "danceability": entry.get("danceability"),
+        "valence": entry.get("valence"),
+        "acousticness": entry.get("acousticness"),
+    })
+
 
 # --- Background worker ---
 t = threading.Thread(target=tick_loop, daemon=True)

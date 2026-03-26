@@ -1,18 +1,16 @@
 # 🎵 Finja Music System (Docker)
 *Intelligent Spotify tracking, reaction generation & knowledge base for streamers. 💙*
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-yellow.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-> **✨ New in v1.0.1:**
-> - **Code Quality:** All SonarQube issues resolved (S5754, S1192, S3358, S3776)
-> - **Documentation:** Complete English documentation with comprehensive comments
-> - **Docker:** Port mapping standardized to `8022` to match container config
-> - **Stability:** Refactored nested logic and improved error handling
-> - **Copyright:** Updated to 2026 standards
-> - **Fallback:** Improved "Unknown" handling for missing KB entries
+> **✨ New in v1.1.0:**
+> - **Song Features API:** New `/get/songs` and `/get/song_features` endpoints for BPM, Key, Energy, Danceability queries
+> - **BPM Enrichment Pipeline:** `jank_scraper.js` (Spicetify extension) + `merge_bpm.py` for automated BPM/Key data collection
+> - **Landing Page:** Root endpoint with API provider attribution
+> - **Security:** `random` replaced with `secrets` module (SonarCloud compliance)
 
 ---
 
@@ -154,8 +152,22 @@ The service exposes a FastAPI interface on Port **8022**.
 
 | Method | Endpoint | Description | Response Example |
 |--------|----------|-------------|------------------|
+| `GET` | `/` | Landing page with attribution | HTML |
 | `GET` | `/health` | Service health check | `{"ok": true, "time": "..."}` |
 | `GET` | `/get/Finja` | Current song & reaction | `{"reaction": "Banger!", ...}` |
+| `GET` | `/get/songs` | Browse KB with filters | `{"songs": [...], "total": N}` |
+| `GET` | `/get/song_features` | Get BPM/Key/Energy for a song | `{"bpm": 128, "key": "C"}` |
+
+#### Query Parameters
+
+**`/get/songs`** — Browse the Knowledge Base:
+- `artist` — Filter by artist name (fuzzy, case-insensitive)
+- `genre` — Filter by genre/tag
+- `limit` — Max results (default: 500)
+
+**`/get/song_features`** — Look up a specific song:
+- `title` — Song title
+- `artist` — Artist name
 
 ### Response Structure (`/get/Finja`)
 
@@ -184,6 +196,8 @@ finja-music-docker-spotify/
 ├── Dockerfile              # Image build instructions
 ├── requirements.txt        # Python dependencies
 ├── test_music_app.py       # Unit & Integration tests
+├── jank_scraper.js         # Spicetify BPM/Key scraper extension
+├── merge_bpm.py            # Migration tool: merge scraped BPM data into KB
 ├── .env                    # Secrets (Excluded from git)
 ├── Memory/                 # Data folder
 │   ├── memory.json         # Long-term history
@@ -207,6 +221,33 @@ docker compose exec finja-musik-api python -m unittest test_music_app.py
 pip install -r requirements.txt
 python -m unittest test_music_app.py
 ```
+
+---
+
+## 🎵 BPM Enrichment Pipeline
+
+The system can enrich songs with BPM, Key, and audio features using two tools:
+
+### `jank_scraper.js` — Spicetify Extension
+
+A Spicetify custom app that scrapes BPM and Key data directly from Spotify's DJ mode UI. Install it as a Spicetify extension and it will automatically POST data to `http://127.0.0.1:8080/submit` whenever a new song plays.
+
+**Features:**
+- Auto-detects song changes (polls every 2s)
+- Reads BPM/Key from Spotify's `dj-info` UI elements
+- Uses `127.0.0.1` instead of `localhost` (IPv6/IPv4 routing fix)
+
+### `merge_bpm.py` — Migration Tool
+
+Merges scraped BPM/Key data from `SongsDB/fertige_bpm_keys.json` into the main `songs_kb.json`. Run it after collecting data with the scraper.
+
+```bash
+python merge_bpm.py
+```
+
+- Creates automatic backups before merging
+- Skips songs that already have BPM data
+- Reports detailed statistics
 
 ---
 

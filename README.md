@@ -54,7 +54,7 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 | **finja-chat** | **v2.2.1** | 🟢 Stable | LLM support integrated, modularized | **0 Bugs** (Clean! 🎉) |
 | **finja-music** | | 🟢 Stable | Multiple versions available | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stable | **Recommended Web-UI Version** | 1 Real / 15 False Positive |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.0.1** | 🟢 Stable | Docker version (Spotify only) | 5 False Positive |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.1.0** | 🟢 Stable | Docker version (Spotify only) | 5 False Positive |
 | &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system | WON'T BE UPDATED, PLEASE USE THE ONES ABOVE |
 | **finja-Open-Web-UI** | | 🔵 Stable | Ecosystem Modules ready | |
 | &nbsp;&nbsp;└─ finja-Memory | **v4.4.2** | 🟢 Stable | Heavily Refactored. Voice cache added | Perfect 100% Pytest CI/CD |

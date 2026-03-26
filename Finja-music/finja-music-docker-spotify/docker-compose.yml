@@ -2,10 +2,10 @@
 #  Project: Finja Musik Docker Spotify - Docker Compose
 #  Module: finja-music-docker-spotify
 #  Author: J. Apps (JohnV2002 / Sodakiller1)
-#  Version: 1.0.1
+#  Version: 1.1.0
 #  Description: Docker Compose configuration for the Music API service.
 #
-#  ✨ New in 1.0.1:
+#  ✨ New in 1.1.0:
 #    • Updated port mapping to match Dockerfile (8022)
 #    • Updated copyright to 2026
 #

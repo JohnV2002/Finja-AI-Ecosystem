@@ -7,13 +7,13 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
-  
+  Version: 1.1.0
+
   ✨ Features:
     • Validates file structure (Docker, Configs, Python files)
     • Tests core logic (Normalization, Scoring, KB Indexing)
     • Mocks Spotify API to test without credentials
-    • Tests FastAPI endpoints (/health, /get/Finja)
+    • Tests FastAPI endpoints (/health, /get/Finja, /get/songs, /get/song_features, /)
     • Prevents background loops from blocking tests
 
 ----------------------------------------------------------------------
@@ -518,8 +518,61 @@ class TestFastAPIEndpoints(unittest.TestCase):
     def test_get_finja_returns_json(self):
         """Test: GET /get/Finja returns JSON content type."""
         response = self.client.get("/get/Finja")
-        
+
         self.assertIn("application/json", response.headers.get("content-type", ""))
+
+    def test_root_endpoint(self):
+        """Test: GET / returns landing page HTML."""
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers.get("content-type", ""))
+        self.assertIn("Finja Music Brain", response.text)
+        self.assertIn("getsongbpm.com", response.text)
+
+    def test_get_songs_endpoint(self):
+        """Test: GET /get/songs returns valid structure."""
+        response = self.client.get("/get/songs")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("songs", data)
+        self.assertIn("total", data)
+        self.assertIn("filtered", data)
+        self.assertIsInstance(data["songs"], list)
+        self.assertIsInstance(data["total"], int)
+
+    def test_get_songs_with_artist_filter(self):
+        """Test: GET /get/songs?artist=... filters results."""
+        response = self.client.get("/get/songs?artist=nonexistent_artist_xyz")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data["songs"]), 0)
+
+    def test_get_songs_with_limit(self):
+        """Test: GET /get/songs?limit=2 respects limit."""
+        response = self.client.get("/get/songs?limit=2")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertLessEqual(len(data["songs"]), 2)
+
+    def test_get_song_features_missing_params(self):
+        """Test: GET /get/song_features without params returns 400."""
+        response = self.client.get("/get/song_features")
+
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertIn("error", data)
+
+    def test_get_song_features_not_found(self):
+        """Test: GET /get/song_features for unknown song returns 404."""
+        response = self.client.get("/get/song_features?title=nonexistent_xyz&artist=nobody")
+
+        self.assertEqual(response.status_code, 404)
+        data = response.json()
+        self.assertIn("error", data)
 
 
 # =============================================================================
