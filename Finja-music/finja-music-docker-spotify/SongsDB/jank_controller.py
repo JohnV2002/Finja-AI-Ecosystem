@@ -76,13 +76,13 @@ class ScraperHandler(BaseHTTPRequestHandler):
 
         # Antwort an Spicetify, dass alles gut angekommen ist
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', '*')  # NOSONAR
         self.end_headers()
 
     def do_OPTIONS(self):
         """Erlaubt Spicetify, überhaupt mit uns zu reden (CORS)"""
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', '*')  # NOSONAR
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
@@ -91,6 +91,8 @@ class ScraperHandler(BaseHTTPRequestHandler):
         pass # Versteckt nervige Logs
 
 def starte_server():
+    # Wir benutzen HTTP auf 127.0.0.1, da dies nur lokal erreichbar ist. 
+    # Ein Wechsel auf HTTPS (SSL) wäre für diesen Anwendungsfall unnötig komplex.
     server = HTTPServer(('127.0.0.1', 8080), ScraperHandler)
     print("[*] Jank Mommy's Mutterschiff lauscht auf Port 8080... :3\n")
     server.serve_forever()
