@@ -6,7 +6,7 @@
 //   Module: finja-music-docker-spotify
 //   Author: J. Apps (JohnV2002 / Sodakiller1)
 //   Version: 1.1.0
-//   Description: Die absolute Brechstange! Spicetify extension that
+//   Description: The absolute sledgehammer! Spicetify extension that
 //                scrapes BPM/Key from Spotify's DJ mode UI and POSTs
 //                it to the local jank_controller.py server.
 //                Uses 127.0.0.1 instead of localhost (IPv4 Fix).
@@ -19,43 +19,43 @@
 // ======================================================================
 
 (function JankScraper() {
-    // Warten bis Spicetify geladen ist
+    // Wait until Spicetify is loaded
     if (!Spicetify.Player) {
         setTimeout(JankScraper, 1000);
         return;
     }
 
-    console.log("[*] Jank Mommy's Scraper V3.2 ist online! :3");
+    console.log("[*] Jank Mommy's Scraper V3.2 is online! :3");
     if (Spicetify.showNotification) {
-        Spicetify.showNotification("Scraper V3.2: IPv4 Fix aktiv! :3");
+        Spicetify.showNotification("Scraper V3.2: IPv4 Fix active! :3");
     }
 
-    let letzterTrackId = "";
+    let lastTrackId = "";
 
-    // Wir gucken jetzt einfach alle 2 Sekunden stumpf nach, was gerade passiert
+    // We check every 2 seconds what's currently happening
     setInterval(() => {
         try {
             const data = Spicetify.Player.data;
-            // Wenn gerade gar nichts spielt oder geladen ist, abbrechen
+            // If nothing is playing or loaded, return
             if (!data) return;
 
-            // HA! Hier war der Fehler: Spicetify nennt das Lied in neueren Versionen "item" und nicht mehr "track"!
+            // Spicetify renamed the track to "item" in newer versions!
             const track = data.track || data.item;
             if (!track?.uri) return;
 
-            const aktuellerTrackId = track.uri.split(":")[2];
+            const currentTrackId = track.uri.split(":")[2];
 
-            // Haben wir ein NEUES Lied entdeckt?
-            if (aktuellerTrackId !== letzterTrackId) {
-                letzterTrackId = aktuellerTrackId;
-                console.log(`[*] Neues Lied erkannt: ${aktuellerTrackId}. Gebe UI 3 Sekunden zum Laden...`);
+            // Did we discover a NEW song?
+            if (currentTrackId !== lastTrackId) {
+                lastTrackId = currentTrackId;
+                console.log(`[*] New song detected: ${currentTrackId}. Giving UI 3 seconds to load...`);
 
-                // Wir warten 3 Sekunden, damit das UI die BPM rendern kann
+                // We wait 3 seconds so the UI can render the BPM
                 setTimeout(() => {
                     let bpmText = "0";
                     let keyText = "Unknown";
 
-                    // Versuch 1: Deine genaue dj-info Struktur
+                    // Attempt 1: Exact dj-info structure
                     let infoTop = document.querySelector('.dj-info-row-top');
 
                     if (infoTop) {
@@ -65,32 +65,32 @@
                             bpmText = spans[1].innerText.replaceAll(/bpm/gi, '').trim();
                         }
                     } else {
-                        // Versuch 2: Notfall-Suche
+                        // Attempt 2: Emergency search
                         let allTags = document.querySelectorAll('.dj-info-tag');
                         if (allTags.length > 0) {
                             keyText = allTags[0].innerText.trim();
                         }
                     }
 
-                    console.log(`[+] ERBEUTET: BPM ${bpmText} | Key ${keyText}`);
+                    console.log(`[+] CAPTURED: BPM ${bpmText} | Key ${keyText}`);
                     if (Spicetify.showNotification) {
                         Spicetify.showNotification(`BPM: ${bpmText} | Key: ${keyText}`);
                     }
 
-                    // Ab ans Mutterschiff! (Fix: 127.0.0.1 statt localhost wegen IPv6/IPv4 Routing Fehler!)
+                    // Send to Mothership! (Fix: 127.0.0.1 instead of localhost due to IPv6/IPv4 routing issues!)
                     fetch("http://127.0.0.1:8080/submit", {
                         method: "POST",
                         body: JSON.stringify({
-                            id: aktuellerTrackId,
+                            id: currentTrackId,
                             bpm: bpmText,
                             key: keyText
                         })
-                    }).catch(err => console.log("[-] Mutterschiff nicht da:", err));
+                    }).catch(err => console.log("[-] Mothership unreachable:", err));
 
-                }, 3000); // 3 Sekunden warten nach Song-Wechsel
+                }, 3000); // Wait 3 seconds after song change
             }
         } catch (error) {
-            console.log("[-] Fehler im Brechstangen-Loop:", error);
+            console.log("[-] Error in sledgehammer loop:", error);
         }
-    }, 2000); // Alle 2 Sekunden überprüfen
+    }, 2000); // Check every 2 seconds
 })();

@@ -36,51 +36,51 @@ import json
 import time
 import os
 import threading
-import pyautogui  # Unsere magische "STOP"-Taste! :3
+import pyautogui  # Our magic "STOP" button! :3
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# Wir holen uns den exakten Pfad, wo dieses Skript gerade liegt!
+# Get the exact path where this script is located!
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_PATH = os.path.join(SCRIPT_DIR, ".enrich_progress.json")
 OUT_PATH = os.path.join(SCRIPT_DIR, "fertige_bpm_keys.json")
 
-# Hier speichern wir unsere erbeuteten Daten
-gesammelte_daten = {}
-aktueller_song_id = None
+# Store our captured data here
+collected_data = {}
+current_song_id = None
 
-# NEU: Das ist unser magisches Walkie-Talkie! Damit wartet das Skript auf die Daten.
-daten_erhalten = threading.Event()
+# NEW: Our magic Walkie-Talkie! Used to wait for data from the scraper.
+data_received = threading.Event()
 
 class ScraperHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        """Empfängt die Daten von unserer Spicetify-Extension"""
-        global aktueller_song_id
+        """Receives data from our Spicetify extension"""
+        global current_song_id
 
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        daten = json.loads(post_data.decode('utf-8'))
+        data = json.loads(post_data.decode('utf-8'))
 
-        print(f"  [+] Daten erbeutet: BPM={daten['bpm']} | Key={daten['key']}")
+        print(f"  [+] Data captured: BPM={data['bpm']} | Key={data['key']}")
 
-        # Wir speichern die Daten unter der ID, die wir angefragt haben.
-        # So funktioniert unsere Resume-Funktion perfekt!
-        if aktueller_song_id:
-             gesammelte_daten[aktueller_song_id] = {
-                 "bpm": daten['bpm'],
-                 "key": daten['key'],
-                 "scraped_id": daten['id'] # Nur zur Sicherheit
+        # Save data under the requested ID. 
+        # This ensures our resume feature works perfectly!
+        if current_song_id:
+             collected_data[current_song_id] = {
+                 "bpm": data['bpm'],
+                 "key": data['key'],
+                 "scraped_id": data['id'] # Just for safety
              }
 
-        # NEU: Wir funken an den Haupt-Thread: "Wir haben die Daten, du kannst weitermachen!"
-        daten_erhalten.set()
+        # NEW: Signal to the main thread: "We got the data, you can move on!"
+        data_received.set()
 
-        # Antwort an Spicetify, dass alles gut angekommen ist
+        # Respond to Spicetify that everything arrived safely
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # NOSONAR
         self.end_headers()
 
     def do_OPTIONS(self):
-        """Erlaubt Spicetify, überhaupt mit uns zu reden (CORS)"""
+        """Allows Spicetify to talk to us (CORS)"""
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # NOSONAR
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -88,81 +88,81 @@ class ScraperHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def log_message(self, format, *args):
-        pass # Versteckt nervige Logs
+        pass # Hides noisy logs
 
-def starte_server():
-    # Wir benutzen HTTP auf 127.0.0.1, da dies nur lokal erreichbar ist. 
-    # Ein Wechsel auf HTTPS (SSL) wäre für diesen Anwendungsfall unnötig komplex.
+def start_server():
+    # Use HTTP on 127.0.0.1 as it's only locally accessible.
+    # Switching to HTTPS (SSL) would be unnecessarily complex for this use case.
     server = HTTPServer(('127.0.0.1', 8080), ScraperHandler)
-    print("[*] Jank Mommy's Mutterschiff lauscht auf Port 8080... :3\n")
+    print("[*] Jank Mommy's Mothership listening on Port 8080... :3\n")
     server.serve_forever()
 
-def spiele_song_in_spotify(spotify_id):
-    """Zwingt die Desktop-App, den Song zu spielen"""
+def play_song_in_spotify(spotify_id):
+    """Forces the desktop app to play the song"""
     uri = f"spotify:track:{spotify_id}"
     os.system(f"start {uri}")
 
-def starte_den_wahnsinn():
-    global aktueller_song_id
+def start_the_madness():
+    global current_song_id
 
-    # 1. Lade unsere Ziel-Liste
+    # 1. Load our target list
     try:
         with open(JSON_PATH, "r", encoding="utf-8") as f:
-            daten = json.load(f)
+            data = json.load(f)
     except FileNotFoundError:
-        print(f"[-] Oh nein! Ich suche genau hier: {JSON_PATH}")
+        print(f"[-] Oh no! I'm looking right here: {JSON_PATH}")
         return
 
-    songs = daten.get("enriched", {})
-    print(f"[*] {len(songs)} Songs in der Ziel-Liste gefunden!")
+    songs = data.get("enriched", {})
+    print(f"[*] {len(songs)} songs found in target list!")
 
-    # 2. Lade bisherigen Fortschritt (RESUME FUNKTION)
+    # 2. Load progress (RESUME FEATURE)
     if os.path.exists(OUT_PATH):
         try:
             with open(OUT_PATH, "r", encoding="utf-8") as f:
-                bisherige_daten = json.load(f)
-                gesammelte_daten.update(bisherige_daten)
-            print(f"[*] {len(gesammelte_daten)} fertige Songs geladen! Mache da weiter, wo wir aufgehört haben... :3")
+                previous_data = json.load(f)
+                collected_data.update(previous_data)
+            print(f"[*] {len(collected_data)} finished songs loaded! Resuming where we left off... :3")
         except Exception as e:
-            print(f"[-] Konnte alten Fortschritt nicht laden: {e}")
+            print(f"[-] Could not load previous progress: {e}")
 
-    # Server im Hintergrund starten
-    threading.Thread(target=starte_server, daemon=True).start()
+    # Start server in background
+    threading.Thread(target=start_server, daemon=True).start()
     time.sleep(2)
 
     for name, s_id in songs.items():
-        # Check: Haben wir den Song schon? Dann überspringen wir ihn sofort!
-        if s_id in gesammelte_daten:
+        # Check: Do we already have this song? If so, skip it!
+        if s_id in collected_data:
             continue
 
-        aktueller_song_id = s_id
-        daten_erhalten.clear() # Wir stellen das Walkie-Talkie wieder auf "Warten"
+        current_song_id = s_id
+        data_received.clear() # Set walkie-talkie back to "Waiting"
 
-        print(f"\n[*] Zwinge Spotify zu: {name}")
-        spiele_song_in_spotify(s_id)
+        print(f"\n[*] Forcing Spotify to: {name}")
+        play_song_in_spotify(s_id)
 
-        # Wir lassen das Lied 6 Sekunden laufen.
+        # Let the song play for 6 seconds
         time.sleep(6)
 
-        # Musik Stoppen (Triggert das UI)
-        print("  [*] Drücke virtuell STOP, damit das Spicetify UI nachlädt... :3")
+        # Stop music (Triggers the UI)
+        print("  [*] Virtual STOP to reload Spicetify UI... :3")
         pyautogui.press('playpause')
 
-        # NEU: Wir warten auf das Signal vom Server (Maximal 15 Sekunden)
-        erfolg = daten_erhalten.wait(timeout=15.0)
+        # NEW: Wait for signal from server (Max 15 seconds)
+        success = data_received.wait(timeout=15.0)
 
-        if erfolg:
-            print("  [+] Perfekt, weiter zum nächsten!")
+        if success:
+            print("  [+] Perfect, next one!")
         else:
-            print("  [-] Timeout (15s)! Keine Daten gekommen. Wir speichern ihn leer und machen weiter.")
-            # Wir speichern ihn trotzdem (ohne Daten), damit er beim nächsten Mal nicht wieder hängt
-            gesammelte_daten[aktueller_song_id] = {"bpm": "0", "key": "Unknown", "error": "timeout"}
+            print("  [-] Timeout (15s)! No data received. Saving empty entry and continuing.")
+            # Save anyway (without data) so it doesn't get stuck next time
+            collected_data[current_song_id] = {"bpm": "0", "key": "Unknown", "error": "timeout"}
 
-        # Speichern nach jedem Song
+        # Save after each song
         with open(OUT_PATH, "w", encoding="utf-8") as out:
-            json.dump(gesammelte_daten, out, indent=4)
+            json.dump(collected_data, out, indent=4)
 
 if __name__ == "__main__":
-    print("=== Operation: F*** you, Spotify API ===")
-    starte_den_wahnsinn()
-    print("\n[+] Wir haben sie alle! :3")
+    print("=== Operation: F**** you, Spotify API ===")
+    start_the_madness()
+    print("\n[+] Captured them all! :3")
