@@ -1,0 +1,82 @@
+# ==========================================
+# YourAI AI - Requirements
+# ==========================================
+# pip install -r requirements.txt
+#
+# HINWEIS: PyTorch muss je nach GPU separat installiert werden!
+# Siehe Abschnitt "PyTorch" unten.
+# ==========================================
+
+# ------------------------------------------
+# CORE - LangChain Ecosystem
+# ------------------------------------------
+langchain-core
+langchain-ollama
+langgraph
+
+# ------------------------------------------
+# API - OpenRouter (Cloud LLM Fallback)
+# ------------------------------------------
+openai
+
+# ------------------------------------------
+# ENVIRONMENT
+# ------------------------------------------
+python-dotenv
+
+# ------------------------------------------
+# WEB / HTTP
+# ------------------------------------------
+requests
+aiohttp
+fastapi
+uvicorn
+uvicorn[standard]
+python-multipart
+discord.py
+
+# ------------------------------------------
+# DISPLAY / TERMINAL
+# ------------------------------------------
+colorama
+pygments
+
+# ------------------------------------------
+# AUDIO - Speech Recognition (Ears)
+# ------------------------------------------
+SpeechRecognition
+faster-whisper
+
+# ------------------------------------------
+# AUDIO - Text-to-Speech (Mouth)
+# ------------------------------------------
+# WICHTIG: coqui-tts, NICHT "TTS"!
+coqui-tts
+pygame
+soundfile
+transformers
+
+# ------------------------------------------
+# VISION (Eyes)
+# ------------------------------------------
+mss
+PyGetWindow
+Pillow
+
+# ------------------------------------------
+# DATA
+# ------------------------------------------
+numpy
+rapidfuzz
+
+# ------------------------------------------
+# PyTorch (GPU-abhängig!)
+# ------------------------------------------
+# NICHT hier installieren! Das Dockerfile handelt das separat mit dem
+# richtigen --index-url (CPU/CUDA). Lokale Installation:
+#
+# CUDA 12.x (NVIDIA GPU):
+#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+#
+# CPU only:
+#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu

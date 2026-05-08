@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "display_name": "Admin",
+    "role": "admin",
+    "description": "Main admin user",
+    "user_id": "admin"
+  },
+  "user1": {
+    "display_name": "User 1",
+    "role": "chat",
+    "description": "",
+    "user_id": "user1"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "CHANGE-THIS-TO-A-LONG-RANDOM-ADMIN-KEY": {
+    "role": "admin",
+    "user_key": "admin",
+    "can_altpersona": true
+  },
+  "CHANGE-THIS-TO-A-LONG-RANDOM-CHAT-KEY": {
+    "role": "chat",
+    "user_key": "user1",
+    "can_altpersona": false
+  }
+}

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutzerklärung – YourAI AI Chat</title>
+  <meta name="description" content="Datenschutzerklärung für youraichat.your-domain.example.com – YourAI AI Chat by J. Apps">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #090c10;
+      --bg-card:      #161b22;
+      --bg-hover:     #1c2128;
+      --border:       #30363d;
+      --text:         #e6edf3;
+      --text-muted:   #7d8590;
+      --accent:       #bc8cff;
+      --accent-dim:   rgba(188,140,255,0.12);
+      --warn:         rgba(255,193,7,0.10);
+      --warn-border:  rgba(255,193,7,0.35);
+      --font:         'Segoe UI', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-container { display: flex; flex-direction: column; flex: 1; }
+
+    .page-header {
+      background: #0d1117;
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+    .page-header h1 { font-size: 1.8rem; color: var(--accent); }
+    .page-header .subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .page-main { flex: 1; padding: 2rem 1rem; }
+
+    .content-card {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2rem 2.5rem;
+    }
+
+    h2 { font-size: 1.2rem; color: var(--accent); margin-top: 2.2rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; color: var(--accent); opacity: 0.8; margin-top: 1.4rem; margin-bottom: 0.4rem; }
+    p  { margin-bottom: 0.8rem; }
+    ul { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+    li { margin-bottom: 0.4rem; }
+    a  { color: var(--accent); }
+    a:hover { opacity: 0.8; }
+    strong { color: var(--text); }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin: 1rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 480px; }
+    th, td { border: 1px solid var(--border); padding: 0.6rem 0.85rem; text-align: left; vertical-align: top; }
+    th { background: var(--bg-hover); color: var(--accent); font-weight: 600; }
+    td code { font-family: var(--font-mono); font-size: 0.82rem; background: var(--bg-hover); padding: 1px 5px; border-radius: 4px; }
+
+    /* Flow path */
+    .flow {
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 0.8rem 0 1.2rem;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* Note / warning boxes */
+    .note {
+      background: var(--warn);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      margin: 0.8rem 0;
+      font-size: 0.9rem;
+    }
+    .note-info {
+      background: var(--accent-dim);
+      border-color: rgba(188,140,255,0.3);
+    }
+
+    .last-updated {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      font-family: var(--font-mono);
+    }
+
+    #lang-switcher {
+      display: inline-block;
+      margin-bottom: 1.8rem;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #lang-switcher:hover { border-color: var(--accent); color: var(--accent); }
+    .lang-en { display: none; }
+
+    .page-footer {
+      background: #0d1117;
+      border-top: 1px solid var(--border);
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .page-footer a { color: var(--text-muted); text-decoration: none; margin: 0 8px; }
+    .page-footer a:hover { color: var(--accent); }
+    .footer-sep { opacity: 0.3; }
+
+    @media (max-width: 640px) {
+      .content-card { padding: 1.2rem 1rem; }
+      .page-header h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-container">
+
+  <header class="page-header">
+    <div class="lang-de"><h1>🔒 Datenschutzerklärung</h1></div>
+    <div class="lang-en"><h1>🔒 Privacy Policy</h1></div>
+    <div class="subtitle">youraichat.your-domain.example.com · YourAI AI Chat</div>
+  </header>
+
+  <main class="page-main">
+    <div class="content-card">
+      <a href="/" class="back-link lang-de">← Zurück zum Chat</a>
+      <a href="/" class="back-link lang-en">← Back to Chat</a>
+
+      <button id="lang-switcher">Switch to English</button>
+
+      <!-- ═══════════════════════════ DEUTSCH ═══════════════════════════ -->
+      <div class="lang-de">
+        <p class="last-updated">Letzte Aktualisierung: 01.05.2026</p>
+
+        <p>Diese Datenschutzerklärung erklärt Schritt für Schritt, wohin deine Nachrichten gehen, wer sie sieht und was gespeichert wird — für jede Plattform einzeln.</p>
+
+        <h2>Verantwortlicher</h2>
+        <p>Verantwortlich im Sinne der DSGVO:<br>
+        <strong>J. Apps</strong> · <a href="mailto:contact@your-domain.example.com">contact@your-domain.example.com</a> · <a href="https://your-domain.example.com" target="_blank" rel="noopener">your-domain.example.com</a><br>
+        Discord: <strong>AdminV2002</strong> · Twitch: <strong>YOUR_STREAMER_NAME</strong></p>
+        <p>Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Betrieb des Dienstes) sowie ggf. Art. 6 Abs. 1 lit. b (Vertragserfüllung gegenüber eingeladenen Nutzern).</p>
+
+        <h2>⚡ Zero Data Retention — Das Wichtigste zuerst</h2>
+        <p>Alle Text-basierten KI-Anfragen laufen über <strong>OpenRouter</strong> mit aktiviertem <strong>Zero Data Retention (ZDR)</strong>.</p>
+        <ul>
+          <li>OpenRouter leitet deine Nachricht an einen KI-Provider weiter (z.B. Google, Meta, Qwen).</li>
+          <li>Mit ZDR <strong>garantiert OpenRouter</strong>, dass der Provider deinen Text <strong>nicht zum Trainieren</strong> seiner Modelle benutzt.</li>
+          <li>Provider, die sich nicht an ZDR halten, werden von OpenRouter <strong>aktiv blockiert</strong>.</li>
+          <li>Dein Text wird verarbeitet, eine Antwort generiert, und dann <strong>verworfen</strong>. Kein Logging, kein Training, keine Speicherung beim Provider.</li>
+        </ul>
+        <div class="note">
+          ⚠️ <strong>Ausnahme: Bild-Generierung</strong> — Keines der aktuell verfügbaren Bildmodelle auf OpenRouter unterstützt ZDR. Wenn YourAI ein Bild generiert, <strong>kann der Bild-Provider den Prompt loggen</strong> und potentiell zum Training nutzen. Details unter Abschnitt 6.
+        </div>
+
+        <h2>1. Twitch Chat</h2>
+        <div class="flow">Du → Twitch (USA) → YourAI-Server (DE) → OpenRouter (USA, ZDR) → LLM-Provider → zurück → Twitch → Du</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schritt</th><th>Was passiert</th><th>Wer sieht deine Daten</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Twitch</strong></td><td>Du tippst deine Nachricht in den Chat. Twitch überträgt sie an alle Zuschauer und an unseren Bot.</td><td>Twitch Inc. (Amazon), alle Zuschauer</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>2. Twitch → YourAI</strong></td><td>Unser Bot empfängt deinen <strong>Benutzernamen</strong> und deine <strong>Nachricht</strong> über eine IRC-Verbindung.</td><td>YourAI-Server</td><td>🇩🇪 Privater Server</td></tr>
+            <tr><td><strong>3. Safety Check</strong></td><td>Dein Text wird auf schädliche Inhalte geprüft (Granite Guardian). Bei Twitch <strong>dauerhaft aktiv</strong>.</td><td>Lokal ODER OpenRouter (ZDR)</td><td>🇩🇪 / 🇺🇸</td></tr>
+            <tr><td><strong>4. Memory-Suche</strong></td><td>YourAI sucht, ob sie schon etwas über dich weiß. Dein Text wird als Zahlenvektor (Embedding) verarbeitet.</td><td>OpenRouter (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>5. Memory-Server</strong></td><td>Vektor wird mit gespeicherten Erinnerungen verglichen.</td><td>Privater Memory-Server</td><td>🇩🇪 Lokales Netzwerk</td></tr>
+            <tr><td><strong>6. LLM-Anfrage</strong></td><td>Dein Text + Kontext (Erinnerungen, Stimmung, Persona) geht an ein KI-Modell.</td><td>OpenRouter → LLM-Provider (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>7. Antwort</strong></td><td>Das LLM generiert YourAIs Antwort. Sie wird über Twitch in den Chat gepostet.</td><td>Twitch, alle Zuschauer</td><td>🇺🇸 USA</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Was wird gespeichert?</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Wo</th><th>Wie lange</th></tr></thead>
+          <tbody>
+            <tr><td>Twitch-Username</td><td><code>users_db.json</code> (lokaler Server)</td><td>Unbegrenzt</td></tr>
+            <tr><td>Nachrichtenanzahl, erster/letzter Besuch</td><td><code>users_db.json</code></td><td>Unbegrenzt</td></tr>
+            <tr><td>Gelernte Fakten (z.B. "mag Trucks")</td><td><code>users_db.json</code> + Memory-Server</td><td>Unbegrenzt</td></tr>
+            <tr><td>Nachrichtentext</td><td><strong>Wird NICHT permanent gespeichert</strong> — nur für die aktuelle Verarbeitung</td><td>Flüchtig</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">⚠️ <strong>Löschung:</strong> Twitch-Daten können aktuell <strong>nicht individuell gelöscht</strong> werden (System in Bearbeitung). Eine Löschung würde nur serverseitig bei YourAI wirken — öffentliche Twitch-Nachrichten liegen bei Twitch und sind außerhalb unserer Kontrolle.</div>
+
+        <h2>2. Discord Server — Soda Lounge (öffentlich)</h2>
+        <div class="flow">Du → Discord (USA) → YourAI-Server (DE) → OpenRouter (USA, ZDR) → LLM-Provider → zurück → Discord → Du</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schritt</th><th>Was passiert</th><th>Wer sieht es</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Discord</strong></td><td>Du schreibst im Channel. Discord überträgt die Nachricht an den Bot.</td><td>Discord Inc., <strong>alle Server-Mitglieder</strong></td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>2. Discord → YourAI</strong></td><td>Bot empfängt: Username, Nachricht, Anhänge (Bilder).</td><td>YourAI-Server</td><td>🇩🇪 Privater Server</td></tr>
+            <tr><td><strong>3. Bild-Analyse</strong> (optional)</td><td>Bilder werden an ein Vision-Modell gesendet.</td><td>OpenRouter → Vision-LLM (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>4. Safety Check</strong></td><td>Standardmäßig <strong>deaktiviert</strong> (Discord hat eigene Moderation). Kann von J. Apps jederzeit aktiviert werden.</td><td>Lokal ODER OpenRouter (ZDR)</td><td>🇩🇪 / 🇺🇸</td></tr>
+            <tr><td><strong>5. Memory</strong></td><td>Erinnerungssuche + Embedding.</td><td>OpenRouter (ZDR), Memory-Server</td><td>🇺🇸 / 🇩🇪</td></tr>
+            <tr><td><strong>6. Diary</strong></td><td>YourAI führt ein Tagebuch. Dein Gespräch kann als Eintrag gespeichert werden (Tags, kein Volltext).</td><td>Lokaler Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>7. LLM-Anfrage</strong></td><td>Dein Text + Kontext → Cloud-LLM.</td><td>OpenRouter → LLM-Provider (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>8. Antwort</strong></td><td>YourAIs Antwort wird im öffentlichen Channel gepostet. <strong>Alle Server-Mitglieder</strong> können sie sehen.</td><td>Discord, alle Server-Mitglieder</td><td>🇺🇸 USA</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">⚠️ <strong>Löschung:</strong> Discord-Daten können aktuell <strong>nicht individuell gelöscht</strong> werden (System in Bearbeitung). Eine Löschung würde nur serverseitig bei YourAI wirken — öffentliche Discord-Nachrichten liegen bei Discord.</div>
+
+        <h2>3. Discord Direktnachricht (DM)</h2>
+        <div class="flow">Du → Discord DM (USA) → YourAI-Server (DE) → OpenRouter (USA, ZDR) → LLM-Provider → zurück → Discord DM → Du</div>
+        <p>YourAI verarbeitet DMs identisch zu Channel-Nachrichten (Memory, LLM). Die Antwort kommt als DM zurück — nur <strong>du</strong> siehst sie.</p>
+        <div class="note">⚠️ <strong>Wichtig:</strong> Auch DMs gehen über Cloud-LLMs. Discord DMs sind <strong>nicht Ende-zu-Ende-verschlüsselt</strong>. Dank <strong>ZDR</strong> wird dein Text beim Provider jedoch nicht gespeichert oder zum Training genutzt.</div>
+        <p><strong>Proaktive DMs:</strong> YourAI kann nur an Personen auf einer <strong>Whitelist</strong> DMs schicken — nicht an beliebige User.</p>
+        <div class="note">⚠️ <strong>Löschung:</strong> Wie beim Server können DM-Daten aktuell nicht individuell gelöscht werden (System in Bearbeitung).</div>
+
+        <h2>4. Web-Dashboard (Browser)</h2>
+        <div class="flow">Du → Browser → Dashboard-Server (DE, :8051) → brain.py → OpenRouter (USA, ZDR) → LLM → zurück → WebSocket → Browser</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schritt</th><th>Was passiert</th><th>Wer sieht es</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Login</strong></td><td>Du authentifizierst dich mit einem <strong>Access Key</strong>. Der Key bestimmt deine Rolle.</td><td>Dashboard-Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>2. Session-UUID</strong></td><td>Dein Browser generiert eine eindeutige Session-ID (localStorage). Wird für DSGVO-Löschungen genutzt.</td><td>Nur dein Browser + Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>3. Nachricht</strong></td><td>Dein Text wird per WebSocket an den Server geschickt.</td><td>Dashboard-Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>4. Bild-Upload</strong> (optional)</td><td>Bilder werden <strong>1 Stunde</strong> temporär gespeichert, dann automatisch gelöscht.</td><td>Dashboard-Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>5. Verarbeitung</strong></td><td>Safety → Memory → LLM → Antwort.</td><td>OpenRouter, LLM-Provider (ZDR)</td><td>🇺🇸</td></tr>
+            <tr><td><strong>6. Antwort</strong></td><td>Kommt per WebSocket zurück in deinen Browser.</td><td>Nur du</td><td>🇩🇪</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Was wird gespeichert?</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Wo</th><th>Wie lange</th></tr></thead>
+          <tbody>
+            <tr><td>Chat-Verlauf (Browser)</td><td>localStorage in deinem Browser</td><td>Bis du ihn löschst</td></tr>
+            <tr><td>Chat-Log (alle Nachrichten)</td><td><code>app_chat_log.jsonl</code> auf dem Server</td><td>Unbegrenzt (J. Apps kann löschen)</td></tr>
+            <tr><td>Debug-Events</td><td><code>debug_log.jsonl</code></td><td>Bis Rotation (~5000 Events)</td></tr>
+            <tr><td>YourAI-Antworten (Rohtext)</td><td><code>yourai_output.txt</code></td><td>Bis 15 MB erreicht</td></tr>
+            <tr><td>Diary-Einträge</td><td><code>diary/</code> Ordner auf dem Server (mit Session-UUID)</td><td>Bis du sie löschst (DSGVO)</td></tr>
+            <tr><td>Access Key</td><td>localStorage in deinem Browser</td><td>Bis du ihn löschst</td></tr>
+            <tr><td>Session-UUID</td><td>localStorage in deinem Browser</td><td>Bis du ihn löschst</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="note note-info">
+          📝 <strong>Warum loggen wir YourAIs Antworten?</strong> Die Datei <code>yourai_output.txt</code> wird genutzt, um eine eigene "Baby YourAI" zu entwickeln — ein kleines Mini-LLM, das YourAIs Sprechstil lernt, aber kein eigenes Wissen hat. Kein LoRA-Training auf User-Daten, kein kommerzielles Training. Es geht ausschließlich darum, YourAIs Sprechweise zu destillieren.
+        </div>
+
+        <div class="note">
+          ⚠️ <strong>Session-UUID:</strong> Dein Access Key ist personengebunden. Die Session-UUID wird pro Gerät/Browser generiert. <strong>Wenn du deine Session-UUID löschst, ohne sie vorher zu notieren, können deine Daten NICHT mehr zugeordnet oder gelöscht werden.</strong> Deine neue UUID startet komplett frisch.<br><br>
+          ⚠️ <strong>App ≠ Dashboard:</strong> Die Session-UUIDs von App und Dashboard sind <strong>getrennt</strong>! Das Löschen über die App löscht <strong>nicht</strong> deine Dashboard-Daten und umgekehrt.
+        </div>
+
+        <h2>5. Mobile App (Android)</h2>
+        <div class="flow">Du → App → HTTPS API (DE, :8050) → brain.py → OpenRouter (USA, ZDR) → LLM → zurück → API → App</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schritt</th><th>Was passiert</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Auth</strong></td><td>Dein Access Key wird bei jeder Anfrage als Header mitgeschickt.</td></tr>
+            <tr><td><strong>2. Push-Token</strong></td><td>Bei App-Start wird ein <strong>Firebase Cloud Messaging (FCM) Token</strong> registriert. Wird ausschließlich für Push-Benachrichtigungen bei YourAIs Antworten genutzt. Kein Tracking, keine Analytics.</td></tr>
+            <tr><td><strong>3. Nachricht</strong></td><td>Wird per HTTPS POST an den Server geschickt.</td></tr>
+            <tr><td><strong>4. Safety Check</strong></td><td>Standardmäßig <strong>deaktiviert</strong>, kann jederzeit aktiviert werden.</td></tr>
+            <tr><td><strong>5. Verarbeitung</strong></td><td>Identisch zu Dashboard (Memory → LLM).</td></tr>
+            <tr><td><strong>6. Push</strong></td><td>Wenn YourAI antwortet, bekommst du eine Push-Notification über <strong>Google Firebase (FCM)</strong>.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td>FCM Device Token</td><td><code>fcm_tokens.json</code> auf dem Server</td></tr>
+            <tr><td>Push-Notifications</td><td>Über Google Firebase Cloud Messaging (🇺🇸) — nur "YourAI hat geantwortet", kein Nachrichteninhalt</td></tr>
+            <tr><td>Temporäre Bild-Uploads</td><td>1h auf Server, dann automatisch gelöscht</td></tr>
+            <tr><td>Session-UUID</td><td>SharedPreferences in der App — getrennt vom Dashboard</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>6. Tools — Was YourAI im Hintergrund machen kann</h2>
+
+        <h3>🎵 Spotify</h3>
+        <p>YourAI steuert Spotify-Wiedergabe (Play, Skip, Shuffle). YourAI-Server → Spotify API (🇸🇪/🇺🇸). Spotify sieht nur Playback-Befehle — <strong>nicht</strong> deinen Chattext. Aktuell <strong>nur für Admins</strong>.</p>
+
+        <h3>🌐 Web-Suche</h3>
+        <p>YourAI sucht im Internet. Primär: <strong>DuckDuckGo über Tor-Proxy</strong> (oft via Yahoo geroutet). Fallback: <strong>Google</strong>. Letzter Fallback: <strong>Tabby Cat</strong> (Wikipedia-basiert). Dein Suchbegriff verlässt den lokalen Crawler in Richtung der Suchmaschinen.</p>
+
+        <h3>📄 Paperless (Dokumenten-Archiv)</h3>
+        <p>YourAI durchsucht ein privates Dokumenten-Archiv im lokalen Netzwerk. <strong>Nur für Admins.</strong> Deine Nachricht verlässt nicht das lokale Netzwerk.</p>
+
+        <h3>🏠 Home Assistant (Smart Home)</h3>
+        <p>YourAI kann Lichter und Geräte steuern. YourAI-Server → Home Assistant (lokales Netzwerk). <strong>Nur für Admins.</strong> Befehle bleiben im lokalen Netzwerk.</p>
+
+        <h3>🎨 Bild-Generierung</h3>
+        <p>Du sagst z.B. <em>"Mal mir einen Apfel"</em> → YourAI formuliert einen detaillierten Bild-Prompt → dieser geht an ein Bildmodell (SeedDream, Flux o.ä.).</p>
+        <p><strong>Was rausgeht:</strong> YourAIs erweiterter Bild-Prompt — <strong>nicht</strong> dein Originaltext, <strong>nicht</strong> der gesamte Chat.</p>
+        <div class="note">
+          ⚠️ <strong>Kein ZDR bei Bildmodellen!</strong> Aktuell unterstützt <strong>kein einziges Bildmodell</strong> auf OpenRouter Zero Data Retention. Der Bild-Provider (z.B. ByteDance, Stability AI) <strong>kann den Prompt loggen</strong> und möglicherweise zum Training nutzen. Betroffen ist nur der Bild-Prompt, nicht dein Chat-Verlauf oder persönliche Daten. Wir beobachten die Verfügbarkeit von ZDR-fähigen Bildmodellen und werden umstellen, sobald welche verfügbar sind.
+        </div>
+
+        <h3>🗣️ Text-to-Speech (TTS)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Variante</th><th>Status</th><th>Datenfluss</th><th>Was rausgeht</th><th>ZDR?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Browser TTS</strong></td><td>✅ Aktiv</td><td>Alles lokal im Browser</td><td>Nichts — komplett offline</td><td>—</td></tr>
+            <tr><td><strong>XTTS v2</strong> (Lokal)</td><td>🚧 In Arbeit</td><td>YourAI-Server → TTS-Server (lokales Netzwerk)</td><td>Nichts verlässt das LAN</td><td>—</td></tr>
+            <tr><td><strong>ElevenLabs</strong> (Premium)</td><td>✅ Aktiv</td><td>YourAI-Server → ElevenLabs API (🇬🇧/🇺🇸)</td><td>YourAIs Antwort-Text</td><td>❓ Keine offizielle ZDR-Dokumentation. Könnte loggen.</td></tr>
+            <tr><td><strong>DeepInfra</strong> (Chatterbox)</td><td>✅ Aktiv</td><td>YourAI-Server → DeepInfra API (🇺🇸)</td><td>YourAIs Antwort-Text + Voice-Referenz</td><td>❓ Keine offizielle ZDR-Dokumentation. Könnte loggen.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>🌐 Website-Update</h3>
+        <p>YourAI kann ihre eigene Website aktualisieren (Zitate, Design). YourAI-Server → Website-Server (🇩🇪 Zap-Hosting). Betrifft keine User-Daten — nur YourAIs eigene Inhalte.</p>
+
+        <h3>😈 AltPersona (Uncensored Mode)</h3>
+        <p>AltPersona ist YourAIs "Schwester" — ein unzensiertes KI-Modell. YourAI-Server → OpenRouter (anderes Modell, <strong>ZDR aktiv</strong>) → zurück. <strong>Nur über das Web-Dashboard</strong> und <strong>nur mit ausdrücklicher Freischaltung durch J. Apps</strong> (<code>can_altpersona</code> Permission).</p>
+        <div class="note">⚠️ AltPersona ist uncensored by design. J. Apps übernimmt <strong>keine Haftung</strong> für AltPersonas Inhalte. Nutzung auf eigene Verantwortung.</div>
+
+        <h2>7. Memory-System — Was YourAI über dich lernt</h2>
+        <p>YourAI hat ein Langzeitgedächtnis. Gespeichert werden <strong>Fakten</strong> wie "User interessiert sich für Chemie" — <strong>nicht</strong> wörtliche Nachrichtentexte.</p>
+        <ol style="padding-left:1.4rem;margin-bottom:0.8rem;">
+          <li>Dein Text → LLM extrahiert Fakten (OpenRouter, ZDR, 🇺🇸)</li>
+          <li>Fakten werden als Vektoren gespeichert (Memory-Server, 🇩🇪 lokal)</li>
+          <li>Bei neuen Nachrichten: Dein Text → Embedding → Vergleich mit gespeicherten Fakten</li>
+        </ol>
+        <p>Das LLM sieht die <strong>extrahierten Fakten</strong>, nicht den Originaltext. Beispiel: <code>["User programmiert in Python", "User hat eine Katze"]</code></p>
+
+        <h2>8. Diary-System — YourAIs Tagebuch</h2>
+        <p>YourAI führt ein Tagebuch über ihre Interaktionen. Gespeichert werden: Zusammenfassungen von Gesprächen, Emotionen, Tags. <strong>Nicht:</strong> wörtliche Zitate oder vollständige Nachrichten. Lokaler Server (<code>diary/</code>), rotiert wöchentlich. Du kannst deine Einträge über die Session-UUID löschen.</p>
+
+        <h3>Diary-Suche</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Schritt</th><th>Was passiert</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Regex-Suche</strong></td><td>Schlüsselwort-Matching im Tagebuch</td><td>🇩🇪 Lokal (Server)</td></tr>
+            <tr><td><strong>Embedding</strong></td><td>Dein Text wird in einen Vektor umgewandelt</td><td>🇺🇸 Cohere API</td></tr>
+            <tr><td><strong>Reranker</strong></td><td>Ergebnisse werden nach Relevanz sortiert</td><td>🇺🇸 Cohere API</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note note-info">ℹ️ <strong>Cohere — Datenschutz:</strong> Data-Training ist in den Account- <strong>und</strong> API-Einstellungen <strong>deaktiviert</strong>. Cohere verspricht bei zahlenden Kunden, <strong>keine Daten zum Training</strong> zu verwenden.</div>
+
+        <h2>9. Emotionales System — Promise Tracker</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Gespeichert in</th></tr></thead>
+          <tbody>
+            <tr><td>Name des Versprechens</td><td><code>persona_state.json</code> (lokal)</td></tr>
+            <tr><td>Ob es gehalten/gebrochen wurde</td><td><code>persona_state.json</code></td></tr>
+            <tr><td>Deine Begründung (Freitext)</td><td><code>persona_state.json</code></td></tr>
+            <tr><td>YourAIs aktuelle Stimmung</td><td><code>persona_state.json</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>Die Datei selbst verlässt nie den lokalen Server. <strong>Aber:</strong> Relevante Inhalte (aktuelle Stimmung, gebrochene Versprechen) fließen in den System-Prompt ein und verlassen damit den Server via OpenRouter (ZDR).</p>
+
+        <h2>10. Feedback-System — 👍 / 👎</h2>
+        <p><strong>👍 Daumen hoch:</strong> YourAI bekommt im nächsten Prompt den Hinweis, dass ihr letztes Verhalten gut war. Das verstärkt ihr Verhalten dir gegenüber persönlich — betrifft nur dich, nicht andere User.</p>
+        <p><strong>👎 Daumen runter:</strong> Bestraft nicht YourAI, sondern den <strong>Experten</strong>, der geantwortet hat. YourAI ist intern wie ein MoE-System aufgebaut (Mixture of Experts). <strong>3× Daumen runter</strong> vom selben User auf den selben Experten → der Experte wird <strong>nur für dich</strong> ausgetauscht. <strong>3× Daumen runter vom Admin</strong> → der Experte wird <strong>global</strong> für alle User ausgetauscht.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Wo</th><th>Warum</th></tr></thead>
+          <tbody>
+            <tr><td>User-ID</td><td><code>feedback_data.json</code> (lokal)</td><td>Zuordnung wer geliked hat</td></tr>
+            <tr><td>Tracking-ID</td><td><code>feedback_data.json</code></td><td>Zuordnung welche Nachricht</td></tr>
+            <tr><td>Feedback (👍/👎)</td><td><code>feedback_data.json</code></td><td>Verhaltenssteuerung</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>11. Infrastruktur &amp; Web-Analytics</h2>
+        <h3>☁️ Cloudflare</h3>
+        <p>Die Domain <code>your-domain.example.com</code> (und Subdomains wie <code>youraichat.your-domain.example.com</code>) läuft über <strong>Cloudflare</strong>. Cloudflare sieht: IP-Adressen, Request-Header, Seitenaufrufe. Zweck: DDoS-Schutz, DNS, CDN. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a></p>
+
+        <h3>📊 Umami Analytics (geplant)</h3>
+        <p>Aktuell <strong>nicht aktiv</strong> auf dem YourAI-Dashboard. <code>your-domain.example.com</code> (Hauptseite) nutzt <strong>Umami</strong> — ein self-hosted, anonymes Analytics-Tool ohne Cookies und ohne Tracking über Sitzungen hinweg. Wenn Umami zukünftig auch auf <code>youraichat.your-domain.example.com</code> aktiviert wird, erfasst es: Seitenaufrufe, Browser-Typ, Auflösung. <strong>Keine personenbezogenen Daten.</strong></p>
+
+        <h2>12. Error-Reporting</h2>
+        <p>Wenn beim Chatten ein Fehler auftritt, kann YourAI eine <strong>Discord-DM an J. Apps</strong> schicken mit: Error-Code + was defekt ist. <strong>Keine User-Daten</strong> werden dabei übertragen — nur interne Fehlerinformationen.</p>
+
+        <h2>13. TTS Premium &amp; Monetarisierung</h2>
+        <p>Es gibt drei kostenlose TTS-Varianten:</p>
+        <ul>
+          <li><strong>Browser-TTS:</strong> Unbegrenzt kostenlos — läuft vollständig lokal im Browser, keine Server-Anfrage.</li>
+          <li><strong>DeepInfra (Chatterbox):</strong> Aktuell kostenlos — kann sich jederzeit ändern, falls sich die Betriebskosten erhöhen.</li>
+          <li><strong>ElevenLabs:</strong> <strong>3× kostenlos pro Monat</strong>, danach erscheint ein <strong>Buy Me a Coffee</strong>-Link (3$/Monat oder 27$/Jahr). Supporter erhalten unbegrenztes ElevenLabs-TTS.</li>
+        </ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Datenpunkt</th><th>Wo</th></tr></thead>
+          <tbody>
+            <tr><td>ElevenLabs-Nutzung pro User/Monat</td><td><code>tts_usage.json</code> (lokal)</td></tr>
+            <tr><td>Supporter-Status</td><td>Wird von J. Apps manuell verwaltet — keine automatische Verknüpfung</td></tr>
+          </tbody>
+        </table></div>
+        <p>Buy Me a Coffee ist ein externer Dienst. Wenn du dort zahlst, gelten deren <a href="https://www.buymeacoffee.com/privacy" target="_blank" rel="noopener">Datenschutzbestimmungen</a>. <strong>YourAI erhält keine automatische Benachrichtigung</strong> — der Supporter-Status wird ausschließlich manuell von J. Apps vergeben. Eine automatische Integration ist für die Zukunft denkbar.</p>
+
+        <h2>14. Zusammenfassung: Wohin gehen deine Daten?</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Empfänger</th><th>Was bekommt er</th><th>ZDR?</th><th>Warum</th></tr></thead>
+          <tbody>
+            <tr><td><strong>OpenRouter</strong> (USA)</td><td>Dein Text als Teil eines LLM-Prompts</td><td>✅ Ja</td><td>KI-Verarbeitung</td></tr>
+            <tr><td><strong>LLM-Provider</strong> (Google, Meta, etc.)</td><td>Dein Text (via OpenRouter, wird verworfen)</td><td>✅ Ja</td><td>Antwort-Generierung</td></tr>
+            <tr><td><strong>Bildmodell-Provider</strong> (ByteDance, etc.)</td><td>YourAIs erweiterter Bild-Prompt</td><td>❌ Nein</td><td>Bild-Generierung</td></tr>
+            <tr><td><strong>Twitch</strong> (USA)</td><td>Dein Chat-Text (öffentlich)</td><td>—</td><td>Plattform-Kommunikation</td></tr>
+            <tr><td><strong>Discord</strong> (USA)</td><td>Dein Text, Bilder</td><td>—</td><td>Plattform-Kommunikation</td></tr>
+            <tr><td><strong>ElevenLabs</strong> (UK/USA)</td><td>YourAIs Antworttext</td><td>❓ Unbekannt</td><td>Premium-TTS</td></tr>
+            <tr><td><strong>DeepInfra</strong> (USA)</td><td>YourAIs Antworttext + Voice-Sample</td><td>❓ Unbekannt</td><td>TTS Chatterbox</td></tr>
+            <tr><td><strong>Spotify</strong> (SE/USA)</td><td>Nur Playback-Befehle</td><td>—</td><td>Musiksteuerung (nur Admin)</td></tr>
+            <tr><td><strong>Google Firebase</strong> (USA)</td><td>Push-Token, kurze Notification</td><td>—</td><td>Push-Benachrichtigungen</td></tr>
+            <tr><td><strong>Cohere</strong> (USA/CA)</td><td>Diary-Text als Embedding + Reranking</td><td>✅ Training AUS</td><td>Diary-Suche</td></tr>
+            <tr><td><strong>Cloudflare</strong> (USA)</td><td>IP, Request-Header, Seitenaufrufe</td><td>—</td><td>DDoS-Schutz, DNS</td></tr>
+            <tr><td><strong>Zap-Hosting</strong> (DE)</td><td>Website-Inhalte (nur YourAI)</td><td>—</td><td>Webhosting your-domain.example.com</td></tr>
+            <tr><td><strong>Buy Me a Coffee</strong> (USA)</td><td>Zahlungsdaten (nur bei Kauf)</td><td>—</td><td>Supporter-Zahlungen</td></tr>
+            <tr><td><strong>Lokaler Server</strong> (DE)</td><td>Alles — Verarbeitung, Speicherung, Logs</td><td>—</td><td>Hauptverarbeitung</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>15. Deine Rechte (DSGVO)</h2>
+        <h3>🗑️ Recht auf Löschung (Art. 17)</h3>
+        <ul>
+          <li><strong>Dashboard:</strong> Klicke auf "Meine Daten löschen" in den Einstellungen</li>
+          <li><strong>App:</strong> Einstellungen → "Meine Daten löschen"</li>
+          <li><strong>Was gelöscht wird:</strong> Alle Diary-Einträge, die mit deiner Session-UUID verknüpft sind</li>
+          <li><strong>Was NICHT automatisch gelöscht wird:</strong> Extrahierte Memory-Fakten — diese können manuell von J. Apps entfernt werden</li>
+          <li><strong>Twitch / Discord:</strong> Aktuell nicht individuell löschbar (System in Bearbeitung)</li>
+        </ul>
+        <div class="note">⚠️ App-UUID und Dashboard-UUID sind <strong>getrennt</strong>. Löschen über die App betrifft nur App-Daten.<br><br>🚨 <strong>Session-UUID verloren?</strong> Wenn du deine Session-UUID löschst ohne sie zu notieren, können deine Diary-Einträge <strong>nicht mehr zugeordnet oder gelöscht</strong> werden.</div>
+
+        <h3>📋 Recht auf Auskunft (Art. 15)</h3>
+        <p>Du kannst J. Apps fragen, welche Daten über dich gespeichert sind. Gib dabei bitte deine <strong>Session-UUID</strong> an (zu finden im Profil-Tab).</p>
+
+        <h3>✏️ Recht auf Berichtigung (Art. 16)</h3>
+        <p>Du kannst die Berichtigung unrichtiger Daten verlangen.</p>
+
+        <h3>⛔ Widerspruch &amp; Einschränkung (Art. 21, Art. 18)</h3>
+        <p>Du kannst J. Apps bitten, deine Memory-Daten zu löschen. Du kannst jederzeit aufhören, die Plattform zu nutzen — es werden keine weiteren Daten gesammelt.</p>
+
+        <h3>🏛️ Beschwerderecht (Art. 77)</h3>
+        <p>Du hast das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Zuständige Behörde in Deutschland: <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener">Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)</a>.</p>
+
+        <h2>16. Kontakt</h2>
+        <ul>
+          <li><strong>E-Mail:</strong> <a href="mailto:contact@your-domain.example.com">contact@your-domain.example.com</a></li>
+          <li><strong>Website:</strong> <a href="https://your-domain.example.com" target="_blank" rel="noopener">your-domain.example.com</a></li>
+          <li><strong>Discord:</strong> AdminV2002 · <strong>Twitch:</strong> YOUR_STREAMER_NAME</li>
+        </ul>
+
+        <h2>17. Änderungen</h2>
+        <p>Diese Erklärung kann aktualisiert werden. Das Datum oben zeigt die letzte Änderung. Die fortgesetzte Nutzung nach einer Änderung gilt als Zustimmung.</p>
+      </div>
+
+      <!-- ═══════════════════════════ ENGLISH ═══════════════════════════ -->
+      <div class="lang-en">
+        <p class="last-updated">Last Updated: 01.05.2026</p>
+
+        <p>This Privacy Policy explains step by step where your messages go, who sees them, and what is stored — for each platform individually.</p>
+
+        <h2>Data Controller</h2>
+        <p>Responsible under GDPR:<br>
+        <strong>J. Apps</strong> · <a href="mailto:contact@your-domain.example.com">contact@your-domain.example.com</a> · <a href="https://your-domain.example.com" target="_blank" rel="noopener">your-domain.example.com</a><br>
+        Discord: <strong>AdminV2002</strong> · Twitch: <strong>YOUR_STREAMER_NAME</strong></p>
+        <p>Legal basis: Art. 6(1)(f) GDPR (legitimate interest in operating the service) and/or Art. 6(1)(b) (contract performance for invited users).</p>
+
+        <h2>⚡ Zero Data Retention — The Most Important Thing First</h2>
+        <p>All text-based AI requests run through <strong>OpenRouter</strong> with <strong>Zero Data Retention (ZDR)</strong> enabled.</p>
+        <ul>
+          <li>OpenRouter forwards your message to an AI provider (e.g., Google, Meta, Qwen).</li>
+          <li>With ZDR, <strong>OpenRouter guarantees</strong> that the provider will <strong>not use your text for training</strong>.</li>
+          <li>Providers that don't comply with ZDR are <strong>actively blocked</strong> by OpenRouter.</li>
+          <li>Your text is processed, a response is generated, then <strong>discarded</strong>. No logging, no training, no storage at the provider.</li>
+        </ul>
+        <div class="note">⚠️ <strong>Exception: Image Generation</strong> — None of the current image models on OpenRouter support ZDR. When YourAI generates an image, <strong>the image provider may log the prompt</strong> and potentially use it for training. See Section 6 for details.</div>
+
+        <h2>1. Twitch Chat</h2>
+        <div class="flow">You → Twitch (USA) → YourAI Server (DE) → OpenRouter (USA, ZDR) → LLM Provider → back → Twitch → You</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Step</th><th>What happens</th><th>Who sees your data</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Twitch</strong></td><td>You type your message. Twitch sends it to all viewers and our bot.</td><td>Twitch Inc. (Amazon), all viewers</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>2. Twitch → YourAI</strong></td><td>Our bot receives your <strong>username</strong> and <strong>message</strong> via IRC.</td><td>YourAI Server</td><td>🇩🇪 Private Server</td></tr>
+            <tr><td><strong>3. Safety Check</strong></td><td>Your text is checked for harmful content (Granite Guardian). <strong>Always active</strong> on Twitch.</td><td>Local OR OpenRouter (ZDR)</td><td>🇩🇪 / 🇺🇸</td></tr>
+            <tr><td><strong>4. Memory Search</strong></td><td>YourAI checks whether she already knows something about you. Your text is converted to a vector (embedding).</td><td>OpenRouter (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>5. Memory Server</strong></td><td>Vector is compared with stored memories.</td><td>Private Memory Server</td><td>🇩🇪 Local Network</td></tr>
+            <tr><td><strong>6. LLM Request</strong></td><td>Your text + context (memories, mood, persona) is sent to an AI model.</td><td>OpenRouter → LLM Provider (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>7. Response</strong></td><td>The LLM generates YourAI's reply, which is posted to Twitch chat.</td><td>Twitch, all viewers</td><td>🇺🇸 USA</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">⚠️ <strong>Deletion:</strong> Twitch data currently <strong>cannot be individually deleted</strong> (system in progress). Deletion would only affect YourAI's server-side data — public Twitch messages are outside our control.</div>
+
+        <h2>2. Discord Server — Soda Lounge (Public)</h2>
+        <div class="flow">You → Discord (USA) → YourAI Server (DE) → OpenRouter (USA, ZDR) → LLM Provider → back → Discord → You</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Step</th><th>What happens</th><th>Who sees it</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Discord</strong></td><td>You write in the channel. Discord sends the message to the bot.</td><td>Discord Inc., <strong>all server members</strong></td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>2. Discord → YourAI</strong></td><td>Bot receives: username, message, attachments (images).</td><td>YourAI Server</td><td>🇩🇪 Private Server</td></tr>
+            <tr><td><strong>3. Image Analysis</strong> (optional)</td><td>Images are sent to a vision model.</td><td>OpenRouter → Vision LLM (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>4. Safety Check</strong></td><td><strong>Disabled by default</strong> (Discord has its own moderation). Can be activated by J. Apps at any time.</td><td>Local OR OpenRouter (ZDR)</td><td>🇩🇪 / 🇺🇸</td></tr>
+            <tr><td><strong>5. Memory</strong></td><td>Memory search + embedding.</td><td>OpenRouter (ZDR), Memory Server</td><td>🇺🇸 / 🇩🇪</td></tr>
+            <tr><td><strong>6. Diary</strong></td><td>YourAI keeps a diary. Your conversation may be saved as an entry (tags, no full text).</td><td>Local Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>7. LLM Request</strong></td><td>Your text + full context → Cloud LLM.</td><td>OpenRouter → LLM Provider (ZDR)</td><td>🇺🇸 USA</td></tr>
+            <tr><td><strong>8. Response</strong></td><td>YourAI's reply is posted in the public channel. <strong>All server members</strong> can see it.</td><td>Discord, all server members</td><td>🇺🇸 USA</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">⚠️ <strong>Deletion:</strong> Discord data currently <strong>cannot be individually deleted</strong> (system in progress). Public Discord messages are outside our control.</div>
+
+        <h2>3. Discord Direct Messages (DM)</h2>
+        <div class="flow">You → Discord DM (USA) → YourAI Server (DE) → OpenRouter (USA, ZDR) → LLM Provider → back → Discord DM → You</div>
+        <p>YourAI processes DMs identically to channel messages (Memory, LLM). The response comes back as a DM — only <strong>you</strong> see it.</p>
+        <div class="note">⚠️ <strong>Important:</strong> DMs also go through Cloud LLMs. Discord DMs are <strong>not end-to-end encrypted</strong>. Thanks to <strong>ZDR</strong>, your text is not stored or used for training at the provider.</div>
+        <p><strong>Proactive DMs:</strong> YourAI can only send DMs to people on a <strong>whitelist</strong> — not to arbitrary users.</p>
+
+        <h2>4. Web Dashboard (Browser)</h2>
+        <div class="flow">You → Browser → Dashboard Server (DE, :8051) → brain.py → OpenRouter (USA, ZDR) → LLM → back → WebSocket → Browser</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Step</th><th>What happens</th><th>Who sees it</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Login</strong></td><td>You authenticate with an <strong>Access Key</strong>. The key determines your role.</td><td>Dashboard Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>2. Session UUID</strong></td><td>Your browser generates a unique session ID (localStorage). Used for GDPR deletion requests.</td><td>Your browser + Server only</td><td>🇩🇪</td></tr>
+            <tr><td><strong>3. Message</strong></td><td>Your text is sent to the server via WebSocket.</td><td>Dashboard Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>4. Image Upload</strong> (optional)</td><td>Images are stored temporarily for <strong>1 hour</strong>, then automatically deleted.</td><td>Dashboard Server</td><td>🇩🇪</td></tr>
+            <tr><td><strong>5. Processing</strong></td><td>Safety → Memory → LLM → Response.</td><td>OpenRouter, LLM Provider (ZDR)</td><td>🇺🇸</td></tr>
+            <tr><td><strong>6. Response</strong></td><td>Returns via WebSocket to your browser.</td><td>You only</td><td>🇩🇪</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note note-info">📝 <strong>Why do we log YourAI's responses?</strong> The file <code>yourai_output.txt</code> is used to develop a "Baby YourAI" — a small mini-LLM that learns YourAI's speaking style, with no world knowledge of its own. No LoRA training on user data, no commercial training. It's solely about distilling YourAI's way of speaking.</div>
+        <div class="note">⚠️ <strong>Session UUID:</strong> If you delete your Session UUID without noting it down, your diary entries <strong>cannot be found or deleted anymore</strong>.<br><br>⚠️ <strong>App ≠ Dashboard:</strong> The Session UUIDs for App and Dashboard are <strong>separate</strong>. Deleting via the App does <strong>not</strong> delete Dashboard data.</div>
+
+        <h2>5. Mobile App (Android)</h2>
+        <div class="flow">You → App → HTTPS API (DE, :8050) → brain.py → OpenRouter (USA, ZDR) → LLM → back → API → App</div>
+        <p>The app works identically to the Dashboard (Memory → LLM). Push notifications are sent via <strong>Google Firebase Cloud Messaging (FCM)</strong> — only "YourAI has replied", no message content. The FCM device token is stored in <code>fcm_tokens.json</code> on the server. The App's Session UUID is stored in SharedPreferences and is <strong>separate</strong> from the Dashboard UUID.</p>
+
+        <h2>6. Tools — What YourAI Can Do in the Background</h2>
+
+        <h3>🎨 Image Generation</h3>
+        <p>You say e.g. <em>"Draw me an apple"</em> → YourAI creates a detailed image prompt → this goes to an image model (SeedDream, Flux, etc.).</p>
+        <div class="note">⚠️ <strong>No ZDR for image models!</strong> Currently <strong>no image model</strong> on OpenRouter supports Zero Data Retention. The image provider <strong>may log the prompt</strong> and potentially use it for training. Only the image prompt is affected — not your chat history or personal data.</div>
+
+        <h3>🗣️ Text-to-Speech (TTS)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Variant</th><th>Cost</th><th>Data flow</th><th>What leaves</th><th>ZDR?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Browser TTS</strong></td><td>Free, unlimited</td><td>All local in browser</td><td>Nothing — fully offline</td><td>—</td></tr>
+            <tr><td><strong>XTTS v2</strong> (Local)</td><td>🚧 In progress</td><td>YourAI Server → TTS Server (local)</td><td>Nothing leaves LAN</td><td>—</td></tr>
+            <tr><td><strong>DeepInfra</strong> (Chatterbox)</td><td>Free (may change)</td><td>YourAI Server → DeepInfra API (🇺🇸)</td><td>YourAI's response text + voice ref</td><td>❓ May log.</td></tr>
+            <tr><td><strong>ElevenLabs</strong></td><td>3× free/month, then paid</td><td>YourAI Server → ElevenLabs API (🇬🇧/🇺🇸)</td><td>YourAI's response text</td><td>❓ May log.</td></tr>
+          </tbody>
+        </table></div>
+        <p>After the 3 free ElevenLabs uses per month, a <strong>Buy Me a Coffee</strong> link appears ($3/month or $27/year). Supporters get unlimited ElevenLabs TTS. <strong>YourAI receives no automatic notification of payment</strong> — supporter status is granted manually by J. Apps only. Buy Me a Coffee is an external service with its own <a href="https://www.buymeacoffee.com/privacy" target="_blank" rel="noopener">privacy policy</a>.</p>
+
+        <h3>Other Tools</h3>
+        <ul>
+          <li><strong>🎵 Spotify:</strong> Playback commands only. Admin-only. Your chat text is not sent to Spotify.</li>
+          <li><strong>🌐 Web Search:</strong> Your search term goes to the local crawler → DuckDuckGo (via Tor), fallback Google, fallback Tabby Cat.</li>
+          <li><strong>📄 Paperless / 🏠 Home Assistant:</strong> Admin-only. Stays within the local network.</li>
+          <li><strong>😈 AltPersona:</strong> Uncensored mode. OpenRouter (ZDR). Only with explicit permission from J. Apps. Use at your own risk.</li>
+        </ul>
+
+        <h2>7–9. Memory, Diary &amp; Emotional System</h2>
+        <p><strong>Memory:</strong> Stores extracted facts (e.g., "User likes Python") — not verbatim text. Locally in the memory server (🇩🇪). Extraction via OpenRouter (ZDR).</p>
+        <p><strong>Diary:</strong> Summaries of conversations, emotions, tags. No full quotes. Local server, rotated weekly. Deletable via Session UUID.</p>
+        <p><strong>Diary Search:</strong> Uses Cohere API (🇺🇸) for embedding and reranking. Training is disabled in Cohere account and API settings.</p>
+        <p><strong>Promise Tracker / Mood:</strong> Stored in <code>persona_state.json</code> locally. Relevant excerpts flow into the LLM system prompt via OpenRouter (ZDR).</p>
+
+        <h2>10. Feedback System — 👍 / 👎</h2>
+        <p><strong>👍 Thumbs up:</strong> Reinforces YourAI's behavior toward you personally — no effect on other users.</p>
+        <p><strong>👎 Thumbs down:</strong> Penalizes the <strong>expert</strong> that responded (YourAI uses a Mixture-of-Experts system). 3× thumbs down from the same user → expert swapped <strong>for that user only</strong>. 3× from an Admin → expert swapped <strong>globally</strong>.</p>
+        <p>Stored locally in <code>feedback_data.json</code>: user ID, tracking ID, feedback value.</p>
+
+        <h2>11. Infrastructure</h2>
+        <p><strong>Cloudflare:</strong> All traffic passes through Cloudflare (DDoS protection, DNS, CDN). Cloudflare sees: IP addresses, request headers, page views. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a></p>
+        <p><strong>Umami Analytics:</strong> Currently <strong>not active</strong> on the YourAI dashboard. May be added in future — anonymous, no cookies, no cross-session tracking.</p>
+
+        <h2>12. Summary: Where Does Your Data Go?</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Recipient</th><th>What they receive</th><th>ZDR?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>OpenRouter</strong> (USA)</td><td>Your text as part of an LLM prompt</td><td>✅ Yes</td></tr>
+            <tr><td><strong>LLM Provider</strong> (Google, Meta, etc.)</td><td>Your text (via OpenRouter, then discarded)</td><td>✅ Yes</td></tr>
+            <tr><td><strong>Image model provider</strong></td><td>YourAI's extended image prompt</td><td>❌ No</td></tr>
+            <tr><td><strong>Twitch / Discord</strong> (USA)</td><td>Your public messages</td><td>—</td></tr>
+            <tr><td><strong>ElevenLabs / DeepInfra</strong> (USA)</td><td>YourAI's response text</td><td>❓ Unknown</td></tr>
+            <tr><td><strong>Google Firebase</strong> (USA)</td><td>Push token, short notification</td><td>—</td></tr>
+            <tr><td><strong>Cohere</strong> (USA/CA)</td><td>Diary text as embedding + reranking</td><td>✅ Training OFF</td></tr>
+            <tr><td><strong>Cloudflare</strong> (USA)</td><td>IP, request headers, page views</td><td>—</td></tr>
+            <tr><td><strong>Local Server</strong> (DE)</td><td>Everything — processing, storage, logs</td><td>—</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>13. Your Rights (GDPR)</h2>
+        <ul>
+          <li><strong>Right of Access (Art. 15):</strong> Ask J. Apps what data is stored about you. Include your Session UUID.</li>
+          <li><strong>Right to Erasure (Art. 17):</strong> Delete via the settings in Dashboard or App. Memory facts can be manually removed by J. Apps on request.</li>
+          <li><strong>Right to Rectification (Art. 16):</strong> Contact J. Apps if any data is incorrect.</li>
+          <li><strong>Right to Object / Restriction (Art. 21, 18):</strong> Stop using the platform — no further data is collected.</li>
+          <li><strong>Right to Lodge a Complaint (Art. 77):</strong> You may lodge a complaint with a supervisory authority. In Germany: <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener">BfDI (Federal Commissioner for Data Protection)</a>.</li>
+        </ul>
+
+        <h2>14. Contact</h2>
+        <ul>
+          <li><strong>Email:</strong> <a href="mailto:contact@your-domain.example.com">contact@your-domain.example.com</a></li>
+          <li><strong>Website:</strong> <a href="https://your-domain.example.com" target="_blank" rel="noopener">your-domain.example.com</a></li>
+          <li><strong>Discord:</strong> AdminV2002 · <strong>Twitch:</strong> YOUR_STREAMER_NAME</li>
+        </ul>
+
+        <h2>15. Changes</h2>
+        <p>This policy may be updated at any time. The date above reflects the last change. Continued use after a change constitutes acceptance of the updated policy.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="page-footer">
+    <a href="/">← Chat</a>
+    <span class="footer-sep">|</span>
+    <a href="/terms">Nutzungsbedingungen / Terms</a>
+    <span class="footer-sep">|</span>
+    <a href="https://your-domain.example.com" target="_blank" rel="noopener">your-domain.example.com</a>
+    <span class="footer-sep">|</span>
+    <span>© 2026 J. Apps</span>
+  </footer>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const switcher = document.getElementById('lang-switcher');
+    const deEls = document.querySelectorAll('.lang-de');
+    const enEls = document.querySelectorAll('.lang-en');
+    function switchLang(lang) {
+      if (lang === 'en') {
+        deEls.forEach(el => el.style.display = 'none');
+        enEls.forEach(el => el.style.display = 'block');
+        document.documentElement.lang = 'en';
+        switcher.textContent = 'Zu Deutsch wechseln';
+      } else {
+        enEls.forEach(el => el.style.display = 'none');
+        deEls.forEach(el => el.style.display = 'block');
+        document.documentElement.lang = 'de';
+        switcher.textContent = 'Switch to English';
+      }
+      localStorage.setItem('yourai_lang', lang);
+    }
+    switcher.addEventListener('click', () => {
+      const cur = localStorage.getItem('yourai_lang') || 'de';
+      switchLang(cur === 'de' ? 'en' : 'de');
+    });
+    const saved = localStorage.getItem('yourai_lang');
+    const browser = navigator.language.slice(0, 2);
+    switchLang(saved || (browser === 'en' ? 'en' : 'de'));
+  });
+</script>
+</body>
+</html>

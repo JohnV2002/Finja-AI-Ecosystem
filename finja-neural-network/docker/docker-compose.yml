@@ -1,0 +1,86 @@
+# ==========================================
+# YourAI AI - Docker Compose
+# ==========================================
+# Usage:
+#   cd /pfad/zu/yourai
+#   docker compose -f docker/docker-compose.yml up -d --build
+#
+# Logs:    docker compose -f docker/docker-compose.yml logs -f
+# Restart: docker compose -f docker/docker-compose.yml restart
+# Stop:    docker compose -f docker/docker-compose.yml down
+# ==========================================
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1450"  # MTU fix für TrueNAS (verhindert hängende Downloads im Build)
+
+services:
+  yourai:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      network: host
+    container_name: yourai-ai
+    restart: unless-stopped
+    ports:
+      - "8051:8051"
+
+    # Persistente Daten (ueberleben Container-Neustart)
+    volumes:
+      - yourai-memory:/app/memory
+      - yourai-diary:/app/diary
+      - yourai-diary-altpersona:/app/diary_altpersona
+      - yourai-documents:/app/documents
+      - yourai-temp-audio:/app/temp_audio
+      - yourai-best-refs:/app/best_refs
+      - yourai-breeding:/app/breeding_results
+      # State & Config als Ordner-Mount (atomic writes wie os.replace brauchen gleiches Filesystem)
+      - ./data:/app/docker_data
+      # Frontend live-mount: scp + restart reicht, kein rebuild nötig
+      - ../frontend:/app/frontend
+      # Website Autonomy: lokale HTML/CSS/JS statt Cloudflare-Scrape
+      - ../autonom_website:/app/autonom_website
+
+    # Environment Variables (Secrets NICHT im Image!)
+    env_file:
+      - ./data/.env
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Berlin
+      - COHERE_EMBED_MODEL=${COHERE_EMBED_MODEL:-embed-multilingual-v3.0}
+      - USE_DIARY_SEMANTIC_SEARCH=${USE_DIARY_SEMANTIC_SEARCH:-1}
+      - DIARY_SEMANTIC_CANDIDATE_LIMIT=${DIARY_SEMANTIC_CANDIDATE_LIMIT:-160}
+      - DIARY_SEMANTIC_TOP_N=${DIARY_SEMANTIC_TOP_N:-24}
+      - DIARY_SEMANTIC_MIN_SCORE=${DIARY_SEMANTIC_MIN_SCORE:-0.18}
+      - LLM_STATS_BASE_URL=${LLM_STATS_BASE_URL:-https://api.zeroeval.com}
+      - EXPERT_POOL_FILE=${EXPERT_POOL_FILE:-/app/docker_data/expert_model_pool.json}
+      - EXPERT_POOL_LOCK_FILE=${EXPERT_POOL_LOCK_FILE:-/app/docker_data/expert_model_pool.json.lock}
+      - EXPERT_POOL_PRICE_CAP_USD_PER_M=${EXPERT_POOL_PRICE_CAP_USD_PER_M:-3.00}
+      - EXPERT_POOL_TOP_N=${EXPERT_POOL_TOP_N:-3}
+
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8051/events"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+    # Logging (damit Docker logs nicht explodieren)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  yourai-memory:
+  yourai-diary:
+  yourai-diary-altpersona:
+  yourai-documents:
+  yourai-temp-audio:
+  yourai-best-refs:
+  yourai-breeding:

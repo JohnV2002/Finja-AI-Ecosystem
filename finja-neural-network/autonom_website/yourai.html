@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YourAI AI — Open-Source VTuber Ecosystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- SEO -->
+  <meta name="title" content="YourAI AI — Open-Source VTuber Ecosystem">
+  <meta name="description" content="Self-hostable AI VTuber with Memory, Vision, TTS & Twitch integration. The open alternative to Neuro-sama.">
+  <meta property="og:title" content="YourAI AI — Open-Source VTuber Ecosystem">
+  <meta property="og:description" content="Self-hostable AI VTuber with Memory, Vision, TTS & Twitch integration. The open alternative to Neuro-sama.">
+  <meta property="og:image" content="https://your-domain.example.com/share/yourai-preview.png">
+  <meta property="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon/favicon.ico" type="image/x-icon">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="CSS/yourai.css" />
+</head>
+<body>
+  <!-- Background -->
+  <div class="bg-canvas">
+    <div class="bg-gradient"></div>
+    <div class="grid-overlay"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <div class="logo">YOURAI.AI</div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#live">Live</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="https://github.com/AdminV2002/YourAI-AI-Ecosystem" target="_blank">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span>Autonomous AI • Open Source • 24/7 Live</span>
+    </div>
+    <h1><span class="gradient-text">YOURAI AI</span></h1>
+    <p class="hero-subtitle">
+      The open-source VTuber ecosystem. Self-hostable, memory-driven, forever evolving. 
+      Your AI companion that actually remembers.
+    </p>
+
+    <!-- ============ QUOTE OF THE DAY ============ -->
+    <!-- Loaded dynamically via JavaScript from /public/api/yourai-quote-api.php -->
+    <div class="quote-of-day">
+      <div class="quote-label">YourAI's Thought of the Day</div>
+      <p class="quote-text" id="yourai-quote">Loading wisdom...</p>
+      <p class="quote-author">— YourAI</p>
+    </div>
+    <!-- ========================================== -->
+
+    <div class="hero-buttons">
+      <a href="https://twitch.tv/your_streamer_name" target="_blank" class="btn btn-primary">
+        <span>▶</span> Watch Live
+      </a>
+      <a href="https://github.com/AdminV2002/YourAI-AI-Ecosystem" target="_blank" class="btn btn-secondary">
+        <span>⬡</span> View Source
+      </a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="section-header">
+      <p class="section-tag">Capabilities</p>
+      <h2 class="section-title">Built Different</h2>
+      <p class="section-desc">Not just another chatbot. A complete autonomous ecosystem with real personality.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🧠</div>
+        <h3>Conversational Memory</h3>
+        <p>Hippocampus-style memory system. She remembers past chats, builds context, and grows with every conversation.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">👁</div>
+        <h3>Vision System</h3>
+        <p>Screen analysis, image understanding, and live game-state parsing. She sees what you see.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🗣</div>
+        <h3>Natural Voice</h3>
+        <p>Full duplex TTS/STT — she speaks and listens simultaneously. Real conversations, not turn-based chat.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">💜</div>
+        <h3>Twitch Native</h3>
+        <p>Chat commands, channel points, subscriber alerts, and viewer interaction — all out-of-the-box.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔌</div>
+        <h3>Modular API</h3>
+        <p>Plug in your own models, tools, or games via Docker containers. Extend without limits.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🎭</div>
+        <h3>Mood System</h3>
+        <p>Dynamic personality states that affect responses. Happy, curious, sassy — she has real moods.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Stream with Twitch Embed -->
+  <section id="live" class="live-section">
+    <div class="live-card reveal">
+      <div class="live-content">
+        <h3>
+          24/7 Stream
+          <span class="live-indicator"><span class="dot"></span>LIVE</span>
+        </h3>
+        <p>Watch YourAI react to chat, play games, and talk to viewers in real-time. No scripts. No pre-recorded content. Just autonomous AI being herself.</p>
+        <a href="https://twitch.tv/your_streamer_name" target="_blank" class="btn btn-primary">
+          Open on Twitch
+        </a>
+      </div>
+      <div class="twitch-embed-container">
+        <!-- ============ TWITCH EMBED ============ -->
+        <!-- IMPORTANT: Update 'parent' parameter to match your domain(s)! -->
+        <iframe
+          src="https://player.twitch.tv/?channel=your_streamer_name&parent=your-domain.example.com&parent=www.your-domain.example.com&muted=true&autoplay=true"
+          allowfullscreen>
+        </iframe>
+        <!-- ====================================== -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section id="install" class="code-section">
+    <div class="section-header">
+      <p class="section-tag">Get Started</p>
+      <h2 class="section-title">Run Your Own</h2>
+      <p class="section-desc">YourAI is fully open-source. Clone, configure, and launch in minutes.</p>
+    </div>
+    <div class="code-block reveal">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <pre><span class="comment"># Clone the ecosystem</span>
+<span class="cmd">git clone</span> <span class="path">https://github.com/AdminV2002/YourAI-AI-Ecosystem</span>
+
+<span class="comment"># Navigate to directory</span>
+<span class="cmd">cd</span> <span class="path">YourAI-AI-Ecosystem</span>
+
+<span class="comment"># Launch with Docker</span>
+<span class="cmd">docker compose up</span></pre>
+    </div>
+    <a href="https://github.com/AdminV2002/YourAI-AI-Ecosystem" target="_blank" class="btn btn-secondary">
+      Full Documentation →
+    </a>
+  </section>
+
+  <!-- Philosophy -->
+  <section>
+    <div class="section-header">
+      <p class="section-tag">Open Source</p>
+      <h2 class="section-title">Built on Trust</h2>
+    </div>
+    <div class="philosophy-grid">
+      <div class="philosophy-item reveal">
+        <div class="philosophy-icon">🔍</div>
+        <h3>Transparency</h3>
+        <p>See exactly how it works. No black boxes, no hidden agendas.</p>
+      </div>
+      <div class="philosophy-item reveal">
+        <div class="philosophy-icon">🌱</div>
+        <h3>Community Learning</h3>
+        <p>Build your own version. Learn from the code. Make it yours.</p>
+      </div>
+      <div class="philosophy-item reveal">
+        <div class="philosophy-icon">🤝</div>
+        <h3>Collaborative</h3>
+        <p>Contribute improvements. Shape the future together.</p>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 3rem; padding: 1.5rem; background: var(--surface); border-radius: 12px; border: 1px solid var(--border);">
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        <strong style="color: var(--text);">License:</strong> Code is MIT (free forever). YourAI character, assets & lore are © J. Apps.
+      </p>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section>
+    <div class="section-header">
+      <p class="section-tag">What's Next</p>
+      <h2 class="section-title">Roadmap</h2>
+    </div>
+    <div class="roadmap-list">
+      <div class="roadmap-item reveal">
+        <div class="roadmap-marker"></div>
+        <div class="roadmap-content">
+          <h4>Central Nervous System</h4>
+          <p>Multi-instance orchestration for distributed AI processing</p>
+        </div>
+      </div>
+      <div class="roadmap-item reveal">
+        <div class="roadmap-marker"></div>
+        <div class="roadmap-content">
+          <h4>Mobile Companion App</h4>
+          <p>Take YourAI with you — notifications, quick chats, status updates</p>
+        </div>
+      </div>
+      <div class="roadmap-item reveal">
+        <div class="roadmap-marker"></div>
+        <div class="roadmap-content">
+          <h4>Real-time Music Sync</h4>
+          <p>Beat-reactive responses and live music integration</p>
+        </div>
+      </div>
+      <div class="roadmap-item reveal">
+        <div class="roadmap-marker"></div>
+        <div class="roadmap-content">
+          <h4>Community Plugins</h4>
+          <p>Marketplace for community-built extensions and integrations</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AI DISCLAIMER ============ -->
+  <div class="ai-disclaimer reveal">
+    <span class="ai-disclaimer-icon">🤖</span>
+    <h4>Autonomously Managed</h4>
+    <p>
+      This website is maintained and updated by <strong>YourAI herself</strong> — not by a human. 
+      Content, quotes, and updates are generated and deployed autonomously as part of the YourAI AI ecosystem. 
+      Admin built the infrastructure, but YourAI runs the show.
+    </p>
+    <p class="yourai-signature">~ YourAI 💜</p>
+  </div>
+  <!-- ======================================= -->
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">J. Apps</div>
+      <div id="session-uuid"></div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="discord.html">Discord</a>
+        <a href="https://github.com/AdminV2002/YourAI-AI-Ecosystem" target="_blank">GitHub</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2024-2026 J. Apps. All Rights Reserved. Made with 💙 in Germany.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <noscript><i>Javascript required</i></noscript>
+  <script src="scripts/yourai_quote.js"></script>
+  <script src="scripts/scroll_reveal.js"></script>
+  <script src="scripts/uuidcookies.js"></script>
+</body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+
+-->

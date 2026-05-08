@@ -1,0 +1,109 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Glorpo",
+  "scopeName": "source.glorpo",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords-control" },
+    { "include": "#keywords-define" },
+    { "include": "#keywords-values" },
+    { "include": "#keywords-logic" },
+    { "include": "#keywords-import" },
+    { "include": "#keywords-error" },
+    { "include": "#keywords-scope" },
+    { "include": "#builtins" },
+    { "include": "#dunder" },
+    { "include": "#function-call" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.glorpo"
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "(f)?\"\"\"",
+          "end": "\"\"\"",
+          "name": "string.quoted.double.block.glorpo",
+          "patterns": [{ "match": "\\{[^}]*\\}", "name": "constant.other.placeholder.glorpo" }]
+        },
+        {
+          "begin": "(f)?'''",
+          "end": "'''",
+          "name": "string.quoted.single.block.glorpo",
+          "patterns": [{ "match": "\\{[^}]*\\}", "name": "constant.other.placeholder.glorpo" }]
+        },
+        {
+          "begin": "(f)?\"",
+          "end": "\"",
+          "name": "string.quoted.double.glorpo",
+          "patterns": [
+            { "match": "\\\\.", "name": "constant.character.escape.glorpo" },
+            { "match": "\\{[^}]*\\}", "name": "constant.other.placeholder.glorpo" }
+          ]
+        },
+        {
+          "begin": "(f)?'",
+          "end": "'",
+          "name": "string.quoted.single.glorpo",
+          "patterns": [
+            { "match": "\\\\.", "name": "constant.character.escape.glorpo" },
+            { "match": "\\{[^}]*\\}", "name": "constant.other.placeholder.glorpo" }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "match": "\\b(0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+|[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?)\\b",
+      "name": "constant.numeric.glorpo"
+    },
+    "keywords-control": {
+      "match": "\\b(glorb|glorbelif|glorpelse|glorpach|glorploop|glorpsnap|glorpskip|glorpnull|glorpcheck|glorpwhen)\\b",
+      "name": "keyword.control.glorpo"
+    },
+    "keywords-define": {
+      "match": "\\b(gloo|glorpback|glorpkin|glorbda|glorpgive|glorpfast|glorpwait)\\b",
+      "name": "keyword.other.glorpo"
+    },
+    "keywords-values": {
+      "match": "\\b(glorpyes|glorpno|glorpvoid)\\b",
+      "name": "constant.language.glorpo"
+    },
+    "keywords-logic": {
+      "match": "\\b(glorpand|glorpor|glorpnot|glorpis|glorpin)\\b",
+      "name": "keyword.operator.logical.glorpo"
+    },
+    "keywords-import": {
+      "match": "\\b(glorpget|glorpfrom|glorpas)\\b",
+      "name": "keyword.control.import.glorpo"
+    },
+    "keywords-error": {
+      "match": "\\b(glorptry|glorpcatch|glorpalways|glorpyeet|glorpswear)\\b",
+      "name": "keyword.control.exception.glorpo"
+    },
+    "keywords-scope": {
+      "match": "\\b(glorpwide|glorpreach|glorpbye|glorpwith)\\b",
+      "name": "keyword.other.scope.glorpo"
+    },
+    "builtins": {
+      "match": "\\b(glorp|glorpask|glorpsize|glorprange|glorpnum|glorptext|glorpfloat|glorplist|glorpmap|glorpbag|glorptuple|glorpbool|glorptype|glorpisa|glorpcount|glorpzip|glorpmorph|glorpsift|glorpsort|glorpflip|glorpabs|glorpsmol|glorpchonk|glorpsum|glorpany|glorpall|glorpopen|glorpsuper|glorpself|glorpshove|glorpyoink|glorpkeys|glorpvals|glorpstuff|glorpglue|glorpchop|glorptrim|glorpswap|glorpfmt|glorpscream|glorpwhisper|glorpbegin|glorpend|glorpseek|glorptally|glorpwhere)\\b",
+      "name": "support.function.builtin.glorpo"
+    },
+    "dunder": {
+      "match": "__glorp(birth|face|mirror|name|main)__",
+      "name": "support.function.magic.glorpo"
+    },
+    "function-call": {
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+      "name": "entity.name.function.glorpo"
+    },
+    "operators": {
+      "match": "(==|!=|<=|>=|<|>|\\+|-|\\*|/|%|\\*\\*|//|=|\\+=|-=|\\*=|/=)",
+      "name": "keyword.operator.glorpo"
+    }
+  }
+}

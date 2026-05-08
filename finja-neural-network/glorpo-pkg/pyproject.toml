@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glorpo"
+version = "1.0.0"
+description = "Glorpo Esolang - Glorpo is pain. Glorpo is having pain."
+requires-python = ">=3.10"
+
+[project.scripts]
+glorpo = "glorpo:_cli_main"
