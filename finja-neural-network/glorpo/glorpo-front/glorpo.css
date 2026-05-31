@@ -1,0 +1,212 @@
+/**
+ * Glorpo HTML Tag Mapping Styles
+ * ==============================
+ * Defines display behavior for Glorpo custom elements.
+ *
+ * Main Responsibilities:
+ * - Map Glorpo custom elements to browser-like visual behavior.
+ * - Provide form, media, table, and document layout styles.
+ * - Keep Glorpo markup readable while rendering like regular HTML.
+ *
+ * Side Effects:
+ * - Changes how Glorpo custom elements are displayed by the browser.
+ */
+/* -- Reset / Base ----------------------------------------------------------- */
+
+glorphtml, glorpbod {
+    display: block;
+    width: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+    color: #1a1a1a;
+}
+
+/* -- Layout Blocks ---------------------------------------------------------- */
+
+glorpbox   { display: block; }
+glorpmain  { display: block; }
+glorpsect  { display: block; }
+glorpart   { display: block; }
+glorphdr   { display: block; }
+glorpfoot  { display: block; }
+glorpnav   { display: block; }
+glorpaside { display: block; }
+
+/* -- Headings --------------------------------------------------------------- */
+
+glorphat {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.67em 0;
+}
+glorph2 {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.75em 0;
+}
+glorph3 {
+    display: block;
+    font-size: 1.17em;
+    font-weight: bold;
+    margin: 0.83em 0;
+}
+glorph4 {
+    display: block;
+    font-size: 1em;
+    font-weight: bold;
+    margin: 1.12em 0;
+}
+glorph5 {
+    display: block;
+    font-size: 0.83em;
+    font-weight: bold;
+    margin: 1.5em 0;
+}
+glorph6 {
+    display: block;
+    font-size: 0.67em;
+    font-weight: bold;
+    margin: 1.67em 0;
+}
+
+/* -- Text ------------------------------------------------------------------- */
+
+glorp {
+    display: block;
+    margin: 1em 0;
+}
+glorpchonk {
+    display: inline;
+    font-weight: bold;
+}
+glorpwiggly {
+    display: inline;
+    font-style: italic;
+}
+glorpwarp {
+    display: inline;
+    color: #0066cc;
+    text-decoration: underline;
+    cursor: pointer;
+}
+glorpsnap {
+    display: block;
+    margin: 0;
+    line-height: 0;
+}
+glorpline {
+    display: block;
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+}
+glorpraw {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    background: #f4f4f4;
+    padding: 1em;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+glorpcode {
+    display: inline;
+    font-family: monospace;
+    background: #f4f4f4;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+glorpquote {
+    display: block;
+    margin: 1em 2em;
+    border-left: 4px solid #ccc;
+    padding-left: 1em;
+    color: #555;
+}
+
+/* -- Lists ------------------------------------------------------------------ */
+
+glorpbag {
+    display: block;
+    list-style-type: disc;
+    margin: 1em 0;
+    padding-left: 2em;
+}
+glorporder {
+    display: block;
+    list-style-type: decimal;
+    margin: 1em 0;
+    padding-left: 2em;
+}
+glorpitem {
+    display: list-item;
+}
+
+/* -- Inline ----------------------------------------------------------------- */
+
+glorpspan { display: inline; }
+
+/* -- Media ------------------------------------------------------------------ */
+
+glorppic {
+    display: inline-block;
+    max-width: 100%;
+}
+glorpfig {
+    display: block;
+    margin: 1em 0;
+    text-align: center;
+}
+glorpcap {
+    display: block;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 0.5em;
+}
+
+/* -- Forms ------------------------------------------------------------------ */
+
+glorpform {
+    display: block;
+}
+glorplabel {
+    display: inline-block;
+    margin-bottom: 0.25em;
+}
+glorpwrite {
+    display: block;
+    width: 100%;
+    padding: 0.4em;
+    font-family: inherit;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+/* -- Tables ----------------------------------------------------------------- */
+
+glorptable  { display: table;       border-collapse: separate; border-spacing: 2px; }
+glorpthead  { display: table-header-group; }
+glorptbod   { display: table-row-group; }
+glorprow    { display: table-row; }
+glorpcell   { display: table-cell; }
+glorpthcell { display: table-cell;  font-weight: bold; text-align: center; }
+
+/* -- Iframe ----------------------------------------------------------------- */
+
+glorphole {
+    display: block;
+    border: none;
+    width: 100%;
+}

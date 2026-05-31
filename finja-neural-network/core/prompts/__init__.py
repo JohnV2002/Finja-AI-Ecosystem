@@ -1,0 +1,132 @@
+"""
+YourAI Prompts Package
+=====================
+Re-export package for all prompt modules used by the brain runtime.
+
+Main Responsibilities:
+- Preserve stable imports from prompts for brain.py and related modules.
+- Re-export core prompts, prompt sections, AltPersona prompts, and expert prompts.
+- Keep prompt modules split by responsibility while presenting one import surface.
+
+Side Effects:
+- Imports prompt constants from submodules at package import time.
+"""
+
+from .core import (
+    PROMPT_GRANITE_SYSTEM,
+    PROMPT_ROUTER_SYSTEM,
+    PROMPT_YOURAI_TEMPLATE,
+    PROMPT_PASS_CHECK,
+    PROMPT_PROMISE_CHECK,
+    PROMPT_COHERENCE_CHECK,
+)
+
+from .sections import (
+    DISCORD_DM_SECTION_CHANNEL,
+    DISCORD_DM_SECTION_DM,
+    DISCORD_DM_SECTION_NONE,
+    DISCORD_PRIVATE_SECTION,
+    SECTION_SPOTIFY,
+    SECTION_FILE_BRAIN,
+    SECTION_PAPERLESS,
+    SECTION_WEB_SEARCH,
+    SECTION_HOME_ASSISTANT,
+    SECTION_IMAGE_GEN,
+    SECTION_ALTPERSONA_CONSULT,
+    SECTION_WEBSITE,
+    SECTION_DEBUG_TOOLS,
+    SECTION_SPOTIFY_NONE,
+    SECTION_FILE_BRAIN_NONE,
+)
+
+from .altpersona import (
+    PROMPT_ALTPERSONA_BRAT,
+    PROMPT_ALTPERSONA_UNCENSORED_SYSTEM,
+    PROMPT_ALTPERSONA_UNCENSORED_TEMPLATE,
+)
+
+from .experts import (
+    PROMPT_BIO,
+    PROMPT_MATH,
+    PROMPT_PHYSICS,
+    PROMPT_CHEMISTRY,
+    PROMPT_CODE,
+    PROMPT_MED,
+    PROMPT_PSYCHOLOGY,
+    PROMPT_WRITING,
+    PROMPT_SOCIAL_MEDIA,
+    PROMPT_HOMELAB,
+    PROMPT_NUTRITION,
+    PROMPT_MUSIC,
+    PROMPT_MYTHOLOGY,
+    PROMPT_PETS,
+    PROMPT_PLANTS,
+    PROMPT_FINANCE_BASIC,
+    PROMPT_LAW_RESEARCH,
+    PROMPT_MECHANIC,
+    PROMPT_GEO,
+    PROMPT_HISTORY,
+    PROMPT_BAKING,
+    PROMPT_GAMING,
+    PROMPT_ANIME,
+    PROMPT_FOX_PHILOSOPHY,
+    EXPERT_PROMPTS,
+    get_expert_prompt,
+)
+
+__all__ = [
+    # core
+    "PROMPT_GRANITE_SYSTEM",
+    "PROMPT_ROUTER_SYSTEM",
+    "PROMPT_YOURAI_TEMPLATE",
+    "PROMPT_PASS_CHECK",
+    "PROMPT_PROMISE_CHECK",
+    "PROMPT_COHERENCE_CHECK",
+    # sections
+    "DISCORD_DM_SECTION_CHANNEL",
+    "DISCORD_DM_SECTION_DM",
+    "DISCORD_DM_SECTION_NONE",
+    "DISCORD_PRIVATE_SECTION",
+    "SECTION_SPOTIFY",
+    "SECTION_FILE_BRAIN",
+    "SECTION_PAPERLESS",
+    "SECTION_WEB_SEARCH",
+    "SECTION_HOME_ASSISTANT",
+    "SECTION_IMAGE_GEN",
+    "SECTION_ALTPERSONA_CONSULT",
+    "SECTION_WEBSITE",
+    "SECTION_DEBUG_TOOLS",
+    "SECTION_SPOTIFY_NONE",
+    "SECTION_FILE_BRAIN_NONE",
+    # altpersona
+    "PROMPT_ALTPERSONA_BRAT",
+    "PROMPT_ALTPERSONA_UNCENSORED_SYSTEM",
+    "PROMPT_ALTPERSONA_UNCENSORED_TEMPLATE",
+    # experts
+    "PROMPT_BIO",
+    "PROMPT_MATH",
+    "PROMPT_PHYSICS",
+    "PROMPT_CHEMISTRY",
+    "PROMPT_CODE",
+    "PROMPT_MED",
+    "PROMPT_PSYCHOLOGY",
+    "PROMPT_WRITING",
+    "PROMPT_SOCIAL_MEDIA",
+    "PROMPT_HOMELAB",
+    "PROMPT_NUTRITION",
+    "PROMPT_MUSIC",
+    "PROMPT_MYTHOLOGY",
+    "PROMPT_PETS",
+    "PROMPT_PLANTS",
+    "PROMPT_FINANCE_BASIC",
+    "PROMPT_LAW_RESEARCH",
+    "PROMPT_MECHANIC",
+    "PROMPT_GEO",
+    "PROMPT_HISTORY",
+    "PROMPT_BAKING",
+    "PROMPT_GAMING",
+    "PROMPT_ANIME",
+    "PROMPT_FOX_PHILOSOPHY",
+    "EXPERT_PROMPTS",
+    "get_expert_prompt",
+]

@@ -1,0 +1,43 @@
+# ==========================================
+# Finja AI - Docker Ignore
+# ==========================================
+# WICHTIG: Diese Datei muss ins Projekt-Root kopiert werden!
+# (docker build liest .dockerignore nur aus dem Build-Context Root)
+# ==========================================
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Docker data (Secrets/State - werden per Volume gemountet)
+docker/data/
+expert_model_pool.json
+expert_model_pool.json.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Temp files
+temp_audio/*.wav
+temp_audio/*.mp3
+*.log
+fatal_error.log
+
+# Tests
+tests/
+
+# VSCode Extension / Glorpo dev stuff
+glorpo-vscode/
+glorpo-pkg/
+
+# Website Autonomy files (Volume-Mount zur Laufzeit, nicht im Image!)
+autonom_website/

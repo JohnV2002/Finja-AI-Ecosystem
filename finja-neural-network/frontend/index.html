@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<!--
+  YourAI Dashboard Page
+  ====================
+  HTML view for the main YourAI dashboard.
+  
+  Main Responsibilities:
+  - Render the main chat, analytics, config, profile, and admin dashboard UI.
+  - Load frontend scripts and shared dashboard styles.
+  - Provide the primary browser entrypoint for YourAI users.
+  
+  Side Effects:
+  - Loads external font, markdown, highlight, analytics, and donation scripts.
+  - Reads browser localStorage through frontend modules.
+  - Connects to dashboard APIs and WebSocket endpoints through JavaScript.
+-->
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🦊 YourAI Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.umami = window.umami || { track: function(){}, identify: function(){} };
+  </script>
+  <script>
+    // Extract key from URL once → store in localStorage → clean URL
+    (function () {
+      var k = new URLSearchParams(location.search).get('key');
+      if (k) { localStorage.setItem('yourai_access_key', k); }
+      // Clean key from URL bar (doesn't reload page)
+      if (k && history.replaceState) {
+        var clean = location.pathname + location.search.replace(/[?&]key=[^&]*/,'').replace(/^[?&]/,'?').replace(/^\?$/,'');
+        history.replaceState(null, '', clean || location.pathname);
+      }
+    })();
+  </script>
+</head>
+
+<body class="mode-yourai">
+
+  <!-- ── Cookie Consent Banner ─────────────────────────── -->
+  <div id="cookieConsentBanner" class="cookie-banner hide">
+    <div class="cookie-banner-inner">
+      <span class="cookie-icon">🍪</span>
+      <p class="cookie-text">
+        Wir nutzen <strong>Umami Analytics</strong> um zu verstehen wie das Dashboard genutzt wird.
+        Keine Werbung, kein Tracking, keine Weitergabe.
+      </p>
+      <div class="cookie-buttons">
+        <button class="cookie-btn accept" id="cookieAcceptBtn">Okay</button>
+        <button class="cookie-btn reject" id="cookieRejectBtn">Nein danke</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-fox">🦊</span>
+        <span class="logo-text">YourAI</span>
+        <span class="logo-sub">Nerven Zentrale</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <nav class="tab-bar" role="tablist">
+        <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true">
+          <span class="tab-icon">💬</span> Chat
+        </button>
+        <button class="tab-btn" data-tab="debug" role="tab" aria-selected="false">
+          <span class="tab-icon">🔍</span> Debug
+          <span class="event-badge" id="eventBadge" hidden>0</span>
+        </button>
+        <button class="tab-btn" data-tab="analytics" role="tab" aria-selected="false">
+          <span class="tab-icon">A</span> Analytics
+        </button>
+        <button class="tab-btn" data-tab="config" role="tab" aria-selected="false">
+          <span class="tab-icon">⚙️</span> Config
+        </button>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <!-- User Selector -->
+      <div class="header-pill" id="userPill">
+        <span class="pill-icon">👤</span>
+        <select id="userSelect" title="Aktiver User"></select>
+        <button class="add-user-btn" id="addUserBtn" title="Neuen User anlegen">＋</button>
+        <span class="user-badge" id="userBadge">admin</span>
+      </div>
+
+      <!-- Mode Toggle -->
+      <button class="mode-toggle yourai" id="modeToggle" title="YourAI / AltPersona Mode wechseln">
+        🌸 YourAI
+      </button>
+
+      <!-- Connection Status -->
+      <div class="conn-status" id="connStatus" title="Verbindung zum Brain">
+        <span class="conn-dot" id="connDot"></span>
+        <span class="conn-label" id="connLabel">verbinden...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB PANELS
+  ══════════════════════════════════════════════════════ -->
+  <main class="app-main">
+
+    <!-- ─── CHAT TAB ──────────────────────────────────── -->
+    <section class="tab-panel active" id="tab-chat" role="tabpanel">
+      <div class="chat-layout">
+        <div class="chat-toolbar">
+          <span id="imageUsagePill" class="image-usage-pill" hidden title="Image generation budget this month">🎨 —/—</span>
+          <button id="clearChatBtn" class="clear-chat-btn" title="Chat-Verlauf löschen (nur lokal in deinem Browser)">🗑️ Chat löschen</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty" id="chatEmpty">
+            <div class="chat-empty-fox">🦊</div>
+            <p>Schreib etwas und YourAI antwortet...</p>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div id="attachChips" class="attach-chips" hidden></div>
+          <div class="chat-input-wrap">
+            <button class="attach-btn" id="attachBtn" title="Datei / Bild anhängen">📎</button>
+            <button class="mic-btn" id="micBtn" title="Spracheingabe (STT)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+            <textarea id="chatInput" class="chat-input" placeholder="Nachricht an YourAI..." rows="1"
+              maxlength="4000"></textarea>
+            <button class="send-btn" id="sendBtn" title="Senden (Enter)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-meta">
+            <span id="chatUserLabel">Als: Admin (Admin)</span>
+            <span id="typingIndicator" class="typing-indicator" hidden>YourAI tippt...</span>
+            <span id="queueIndicator" class="queue-indicator" hidden>
+              <span class="queue-spinner" aria-hidden="true"></span>
+              <span id="queueIndicatorText">Bitte warten...</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DEBUG TAB ─────────────────────────────────── -->
+    <section class="tab-panel" id="tab-debug" role="tabpanel">
+      <div class="debug-layout">
+        <div class="debug-toolbar">
+          <div class="debug-filters" id="debugFilters">
+            <button class="filter-chip active" data-filter="all">Alle</button>
+            <button class="filter-chip" data-filter="yourai">🦊 YourAI</button>
+            <button class="filter-chip" data-filter="router">🧭 Router</button>
+            <button class="filter-chip" data-filter="expert">🔬 Expert</button>
+            <button class="filter-chip" data-filter="memory">🧠 Memory</button>
+            <button class="filter-chip" data-filter="tool">🧰 Tools</button>
+            <button class="filter-chip" data-filter="error">❌ Errors</button>
+          </div>
+          <div class="debug-llm-pill" id="debugLlmPill" title="Aktives LLM">
+            <span class="debug-llm-label">🤖</span>
+            <span class="debug-llm-model" id="debugLlmModel">…</span>
+          </div>
+        </div>
+        <div class="debug-feed" id="debugFeed">
+          <div class="debug-empty">
+            <p>🔍 Warte auf Pipeline Events...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CONFIG TAB ────────────────────────────────── -->
+    <!-- ANALYTICS TAB -->
+    <section class="tab-panel" id="tab-analytics" role="tabpanel">
+      <div class="analytics-layout">
+        <div class="analytics-toolbar">
+          <div class="analytics-title-block">
+            <h2>Analytics</h2>
+            <span id="analyticsMeta">Warte auf Daten...</span>
+          </div>
+          <div class="analytics-controls">
+            <select id="analyticsWindow" class="analytics-select" title="Zeitfenster">
+              <option value="6">6h</option>
+              <option value="24" selected>24h</option>
+              <option value="72">72h</option>
+              <option value="168">7 Tage</option>
+            </select>
+            <select id="analyticsUserFilter" class="analytics-select" title="User">
+              <option value="">Alle User</option>
+            </select>
+            <select id="analyticsSourceFilter" class="analytics-select" title="Source">
+              <option value="">Alle Sources</option>
+            </select>
+            <select id="analyticsModelFilter" class="analytics-select" title="Model">
+              <option value="">Alle Models</option>
+            </select>
+            <button class="icon-btn" id="analyticsRefreshBtn" type="button">Refresh</button>
+            <button class="icon-btn danger admin-only-card" id="analyticsClearBtn" type="button" title="Alle Analytics-Daten löschen">Clear</button>
+          </div>
+        </div>
+
+        <div class="analytics-content">
+          <div class="analytics-kpi-grid">
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Requests</span>
+              <strong id="analyticsRequests">--</strong>
+              <small id="analyticsRequestsSub">im Fenster</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Error Rate</span>
+              <strong id="analyticsErrorRate">--</strong>
+              <small id="analyticsErrorsSub">0 Errors</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">E2E p50 / p95</span>
+              <strong id="analyticsE2E">--</strong>
+              <small id="analyticsE2ESub">Request Ende</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">LLM p50</span>
+              <strong id="analyticsLLM">--</strong>
+              <small id="analyticsLLMSub">Antwort-Latenz</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">TTFT p50</span>
+              <strong id="analyticsTTFT">--</strong>
+              <small id="analyticsTTFTSub">bis erster Token</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Output/s</span>
+              <strong id="analyticsTPS">--</strong>
+              <small id="analyticsTPSSub">Tokens/sec</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Known Cost</span>
+              <strong id="analyticsCost">--</strong>
+              <small id="analyticsCostSub">LLM + Services</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Unknown Cost</span>
+              <strong id="analyticsCostUnknown">--</strong>
+              <small id="analyticsCostUnknownSub">Tokens ohne Preis</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Memory p50</span>
+              <strong id="analyticsMemory">--</strong>
+              <small id="analyticsMemorySub">Node-Latenz</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Memory Search</span>
+              <strong id="analyticsMemorySearch">--</strong>
+              <small id="analyticsMemorySearchSub">Hippocampus</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">RAM Cache</span>
+              <strong id="analyticsMemoryCache">--</strong>
+              <small id="analyticsMemoryCacheSub">Hit Rate</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">TTS Cache</span>
+              <strong id="analyticsTtsCache">--</strong>
+              <small id="analyticsTtsCacheSub">Hit Rate</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Diary RAG p50</span>
+              <strong id="analyticsDiary">--</strong>
+              <small id="analyticsDiarySub">Tagebuchsuche</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <span class="analytics-kpi-label">Expert p50</span>
+              <strong id="analyticsExpert">--</strong>
+              <small id="analyticsExpertSub">Node-Latenz</small>
+            </div>
+          </div>
+
+          <section class="analytics-panel analytics-wide">
+            <div class="analytics-panel-header">
+              <h3>Health</h3>
+              <span id="analyticsHealthMeta">Subsysteme</span>
+            </div>
+            <div class="analytics-health-grid" id="analyticsHealthGrid"></div>
+          </section>
+
+          <section class="analytics-panel analytics-wide">
+            <div class="analytics-panel-header">
+              <h3>Alerts</h3>
+              <span id="analyticsAlertMeta">Anomalien</span>
+            </div>
+            <div class="analytics-list" id="analyticsAlertList"></div>
+          </section>
+
+          <section class="analytics-panel analytics-wide">
+            <div class="analytics-panel-header">
+              <h3>Timeline</h3>
+              <span id="analyticsChartMeta">Requests und p95</span>
+            </div>
+            <div class="analytics-chart" id="analyticsChart"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Slow Nodes</h3>
+              <span>p50 / p95</span>
+            </div>
+            <div class="analytics-list" id="analyticsNodeList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Models</h3>
+              <span>LLM timings</span>
+            </div>
+            <div class="analytics-list" id="analyticsModelList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Cost Models</h3>
+              <span>USD estimate</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostModelList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Cost Users</h3>
+              <span>USD estimate</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostUserList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Cost Sources</h3>
+              <span>USD estimate</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostSourceList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Cost Days</h3>
+              <span>Daily rollup</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostDayList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Service Cost</h3>
+              <span>TTS / Cohere</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostServiceList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Cost Gaps</h3>
+              <span>Needs price</span>
+            </div>
+            <div class="analytics-list" id="analyticsCostUnknownList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Expert Domains</h3>
+              <span>Total by route</span>
+            </div>
+            <div class="analytics-list" id="analyticsExpertList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Expert Passes</h3>
+              <span>First / second / fallback</span>
+            </div>
+            <div class="analytics-list" id="analyticsExpertPassList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Expert Models</h3>
+              <span>Model timings</span>
+            </div>
+            <div class="analytics-list" id="analyticsExpertModelList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Expert Fallbacks</h3>
+              <span>Reasons</span>
+            </div>
+            <div class="analytics-list" id="analyticsExpertFallbackList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Users</h3>
+              <span>Requests</span>
+            </div>
+            <div class="analytics-list" id="analyticsUserList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Errors</h3>
+              <span>Nodes</span>
+            </div>
+            <div class="analytics-list" id="analyticsErrorList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Error Codes</h3>
+              <span>YOURAI codes</span>
+            </div>
+            <div class="analytics-list" id="analyticsErrorCodeList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Error Modules</h3>
+              <span>Origin</span>
+            </div>
+            <div class="analytics-list" id="analyticsErrorModuleList"></div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-panel-header">
+              <h3>Error Repeats</h3>
+              <span>Inbox count</span>
+            </div>
+            <div class="analytics-list" id="analyticsErrorRepeatList"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-config" role="tabpanel">
+      <div class="config-layout">
+
+        <!-- TTS Settings Card (all users) -->
+        <div class="config-card glass" id="ttsSettingsCard">
+          <div class="config-card-header">
+            <h3>🔊 Stimme</h3>
+            <span class="config-hint">Text-to-Speech Einstellungen</span>
+          </div>
+
+          <div class="tts-tier-group">
+            <div class="tts-tier-label">Stimmen-Tier</div>
+            <div class="tts-tier-options">
+              <label class="tts-tier-opt">
+                <input type="radio" name="ttsTier" value="browser">
+                <span class="tts-tier-info">
+                  <span class="tts-tier-name">🗣️ Browser-Stimme</span>
+                  <span class="tts-tier-desc">Gratis · Systemstimme · immer verfügbar</span>
+                </span>
+              </label>
+              <label class="tts-tier-opt">
+                <input type="radio" name="ttsTier" value="yourai">
+                <span class="tts-tier-info">
+                  <span class="tts-tier-name">🦊 YourAI-Stimme</span>
+                  <span class="tts-tier-desc">Gratis · Chatterbox · YourAIs echte Stimme</span>
+                  <span class="tts-premium-usage" id="ttsYourAIUsage" style="display:none"></span>
+                </span>
+              </label>
+              <label class="tts-tier-opt" id="ttsTierElOption">
+                <input type="radio" name="ttsTier" value="elevenlabs">
+                <span class="tts-tier-info">
+                  <span class="tts-tier-name">⭐ Premium YourAI <span class="premium-badge">Premium</span></span>
+                  <span class="tts-tier-desc">ElevenLabs · echte YourAI-Stimme · beste Qualität</span>
+                  <span class="tts-premium-usage" id="ttsPremiumUsage">— / — gratis diesen Monat</span>
+                  <div id="ttsBMCBtn" hidden style="margin-top: 8px;">
+                    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="J.Apps" data-color="#5F7FFF" data-emoji="🦊" data-font="Cookie" data-text="Buy Premium TTS" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00"></script>
+                  </div>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="toggle-row tts-autoplay-row">
+            <label class="toggle-label" for="ttsAutoPlayToggle">
+              Auto-Play TTS
+              <span class="tts-tier-desc">YourAI-Antworten automatisch vorlesen</span>
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ttsAutoPlayToggle">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- My Profile Card (all users) -->
+        <div class="config-card glass" id="userProfileCard">
+          <div class="config-card-header">
+            <h3>👤 Mein Profil</h3>
+            <span class="role-badge" id="profileRoleBadge">—</span>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-desc" id="profileDesc">—</div>
+          </div>
+          <!-- Self-Service Edit -->
+          <div id="profileEditPanel" hidden style="margin-top:10px">
+            <div class="profile-edit-row">
+              <label>Name</label>
+              <input type="text" id="profileEditName" maxlength="50" placeholder="Dein Name für YourAI">
+            </div>
+            <div class="profile-edit-row">
+              <label>Über mich</label>
+              <input type="text" id="profileEditDesc" maxlength="200" placeholder="Was soll YourAI über dich wissen?">
+            </div>
+            <div class="profile-edit-row">
+              <label>Sprache</label>
+              <select id="profileEditLang">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+              </select>
+            </div>
+            <div class="profile-edit-row" style="justify-content:flex-end;gap:8px">
+              <button class="action-btn secondary" id="profileEditCancel" style="padding:5px 14px;font-size:.8rem">Abbrechen</button>
+              <button class="action-btn" id="profileEditSave" style="padding:5px 14px;font-size:.8rem">💾 Speichern</button>
+            </div>
+          </div>
+          <div class="profile-action-row" style="margin-top:6px">
+            <button class="action-btn secondary" id="profileEditBtn" style="padding:4px 12px;font-size:.8rem">
+              ✏️ Profil bearbeiten
+            </button>
+          </div>
+
+          <div class="profile-uuid-row">
+            <span class="profile-uuid-label">Session UUID</span>
+            <code class="profile-uuid-value" id="profileSessionUUID">—</code>
+          </div>
+          <div class="profile-style-box" id="profileStyleBox">
+            <div class="profile-style-top">
+              <span class="profile-uuid-label">Schreibanalyse</span>
+              <span class="role-badge" id="profileStyleMood">â€”</span>
+            </div>
+            <div class="profile-style-compact" id="profileStyleCompact">Noch keine Analyse</div>
+            <div class="profile-style-details" id="profileStyleDetails" hidden></div>
+            <div class="profile-style-meta" id="profileStyleMeta">â€”</div>
+          </div>
+          <div class="profile-action-row">
+            <button class="action-btn secondary" id="showMyDataBtn" title="Zeigt alle gespeicherten Daten zu deiner Session (DSGVO Art. 15)">
+              🔍 Meine Daten
+            </button>
+            <button class="danger-btn" id="deleteMyDataBtn" title="Löscht alle Diary-Einträge die dieser Browser-Session zugeordnet sind (DSGVO)">
+              🗑️ Löschen
+            </button>
+          </div>
+
+          <!-- Discord Link -->
+          <div class="profile-action-row" style="margin-top:8px">
+            <button class="action-btn secondary" id="discordLinkBtn" title="Generiert einen Einmal-Code zum Verknüpfen deines Discord-Accounts">
+              <span style="font-size:1.1em">🔗</span> Discord verknüpfen
+            </button>
+          </div>
+          <div id="discordLinkPanel" hidden style="margin-top:10px">
+            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:6px">
+              Tippe diesen Befehl im Discord-Channel:
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <code id="discordLinkCode" style="flex:1;padding:6px 10px;background:var(--bg-active);border-radius:6px;font-size:.95rem;letter-spacing:.05em">—</code>
+              <button class="action-btn secondary" id="discordLinkCopyBtn" style="padding:5px 10px;font-size:.8rem">📋</button>
+            </div>
+            <div id="discordLinkExpiry" style="font-size:.75rem;color:var(--text-muted);margin-top:4px"></div>
+          </div>
+
+          <!-- Mobile App Link -->
+          <div class="profile-action-row" style="margin-top:8px">
+            <button class="action-btn secondary" id="appLinkBtn" title="Generiert einen Einmal-Code zum Verknüpfen der YourAI App">
+              <span style="font-size:1.1em">📱</span> App verknüpfen
+            </button>
+          </div>
+          <div id="appLinkPanel" hidden style="margin-top:10px">
+            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:6px">
+              Gib diesen Code in der YourAI App ein:
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <code id="appLinkCode" style="flex:1;padding:6px 10px;background:var(--bg-active);border-radius:6px;font-size:1.1rem;letter-spacing:.1em;text-align:center;font-weight:600">—</code>
+              <button class="action-btn secondary" id="appLinkCopyBtn" style="padding:5px 10px;font-size:.8rem">📋</button>
+            </div>
+            <div id="appLinkExpiry" style="font-size:.75rem;color:var(--text-muted);margin-top:4px"></div>
+          </div>
+
+          <!-- DSGVO Art. 15 — Data View Panel -->
+          <div id="myDataPanel" class="my-data-panel" hidden>
+            <div class="my-data-loading" id="myDataLoading">⏳ Lade Daten…</div>
+            <div id="myDataContent" hidden>
+              <div class="my-data-stat-row">
+                <span class="my-data-stat-label">📓 Tagebuch-Einträge</span>
+                <span class="my-data-stat-value" id="myDataDiaryCount">—</span>
+              </div>
+              <div class="my-data-stat-row">
+                <span class="my-data-stat-label">🧠 Erinnerungen (Memory)</span>
+                <span class="my-data-stat-value" id="myDataFactCount">—</span>
+              </div>
+              <div id="myDataFactsList" class="my-data-facts-wrap" hidden></div>
+              <button class="my-data-toggle-btn" id="myDataToggleFacts" hidden>▶ Fakten anzeigen</button>
+            </div>
+            <div id="myDataError" hidden class="my-data-error">⚠️ Memory-Server nicht erreichbar — Fakten konnten nicht geladen werden. Bitte wende dich an den Admin: <strong>YOUR_STREAMER_NAME</strong> auf Discord.</div>
+          </div>
+
+          <div class="profile-legal-links">
+            <a href="/privacy" class="legal-link">🔒 Datenschutz</a>
+            <span class="legal-sep">·</span>
+            <a href="/terms" class="legal-link">📄 Nutzungsbedingungen</a>
+          </div>
+        </div>
+
+        <!-- My Usage Card (all users) -->
+        <div class="config-card glass" id="userUsageCard">
+          <div class="config-card-header">
+            <h3>📊 Meine Nutzung</h3>
+            <span class="config-hint" id="usageMonth">—</span>
+          </div>
+          <div class="usage-row">
+            <span class="usage-icon">🎨</span>
+            <div class="usage-bar-wrap">
+              <div class="usage-label">Bildgenerierung diesen Monat</div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill" id="imageUsageBar"></div>
+              </div>
+              <div class="usage-numbers" id="imageUsageNumbers">— / —</div>
+            </div>
+          </div>
+          <div class="usage-row">
+            <span class="usage-icon">🧠</span>
+            <div class="usage-bar-wrap">
+              <div class="usage-label">Kontextfenster dieser Session</div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill" id="tokenUsageBar"></div>
+              </div>
+              <div class="usage-numbers" id="tokenUsageNumbers">— / 80000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maintenance Mode Banner -->
+        <div class="maintenance-banner admin-only-card" id="maintenanceBanner">
+          <div class="maintenance-banner-left">
+            <span class="maintenance-icon">🚧</span>
+            <div>
+              <div class="maintenance-title">Maintenance Mode</div>
+              <div class="maintenance-desc">All web users (except admins) will see a maintenance page</div>
+            </div>
+          </div>
+          <label class="toggle-switch maintenance-toggle" title="Maintenance Mode an/aus">
+            <input type="checkbox" id="maintenanceToggle">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <!-- Subconscious Card (YourAI Aktiv) -->
+        <div class="config-card glass admin-only-card" id="subconsciousCard">
+          <div class="config-card-header">
+            <h3>💭 Unterbewusstsein</h3>
+            <span class="subcon-status-dot" id="subconStatusDot"></span>
+          </div>
+
+          <div class="subcon-stats" id="subconStats">
+            <div class="subcon-row">
+              <span class="subcon-label">Boredom</span>
+              <div class="subcon-bar-wrap">
+                <div class="subcon-bar" id="subconBoredomBar" style="width: 0%"></div>
+              </div>
+              <span class="subcon-value" id="subconBoredomVal">0%</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">Ticks</span>
+              <span class="subcon-value" id="subconTicks">0</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">Triggers</span>
+              <span class="subcon-value" id="subconTriggers">0</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">DMs heute</span>
+              <span class="subcon-value" id="subconDMs">0 / 5</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">YouTube</span>
+              <span class="subcon-value" id="subconYoutube">0 / 4</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">YT Chance</span>
+              <span class="subcon-value" id="subconYoutubeChance">-</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">YT Status</span>
+              <span class="subcon-value subcon-value-wide" id="subconYoutubeStatus">-</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">Instagram</span>
+              <span class="subcon-value" id="subconInstagram">0 / 3</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">IG Status</span>
+              <span class="subcon-value subcon-value-wide" id="subconInstagramStatus">-</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">Phase</span>
+              <span class="subcon-value" id="subconPhase">—</span>
+            </div>
+            <div class="subcon-row">
+              <span class="subcon-label">Letzter D20</span>
+              <span class="subcon-value" id="subconD20">—</span>
+            </div>
+          </div>
+
+          <div class="subcon-thought" id="subconThought" style="display:none">
+            <span class="subcon-thought-label">Letzter Gedanke:</span>
+            <span class="subcon-thought-text" id="subconThoughtText"></span>
+          </div>
+        </div>
+
+        <!-- Brain Status Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🧠 Brain Status</h3>
+            <div class="brain-status" id="brainStatusDot"></div>
+          </div>
+          <div class="brain-info" id="brainInfo">
+            <span class="brain-stat">PID: <strong id="brainPid">—</strong></span>
+            <span class="brain-stat">Uptime: <strong id="brainUptime">—</strong></span>
+            <span class="brain-stat">Model: <strong id="brainModel">—</strong></span>
+          </div>
+          <div class="brain-actions">
+            <button class="action-btn restart" id="restartBtn">
+              <span class="btn-icon">🔄</span> Brain Restart
+            </button>
+            <button class="action-btn stop" id="stopBtn">
+              <span class="btn-icon">⏹️</span> Stop
+            </button>
+            <button class="action-btn start" id="startBtn">
+              <span class="btn-icon">▶️</span> Start
+            </button>
+          </div>
+        </div>
+
+        <!-- Token Usage Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🧮 Token Usage</h3>
+            <span class="config-hint">80k Soft-Flush Limit</span>
+          </div>
+          <div class="token-usage-list" id="tokenUsageList">
+            <div class="config-loading">Lade Token Usage...</div>
+          </div>
+        </div>
+
+        <!-- Feature Switches Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🎛️ Feature Switches</h3>
+            <span class="config-hint">Gespeichert in runtime_config.json</span>
+          </div>
+          <div class="toggle-grid" id="toggleGrid">
+            <div class="config-loading">⏳ Lade Config...</div>
+          </div>
+        </div>
+
+        <!-- TTS Volume Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🔊 TTS Volume</h3>
+          </div>
+          <div class="volume-row">
+            <span class="vol-icon">🔇</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="50" class="vol-slider">
+            <span class="vol-icon">🔊</span>
+            <span class="vol-value" id="volValue">50%</span>
+          </div>
+        </div>
+
+        <!-- Image Model Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🎨 Image Generation Model</h3>
+            <span class="config-hint">Aktiv sofort ohne Restart</span>
+          </div>
+          <div class="image-model-row">
+            <select id="imageModelSelect" class="image-model-select">
+              <option value="">⏳ Lade...</option>
+            </select>
+            <span class="image-model-price" id="imageModelPrice"></span>
+          </div>
+        </div>
+
+        <!-- Expert Pool Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>Expert Model Pool</h3>
+            <span class="config-hint" id="expertPoolMeta">Lade...</span>
+          </div>
+          <div class="expert-pool-list" id="expertPoolList">
+            <div class="config-loading">Lade Expert Pool...</div>
+          </div>
+        </div>
+
+        <!-- Admin Commands Card -->
+        <div class="config-card glass admin-only-card">
+          <div class="config-card-header">
+            <h3>🖥️ Admin Commands</h3>
+            <span class="config-hint">Direkt ausführen ohne Console</span>
+          </div>
+          <div class="command-quick-btns" id="commandQuickBtns">
+            <button class="cmd-quick-btn" data-cmd="/expert_pool_refresh" title="Expert Model Pool aus LLM-Stats neu generieren">
+              📊 Expert Pool Refresh
+            </button>
+            <button class="cmd-quick-btn" data-cmd="/website_update" title="YourAI reviewed und updated ihr gesamtes Website-Design">
+              🎨 Website Redesign
+            </button>
+            <button class="cmd-quick-btn" data-cmd="/reset_mode" title="Alle User-Modes auf YourAI zurücksetzen">
+              🔄 Mode Reset
+            </button>
+            <button class="cmd-quick-btn" data-cmd="/memory" title="Memory-Status abfragen">
+              🧠 Memory Status
+            </button>
+            <button class="cmd-quick-btn" data-cmd="/diary" title="Tagebuch-Status abfragen">
+              📔 Diary Status
+            </button>
+            <button class="cmd-quick-btn" id="downloadLogsBtn" title="debug_log.jsonl herunterladen">
+              📥 Debug Logs
+            </button>
+            <button class="cmd-quick-btn" id="clearLogsBtn" title="Debug Log löschen — sauberer Start für Tests" style="color: #ff6b6b;">
+              🗑️ Log löschen
+            </button>
+            <button class="cmd-quick-btn" id="downloadOutputBtn" title="YourAIs Antworten als .txt herunterladen">
+              💬 YourAI Output
+            </button>
+          </div>
+          <div class="command-input-row">
+            <input type="text" id="commandInput" class="command-input" placeholder="/website_update" list="commandSuggestions">
+            <datalist id="commandSuggestions">
+              <option value="/website_update">
+              <option value="/reset_mode">
+              <option value="/memory">
+              <option value="/diary">
+            </datalist>
+            <button class="action-btn restart" id="commandRunBtn">
+              <span class="btn-icon">▶️</span> Ausführen
+            </button>
+          </div>
+          <div class="command-result" id="commandResult" hidden></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Version Badge (bottom-right) -->
+  <div class="app-version-badge" id="appVersionBadge" title="App Version">v…</div>
+
+  <!-- your-domain.example.com Link (bottom-left) -->
+  <a href="https://your-domain.example.com" target="_blank" rel="noopener" class="jappshome-badge" title="Mehr von J.Apps">🏠 your-domain.example.com</a>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODALS (MUST be before scripts so DOM exists when JS runs!)
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal-card glass">
+      <div class="modal-header">
+        <h3>👤 Neuen User anlegen</h3>
+        <button class="modal-close" id="closeUserModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="new_user_key">ID / Key (z.B. <code>nico</code>)</label>
+          <input type="text" id="new_user_key" placeholder="nico" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label for="new_display_name">Anzeigename (z.B. <code>Nico (Freund)</code>)</label>
+          <input type="text" id="new_display_name" placeholder="Nico" maxlength="40">
+        </div>
+        <div class="form-group">
+          <label for="new_user_role">Rolle</label>
+          <select id="new_user_role" style="color: var(--text); background: var(--bg-dark);">
+            <option value="human_guest">Human Guest (Standard)</option>
+            <option value="family">Family</option>
+            <option value="friend">Friend</option>
+            <option value="ai_guest">AI Guest</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="new_description">Beschreibung (Was sollte YourAI wissen?)</label>
+          <textarea id="new_description" placeholder="Ein guter Freund von uns..." rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="new_language">Sprache / Language</label>
+          <select id="new_language" style="color: var(--text); background: var(--bg-dark);">
+            <option value="en">🇬🇧 English (Default)</option>
+            <option value="de">🇩🇪 Deutsch</option>
+          </select>
+        </div>
+
+        <hr style="margin: 15px 0; border: 0; height: 1px; background: rgba(255,255,255,0.1);">
+
+        <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="grant_dashboard" style="width: auto;">
+          <label for="grant_dashboard" style="margin: 0;">Zusätzlich Dashboard-Zugang geben?</label>
+        </div>
+
+        <div id="dashboard_fields" style="display: none; padding-top: 10px;">
+          <div class="form-group">
+            <label for="new_access_role">Login Rolle (bestimmt Password-Prefix)</label>
+            <select id="new_access_role" style="color: var(--text); background: var(--bg-dark);">
+              <option value="chat">Chat (Nur mit YourAI schreiben)</option>
+              <option value="debug">Debug (Chat + Pipeline Events)</option>
+              <option value="admin">Admin (Voller Zugriff)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="new_access_key">Access Key (Passwort Token)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="new_access_key" placeholder="Wird generiert..." readonly>
+              <button id="btnGenerateKey" type="button" class="modal-btn secondary"
+                style="white-space: nowrap; padding: 0 10px;">🎲 Neu</button>
+            </div>
+            <span style="font-size: 0.85em; color: var(--text-muted); margin-top: 6px; display: block;">
+              Link: <code id="magicLink"
+                style="user-select: all; cursor: pointer; color: var(--accent); background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">...</code>
+            </span>
+          </div>
+          <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="new_can_altpersona" style="width: auto;">
+            <label for="new_can_altpersona" style="margin: 0;">Darf AltPersona (Böse Seite) auslösen?</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn secondary" id="cancelUserCreate">Abbrechen</button>
+        <button class="modal-btn primary" id="confirmUserCreate">User erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for attachments -->
+  <input type="file" id="attachFileInput"
+    accept="image/*,.py,.js,.ts,.jsx,.tsx,.json,.md,.txt,.csv,.html,.css,.yaml,.yml,.toml,.sh,.log,.xml"
+    multiple style="display:none">
+
+  <!-- Scripts (order matters! AFTER all DOM elements) -->
+  <script src="yourai-uuid.js"></script>
+  <script src="api.js"></script>
+  <script src="text.js"></script>
+  <script src="chat_history.js"></script>
+  <script src="tts.js"></script>
+  <script src="chat.js"></script>
+  <script src="debug.js"></script>
+  <script src="analytics.js"></script>
+  <script src="config_usage.js"></script>
+  <script src="cookies.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <footer class="site-credit">Made with ❤️ by J. Apps / AdminV2002 / YOUR_STREAMER_NAME</footer>
+</body>
+
+
+  <!--
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[        J.Apps        ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+  -->
+</html>

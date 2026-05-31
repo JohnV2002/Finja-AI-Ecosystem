@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Glitter-Moat: Router Raid Defense</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --glitter-pink: #ff00ff;
+            --glitter-cyan: #00ffff;
+            --cocoa-brown: #4e342e;
+            --raid-red: #ff0033;
+            --ui-bg: rgba(0, 0, 0, 0.7);
+            --neon-gold: #ffd700;
+            --holo-grad: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff, #ffff00);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #020205;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #game-root {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%);
+            transition: background 2s ease;
+        }
+
+        #game-root.chaos-bg {
+            background: radial-gradient(circle at center, #4b0082 0%, #000000 100%);
+            animation: nebulaShift 10s infinite alternate ease-in-out;
+        }
+
+        @keyframes nebulaShift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+
+        .status-panel {
+            background: var(--ui-bg);
+            border: 2px solid var(--glitter-cyan);
+            padding: 15px;
+            color: var(--glitter-cyan);
+            text-transform: uppercase;
+            box-shadow: 0 0 15px var(--glitter-cyan);
+        }
+
+        .inventory-panel {
+            background: var(--ui-bg);
+            border: 2px solid var(--glitter-pink);
+            padding: 15px;
+            color: var(--glitter-pink);
+            text-transform: uppercase;
+            box-shadow: 0 0 15px var(--glitter-pink);
+            text-align: right;
+        }
+
+        .bottom-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .cocoa-container {
+            width: 300px;
+            height: 30px;
+            background: #222;
+            border: 2px solid var(--cocoa-brown);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #cocoa-meter {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #4e342e, #8d6e63);
+            transition: width 0.3s ease;
+        }
+
+        .cocoa-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 3rem;
+            filter: drop-shadow(0 0 10px var(--cocoa-brown));
+            transition: transform 0.2s;
+        }
+
+        .cocoa-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .cocoa-btn:active {
+            transform: scale(0.9);
+        }
+
+        .glitter-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            display: none;
+            box-shadow: 0 0 20px white, 0 0 40px var(--glitter-cyan);
+        }
+
+        /* Sidebar Styles */
+        #chaos-sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-left: 2px solid transparent;
+            border-image: var(--holo-grad) 1;
+            z-index: 100;
+            transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px;
+            box-sizing: border-box;
+            color: white;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+
+        #chaos-sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            left: -50px;
+            top: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--holo-grad);
+            border: none;
+            border-radius: 10px 0 0 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .chaos-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            background: var(--holo-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .chaos-control {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "🦊";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        input:checked + .slider { background: var(--holo-grad); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .glitter-log {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glitter-cyan);
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 0.8rem;
+            border-radius: 5px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 2px;
+        }
+
+        .floating-fox {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            font-size: 20px;
+            animation: floatFox 2s forwards;
+        }
+
+        @keyframes floatFox {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-root">
+        <canvas id="gameCanvas"></canvas>
+        <div id="powerup-cursor" class="glitter-cursor"></div>
+        
+        <div class="hud">
+            <div class="top-bar">
+                <div class="status-panel">
+                    <div>DEFENSE STATUS: <span id="status-text">STABLE</span></div>
+                    <div>FOX DEN HP: <span id="den-hp">100</span>%</div>
+                </div>
+                <div class="inventory-panel">
+                    <div>GLITTER-GLUE: <span id="glue-count">25</span></div>
+                </div>
+            </div>
+
+            <div class="bottom-bar">
+                <div class="cocoa-container">
+                    <div id="cocoa-meter"></div>
+                </div>
+                <button class="cocoa-btn" onclick="activateCocoa()">☕</button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="chaos-sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">✨</button>
+            <div class="chaos-header">YourAI's Creative Chaos</div>
+            
+            <div class="chaos-control">
+                <p>CHAOS MODE</p>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chaos-toggle" onchange="toggleChaosMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="chaos-log-container">
+                <p style="font-size: 0.7rem; color: var(--glitter-cyan);">GLITTER LOG:</p>
+                <div class="glitter-log" id="glitter-log">
+                    <div class="log-entry">> System initialized...</div>
+                    <div class="log-entry">> Waiting for chaos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const denHpEl = document.getElementById('den-hp');
+        const statusEl = document.getElementById('status-text');
+        const glueEl = document.getElementById('glue-count');
+        const cocoaMeter = document.getElementById('cocoa-meter');
+        const cursor = document.getElementById('powerup-cursor');
+        const gameRoot = document.getElementById('game-root');
+        const chaosToggle = document.getElementById('chaos-toggle');
+        const glitterLog = document.getElementById('glitter-log');
+
+        let width, height;
+        let denHp = 100;
+        let glueCount = 25;
+        let cocoaMeterVal = 0;
+        let isPowerUpActive = false;
+        let powerUpTimer = 0;
+        let isChaosMode = false;
+
+        let raids = [];
+        let barriers = [];
+        let particles = [];
+        let foxSpirits = [];
+        let stars = [];
+        let mouse = { x: 0, y: 0 };
+
+        class Star {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.opacity = Math.random();
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height) this.y = 0;
+                this.opacity = 0.2 + Math.abs(Math.sin(Date.now() * 0.001 + this.x));
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class FoxSpirit {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.life = 1.0;
+                this.decay = 0.015;
+                this.color = Math.random() > 0.5 ? '#ff8c00' : '#ffffff';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Raid {
+            constructor() {
+                const side = Math.floor(Math.random() * 4);
+                if(side === 0) { this.x = Math.random() * width; this.y = -50; }
+                else if(side === 1) { this.x = width + 50; this.y = Math.random() * height; }
+                else if(side === 2) { this.x = Math.random() * width; this.y = height + 50; }
+                else { this.x = -50; this.y = Math.random() * height; }
+
+                this.targetX = width / 2;
+                this.targetY = height / 2;
+                this.speed = 1.5 + Math.random() * 2;
+                this.size = 15 + Math.random() * 10;
+                this.angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+                this.glitchOffset = 0;
+            }
+
+            update() {
+                // Invert gravity/movement if chaos mode is on
+                let moveSpeed = isChaosMode ? -this.speed : this.speed;
+                this.x += Math.cos(this.angle) * moveSpeed;
+                this.y += Math.sin(this.angle) * moveSpeed;
+                this.glitchOffset = Math.sin(Date.now() * 0.05) * 5;
+
+                barriers.forEach(b => {
+                    const dx = this.x - b.x;
+                    const dy = this.y - b.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < b.radius + this.size) {
+                        this.angle += Math.PI;
+                        this.speed *= 0.8;
+                        createParticles(this.x, this.y, '#ff0033', 5);
+                    }
+                });
+
+                const denDx = this.x - width/2;
+                const denDy = this.y - height/2;
+                if(Math.sqrt(denDx*denDx + denDy*denDy) < 40) {
+                    denHp -= 5;
+                    this.x = -1000;
+                    if(denHp <= 0) denHp = 0;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.glitchOffset, this.y);
+                ctx.rotate(this.angle);
+                ctx.strokeStyle = '#ff0033';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff0033';
+                ctx.beginPath();
+                ctx.moveTo(-this.size, -this.size/2);
+                ctx.lineTo(this.size, 0);
+                ctx.lineTo(-this.size, this.size/2);
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class Barrier {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 40;
+                this.life = 1.0;
+                this.decay = 0.01;
+            }
+            update() { this.life -= this.decay; }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * this.life, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 255, 255, ${this.life})`;
+                ctx.lineWidth = 5;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#00ffff';
+                ctx.stroke();
+                for(let i=0; i<3; i++) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(this.x + Math.cos(Date.now()*0.01 + i)*this.radius*this.life, this.y + Math.sin(Date.now()*0.01 + i)*this.radius*this.life, 3, 3);
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, speedMult = 1) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.vx = (Math.random() - 0.5) * 5 * speedMult;
+                this.vy = (Math.random() - 0.5) * 5 * speedMult;
+                this.life = 1.0;
+                this.decay = 0.02;
+                this.size = Math.random() * 3;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for(let i=0; i<count; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function addLog(msg) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> ${msg}`;
+            glitterLog.prepend(entry);
+            if(glitterLog.childNodes.length > 20) glitterLog.removeChild(glitterLog.lastChild);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('chaos-sidebar').classList.toggle('open');
+        }
+
+        function toggleChaosMode() {
+            isChaosMode = chaosToggle.checked;
+            if(isChaosMode) {
+                gameRoot.classList.add('chaos-bg');
+                addLog("CHAOS MODE ACTIVATED!");
+                addLog("Gravity inverted!");
+            } else {
+                gameRoot.classList.remove('chaos-bg');
+                addLog("Chaos contained.");
+            }
+        }
+
+        function activateCocoa() {
+            if(cocoaMeterVal >= 100) {
+                isPowerUpActive = true;
+                powerUpTimer = 300;
+                cocoaMeterVal = 0;
+                cursor.style.display = 'block';
+                addLog("COCOA BOOST!");
+            }
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<100; i++) stars.push(new Star());
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            cursor.style.left = (mouse.x - 20) + 'px';
+            cursor.style.top = (mouse.y - 20) + 'px';
+
+            if(isPowerUpActive) {
+                createParticles(mouse.x, mouse.y, '#ff00ff', 2);
+                createParticles(mouse.x, mouse.y, '#ffffff', 1);
+                raids.forEach(r => {
+                    const dx = r.x - mouse.x;
+                    const dy = r.y - mouse.y;
+                    if(Math.sqrt(dx*dx + dy*dy) < 60) {
+                        r.angle += Math.PI;
+                        r.speed += 0.5;
+                        createParticles(r.x, r.y, '#00ffff', 3);
+                    }
+                });
+            }
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            if(glueCount > 0) {
+                barriers.push(new Barrier(e.clientX, e.clientY));
+                glueCount--;
+                createParticles(e.clientX, e.clientY, '#00ffff', 10);
+                
+                if(isChaosMode) {
+                    for(let i=0; i<5; i++) foxSpirits.push(new FoxSpirit(e.clientX, e.clientY));
+                    addLog("Spirit Spawned!");
+                }
+            }
+        });
+
+        function update() {
+            // Starfield
+            stars.forEach(s => s.update());
+
+            // Spawn raids
+            if(Math.random() < 0.02) raids.push(new Raid());
+
+            // Update raids
+            for(let i = raids.length - 1; i >= 0; i--) {
+                raids[i].update();
+                if(raids[i].x < -100 || raids[i].x > width + 100 || raids[i].y < -100 || raids[i].y > height + 100) {
+                    raids.splice(i, 1);
+                }
+            }
+
+            // Update barriers
+            for(let i = barriers.length - 1; i >= 0; i--) {
+                barriers[i].update();
+                if(barriers[i].life <= 0) barriers.splice(i, 1);
+            }
+
+            // Update particles
+            for(let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if(particles[i].life <= 0) particles.splice(i, 1);
+            }
+
+            // Update Fox Spirits
+            for(let i = foxSpirits.length - 1; i >= 0; i--) {
+                foxSpirits[i].update();
+                if(foxSpirits[i].life <= 0) foxSpirits.splice(i, 1);
+            }
+
+            // Powerup logic
+            if(isPowerUpActive) {
+                powerUpTimer--;
+                if(powerUpTimer <= 0) {
+                    isPowerUpActive = false;
+                    cursor.style.display = 'none';
+                }
+            }
+
+            // Cocoa meter logic
+            if(!isPowerUpActive && cocoaMeterVal < 100) {
+                cocoaMeterVal += 0.05;
+            }
+
+            // UI Updates
+            denHpEl.innerText = Math.max(0, denHp);
+            glueEl.innerText = glueCount;
+            cocoaMeter.style.width = cocoaMeterVal + '%';
+            statusEl.innerText = denHp < 30 ? 'CRITICAL' : (denHp < 70 ? 'WARNING' : 'STABLE');
+            statusEl.style.color = denHp < 30 ? '#ff0033' : (denHp < 70 ? '#ffaa00' : '#00ffff');
+
+            if(Math.random() < 0.005) glueCount++;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Starfield
+            stars.forEach(s => s.draw());
+
+            // Draw Fox Den
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, 40, 0, Math.PI*2);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffd700';
+            ctx.stroke();
+            ctx.restore();
+
+            // Draw elements
+            barriers.forEach(b => b.draw());
+            raids.forEach(r => r.draw());
+            particles.forEach(p => p.draw());
+            foxSpirits.forEach(f => f.draw());
+
+            // Powerup visual effect (vortex)
+            if(isPowerUpActive) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 10;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.shadowBlur = 0;
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        resize();
+        loop();
+    </script>
+</body>
+</html>

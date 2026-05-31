@@ -1,0 +1,104 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "Glorpo - YourAI Dark",
+  "type": "dark",
+  "colors": {},
+  "tokenColors": [
+
+    {
+      "name": "Glorpo - Comments",
+      "scope": ["comment.line.number-sign.glorpo"],
+      "settings": { "foreground": "#5C7080", "fontStyle": "italic" }
+    },
+
+    {
+      "name": "Glorpo - Strings",
+      "scope": [
+        "string.quoted.double.glorpo",
+        "string.quoted.single.glorpo",
+        "string.quoted.double.block.glorpo",
+        "string.quoted.single.block.glorpo"
+      ],
+      "settings": { "foreground": "#00E5D4" }
+    },
+    {
+      "name": "Glorpo - f-string Placeholders {expr}",
+      "scope": ["constant.other.placeholder.glorpo"],
+      "settings": { "foreground": "#FFB347", "fontStyle": "italic" }
+    },
+    {
+      "name": "Glorpo - Escape Sequences",
+      "scope": ["constant.character.escape.glorpo"],
+      "settings": { "foreground": "#FFB347" }
+    },
+
+    {
+      "name": "Glorpo - Numbers",
+      "scope": ["constant.numeric.glorpo"],
+      "settings": { "foreground": "#00E5D4" }
+    },
+    {
+      "name": "Glorpo - Values (True / False / None)",
+      "scope": ["constant.language.glorpo"],
+      "settings": { "foreground": "#00E5D4", "fontStyle": "bold" }
+    },
+
+    {
+      "name": "Glorpo - Control Flow (if / for / while / break ...)",
+      "scope": ["keyword.control.glorpo"],
+      "settings": { "foreground": "#ff6ad5" }
+    },
+    {
+      "name": "Glorpo - Logic Operators (and / or / not / in / is)",
+      "scope": ["keyword.operator.logical.glorpo"],
+      "settings": { "foreground": "#ff6ad5", "fontStyle": "italic" }
+    },
+
+    {
+      "name": "Glorpo - Define (def / class / return / lambda / yield / async / await)",
+      "scope": ["keyword.other.glorpo"],
+      "settings": { "foreground": "#9B89FF", "fontStyle": "bold" }
+    },
+
+    {
+      "name": "Glorpo - Imports (import / from / as)",
+      "scope": ["keyword.control.import.glorpo"],
+      "settings": { "foreground": "#FFB347" }
+    },
+    {
+      "name": "Glorpo - Scope (global / nonlocal / del / with)",
+      "scope": ["keyword.other.scope.glorpo"],
+      "settings": { "foreground": "#FFB347", "fontStyle": "italic" }
+    },
+
+    {
+      "name": "Glorpo - ERROR: try / except / raise / assert / finally  <- Glorpo is pain.",
+      "scope": ["keyword.control.exception.glorpo"],
+      "settings": { "foreground": "#FF4D4D", "fontStyle": "bold" }
+    },
+
+    {
+      "name": "Glorpo - Builtins",
+      "scope": ["support.function.builtin.glorpo"],
+      "settings": { "foreground": "#7aa2ff" }
+    },
+    {
+      "name": "Glorpo - Function Calls",
+      "scope": ["entity.name.function.glorpo"],
+      "settings": { "foreground": "#7aa2ff" }
+    },
+
+    {
+      "name": "Glorpo - Dunder / Magic Methods",
+      "scope": ["support.function.magic.glorpo"],
+      "settings": { "foreground": "#A78BFA", "fontStyle": "italic" }
+    },
+
+    {
+      "name": "Glorpo - Operators (+ - * / == != ...)",
+      "scope": ["keyword.operator.glorpo"],
+      "settings": { "foreground": "#94A3B8" }
+    }
+
+  ]
+}

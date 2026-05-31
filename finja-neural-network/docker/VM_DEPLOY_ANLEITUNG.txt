@@ -1,0 +1,182 @@
+=============================================
+ YOURAI AI - VM DEPLOY GUIDE (PHOENIX EDITION)
+ VM: admin@YOUR_SERVICES_HOST_IP (Ubuntu AI)
+ Path: /home/admin/YourAI_brain
+=============================================
+
+Deploy and maintenance runbook for the YourAI AI VM.
+
+Main Responsibilities:
+- Describe how to upload source code, secrets, and state to the VM.
+- Explain Docker startup, backup, and single-file update workflows.
+- Document the special memory volume copy step required for memory/*.py files.
+
+Side Effects:
+- Commands in this guide copy files between TrueNAS, Windows, and the VM.
+- Docker commands start, stop, rebuild, or restart the YourAI container.
+- Backup commands copy persistent data out of Docker volumes.
+
+STEP 1: ANTIVIRUS EXCEPTION
+---------------------------
+Add the project folder as an antivirus exception so deploy.ps1 and copy operations are not blocked.
+
+
+STEP 2: UPLOAD CODE (local Windows PowerShell)
+----------------------------------------------
+IMPORTANT: Copy this block and run it in one session.
+
+$VM = "admin@YOUR_SERVICES_HOST_IP"
+$R = "/home/admin/YourAI_brain"   # Actual folder name on the VM.
+$LOCAL = "\\TRUENAS\PC-Backup\YOURAI CORE"   # TrueNAS as of 2026-04.
+
+cd $LOCAL
+
+# 1. Upload all project folders.
+scp -r core helpers body clients tools memory frontend docker app "${VM}:${R}/"
+
+# 2. Upload important root files without wildcard surprises.
+scp dashboard_server.py altpersona.py glorpo.py glorpo_html.py requirements.txt .dockerignore _paths.py app_version.txt app_version.lock "${VM}:${R}/"
+
+
+STEP 3: UPLOAD SECRETS AND STATE (local Windows PowerShell)
+----------------------------------------------------------
+IMPORTANT: YourAI's state files must go directly into the Docker volume bind mount.
+
+scp .env access_keys.json feedback_data.json persona_state.json runtime_config.json tts_volume.json users_db.json user_sessions.json discord_channels.json image_usage.json "${VM}:${R}/docker/data/"
+
+
+STEP 4: START DOCKER (on the VM through SSH)
+--------------------------------------------
+ssh admin@YOUR_SERVICES_HOST_IP
+cd /home/admin/YourAI_brain
+docker compose -f docker/docker-compose.yml up -d --build
+
+IMPORTANT - VOLUME SHADOW PROBLEM:
+    The /app/memory/ directory is overlaid by a named Docker volume.
+    Changes to memory/*.py files, such as hippocampus.py, must be copied into
+    the volume after the image has been built:
+
+    docker cp /home/admin/YourAI_brain/memory/hippocampus.py    yourai-ai:/app/memory/hippocampus.py
+    docker cp /home/admin/YourAI_brain/memory/episodic.py       yourai-ai:/app/memory/episodic.py
+    docker cp /home/admin/YourAI_brain/memory/episodic_utils.py yourai-ai:/app/memory/episodic_utils.py
+    docker cp /home/admin/YourAI_brain/memory/debug_client.py   yourai-ai:/app/memory/debug_client.py
+    docker compose -f docker/docker-compose.yml restart
+
+    This is only needed when memory/*.py changed. Other folders are not affected.
+    New files in memory/ must always be copied with docker cp because the volume
+    shadows the whole /app/memory/ folder.
+
+
+STEP 5: TEST
+------------
+Browser: http://YOUR_SERVICES_HOST_IP:8051?key=YOUR_KEY
+
+
+=============================================
+ BACKUP: VM TO TRUENAS (Reverse Sync)
+=============================================
+Dynamic files live on the VM or inside Docker and never sync back to TrueNAS automatically.
+Back them up manually from Windows PowerShell:
+
+$NAS = "\\TRUENAS\PC-Backup\YOURAI CORE"
+$VM  = "admin@YOUR_SERVICES_HOST_IP"
+$tmp = "$env:TEMP\yourai_sync"
+
+# 1. docker/data bind mount directly from the VM path.
+scp -r "${VM}:/home/admin/YourAI_brain/docker/data/" "$tmp\docker_data\"
+Get-ChildItem "$tmp\docker_data\*" -File | Where-Object { $_.Name -ne "IMPORTANT.txt" } | ForEach-Object { Copy-Item $_.FullName "$NAS\$($_.Name)" -Force }
+
+# 2. Extract named Docker volumes from the container.
+ssh $VM "mkdir -p /tmp/yourai_bak && docker cp yourai-ai:/app/diary /tmp/yourai_bak/diary && docker cp yourai-ai:/app/diary_altpersona /tmp/yourai_bak/diary_altpersona && docker cp yourai-ai:/app/documents /tmp/yourai_bak/documents && docker cp yourai-ai:/app/best_refs /tmp/yourai_bak/best_refs && echo done"
+foreach ($vol in @("diary","diary_altpersona","documents","best_refs")) {
+    scp -r "${VM}:/tmp/yourai_bak/${vol}/" "$tmp\$vol\"
+    Copy-Item "$tmp\$vol\*" "$NAS\$vol\" -Recurse -Force
+}
+ssh $VM "rm -rf /tmp/yourai_bak"
+
+NOTE: docker\data\ on TrueNAS stays empty except for IMPORTANT.txt.
+      All state JSON files belong in the root folder of the TrueNAS share.
+
+
+=============================================
+ SPECIAL CASE: UPDATE YOURAI'S STATE
+=============================================
+If you only want to update her JSON files, such as persona_state.json, stop the
+container first. Otherwise, the in-memory state can overwrite the new files.
+
+1. Stop the container on the VM:
+   cd /home/admin/YourAI_brain
+   docker compose -f docker/docker-compose.yml down
+
+2. Run the command from STEP 3 on Windows to copy files into docker/data/.
+
+3. Start the container again on the VM:
+   cd /home/admin/YourAI_brain
+   docker compose -f docker/docker-compose.yml up -d
+
+
+=============================================
+ LATER: UPDATE A SINGLE FILE
+=============================================
+Files that need scp plus docker up --build because they are baked into the image:
+  core/, helpers/, body/, clients/, tools/, frontend/, and root *.py files.
+
+Files that also need docker cp into the memory volume:
+  memory/hippocampus.py, memory/episodic.py, memory/episodic_utils.py,
+  memory/debug_client.py, and any future new memory/*.py files.
+
+Files that only need scp into docker/data/ plus docker restart:
+  docker/data/*.json and .env.
+
+Example: body/mouth.py changed
+
+  scp "\\TRUENAS\PC-Backup\YOURAI CORE\body\mouth.py" admin@YOUR_SERVICES_HOST_IP:/home/admin/YourAI_brain/body/
+  ssh admin@YOUR_SERVICES_HOST_IP "cd /home/admin/YourAI_brain && docker compose -f docker/docker-compose.yml up -d --build"
+
+Example: frontend/app.js changed
+
+  scp "\\TRUENAS\PC-Backup\YOURAI CORE\frontend\app.js" admin@YOUR_SERVICES_HOST_IP:/home/admin/YourAI_brain/frontend/
+  ssh admin@YOUR_SERVICES_HOST_IP "cd /home/admin/YourAI_brain && docker compose -f docker/docker-compose.yml up -d --build"
+  The version badge in the lower-right corner changes when the new build is active.
+
+
+=============================================
+ USEFUL COMMANDS (on the VM)
+=============================================
+Logs:       docker compose -f docker/docker-compose.yml logs -f
+Stop:       docker compose -f docker/docker-compose.yml down
+Restart:    docker compose -f docker/docker-compose.yml restart
+Status:     docker compose -f docker/docker-compose.yml ps
+Rebuild:    docker compose -f docker/docker-compose.yml up -d --build
+
+
+=============================================
+ DISCORD: POST START BUTTON (one-time)
+=============================================
+After the bot is running and connected, post the "Let her Yap!" button message
+once into the start channel.
+
+Use the dashboard if an API route exists, or run this Python one-liner on the VM:
+
+  ssh admin@YOUR_SERVICES_HOST_IP
+  docker exec -it yourai-ai python -c "
+from clients.discord_client import bot
+import time
+bot.start()
+time.sleep(5)
+bot.post_start_message()
+time.sleep(2)
+"
+
+Or use the dashboard API if the route exists:
+  curl "http://YOUR_SERVICES_HOST_IP:8051/api/discord/post_start_message?key=YOUR_KEY"
+
+After posting, the button stays active across restarts.
+Do not post it twice; the custom_id is persistent and the old button remains active.
+
+
+=============================================
+ CLOUDFLARE TUNNEL (optional)
+=============================================
+cloudflared tunnel --url http://localhost:8051
+Permanent option: yourai.your-domain.example.com -> localhost:8051

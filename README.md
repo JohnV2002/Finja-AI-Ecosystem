@@ -18,19 +18,19 @@
 >
 > 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
 >
-> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ Sonar & Snyk) to deliver authentic quality code.
+> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ Sonar & Snyk) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
 > 2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
 > 3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
 > 4.  🐾 **Own VPet Program:** My own VPet is in full development!
 >     * 👀 Can be watched **24/7 on Twitch** right now.
 >     * 📦 Release to follow once completed.
-> 5.  🌐 **Finja's Brain:** Work is underway – this module will finally connect **EVERYTHING** together.
+> 5.  🌐 **Finja's Brain (Neural Network):** ✅ **Ready for release!** The module that connects **everything** — Memory, Vision, Voice, Tools, Discord, Experts, Dashboard — into one modular AI pipeline.
 > 6.  😅 **Survival:** Don't break down! XD
-> 7.  🗣️ **Releases:** Finja TTS has been drafted but its architecture has shifted toward Finja's Neural System.
+> 7.  🗣️ **Releases:** Finja TTS has been drafted but its architecture has shifted — TTS is now integrated directly into the Neural Network (ElevenLabs, DeepInfra Zonos, XTTS).
 > 8.  📚 **Tutorials & Guides:**
 >     * Paperless-ngx + Paperless AI + API Tutorial.
 >     * Home Assistant + API Tutorial.
-> 9.  ✨ **Wildcard:** Whatever else comes to mind throughout the year! :D
+> 9.  ✨ **Wildcard:** WILDCARD APPEARED! 🃏 You have LW? You need someone to send you memes? Via Instagram? I WILL build a feature where the AI can send YOU Instagram Reels. No matter how much jank. Give me time — but that's a promise. :3
 
 ---
 
@@ -42,30 +42,30 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 
 -   **Standalone Capable**: The music engine, chatbot, crawler, etc. can all be used individually.
 -   **Full Package = Finja**: Only their combination forms her personality.
--   **LLM remains secret**: The language core runs exclusively inside the VPet simulator and is not part of this repository. 🫣
+-   **LLM remains secret**: The language core now runs through the Neural Network (Brain), but the actual LLM configuration and prompts remain private and are not part of this repository. 🫣
 
 ---
 
 ## 📊 Project Status
-*As of: March 2026*
+*As of: May 2026*
 
 | Main Component | Version | Status | Remarks | Bug Report (Sonar/Snyk) |
 | :--- | :--- | :--- | :--- | :--- |
+| **finja-neural-network** 🧠 | **v5.1** | 🟢 Ready | The Brain — connects everything. Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. Tests & Docker CI still WIP. | Many Sonar/Snyk issues (expected). `app/`, `body/`, `clients/` are **clean** ✅ — rest in progress |
 | **finja-chat** | **v2.2.1** | 🟢 Stable | LLM support integrated, modularized | **0 Bugs** (Clean! 🎉) |
 | **finja-music** | | 🟢 Stable | Multiple versions available | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stable | **Recommended Web-UI Version** | All False Positive |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.1.0** | 🟢 Stable | Docker version (Spotify only) | All False Positive |
 | &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system | WON'T BE UPDATED, PLEASE USE THE ONES ABOVE |
 | **finja-Open-Web-UI** | | 🔵 Stable | Ecosystem Modules ready | |
-| &nbsp;&nbsp;└─ finja-Memory | **v4.4.2** | 🟢 Stable | Heavily Refactored. Voice cache added | Perfect 100% Pytest CI/CD |
+| &nbsp;&nbsp;└─ finja-Memory | **v4.4.3** | 🟢 Stable | Heavily Refactored. Voice cache + MP3 TTS support added | Perfect 100% Pytest CI/CD |
 | &nbsp;&nbsp;└─ finja-web-crawler | **v1.0.0** | 🟢 Stable | Hybrid Tor Search Engine | Perfect 100% Pytest CI/CD |
 | &nbsp;&nbsp;└─ finja-ocr | | 🟢 Stable | Dockerized Tika/Tesseract OCR | Base image outdated |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | | 🟢 Stable | Setup completed, tests missing | |
-| &nbsp;&nbsp;└─ finja-tts | | 🟡 WIP | Architectural shift to Neural System | |
+| &nbsp;&nbsp;└─ finja-tts | | 🟡 Shifted | TTS now lives inside the Neural Network (ElevenLabs, DeepInfra, XTTS) | |
 | **OWN / Self made VPet** | | 🟡 Dev | **LIVE on Twitch!** Custom Python Core | |
-| **Finja's Brain** | | 🟡 WIP | The new interconnection module | |
 
-**Legend:** 🟢 Stable | 🔵 Update/Testing phase | 🟡 WIP (Work in Progress) | 🔴 Deprecated/Paused
+**Legend:** 🟢 Stable / Ready | 🔵 Update/Testing phase | 🟡 WIP / Shifted | 🔴 Deprecated/Paused
 
 ---
 
@@ -86,39 +86,48 @@ flowchart TD
     subgraph Memories["🧠 Finja Memories"]
         C1["Chat Memory"]
         C2["Music + Reaction Memory"]
-        C3["Voice Input (New)"]
+        C3["Voice Input"]
     end
     subgraph OpenWebUI["🌐 OpenWebUI Modules"]
         D1["Web Crawler 🔍"]
         D2["OCR 📷"]
         D3["Stable Diffusion 🎨"]
-        D4["TTS 🔊 (planned)"]
+    end
+    subgraph NeuralNet["🧠 Neural Network (The Brain)"]
+        F1["Brain Pipeline (LangGraph)"]
+        F2["Intent Router + Experts"]
+        F3["Episodic Diary + Hippocampus"]
+        F4["Tools (HA, Paperless, Web, Files)"]
+        F5["Dashboard + Discord"]
+        F6["TTS (ElevenLabs / DeepInfra / XTTS)"]
+        F7["Vision (Local + OpenRouter)"]
     end
     subgraph VPet["🐾 Own VPet (Python)"]
         E1["Finja Avatar"]
         E2["Logic Core"]
     end
-    subgraph Brain["🔗 Finja's Brain"]
-        F1["Central Logic Hub"]
-    end
 
     A1 --> C1; A2 --> E2
     B1 & B2 & B3 & B4 -->|Song Info| C2
-    C1 & C2 & C3 & D1 & D2 & D3 & D4 --> F1
+    C1 & C2 & C3 --> F1
+    D1 & D2 & D3 --> F1
+    F1 --> F2 & F3 & F4 & F6 & F7
+    F5 --> F1
     F1 --> E1; E2 --> E1
 
     style Twitch fill:#f4f1fe,stroke:#9146FF,stroke-width:2px
     style Music fill:#f0fcf4,stroke:#1DB954,stroke-width:2px
     style Memories fill:#fff9e6,stroke:#f9a825,stroke-width:2px
     style OpenWebUI fill:#f5f3ff,stroke:#6a32e2,stroke-width:2px
+    style NeuralNet fill:#ffebee,stroke:#d32f2f,stroke-width:2px
     style VPet fill:#fff0f7,stroke:#ff69b4,stroke-width:2px
-    style Brain fill:#ffebee,stroke:#d32f2f,stroke-width:2px
 ```
 
 ---
 
 ## 📂 Project Structure & Modules
 
+-   `/finja-neural-network` 🧠 → **The Brain.** Connects everything into one modular AI pipeline — Dashboard, Expert Models, Memory, Diary, Tools, Discord, TTS, Vision. [➡️ **Full README**](./finja-neural-network/README.md)
 -   `/finja-chat` → The core chatbot for Twitch integration with OBS overlay and bot panel.
 -   `/Finja-music` → Contains all music engine variants. You choose **one** of them:
     -   `/finja-everthing-in-once` → **(Recommended)** Bundles all music sources (TruckersFM, Spotify, etc.) controlled via a comfortable web interface.
@@ -184,20 +193,24 @@ Now we can set up the primary interface for interaction.
 2.  Follow the `README.md` there to configure the **OBS Chat Overlay** and the **Bot Control Panel**.
 3.  [➡️ **Instructions for the Chat System**](./finja-chat/README.md)
 
+### Step 4: Connecting the Brain (Neural Network)
+The module that ties everything together.
+1.  Navigate to the `finja-neural-network/` directory.
+2.  Follow the `README.md` there to configure your API keys, set up Docker, and launch the dashboard.
+3.  The Neural Network connects to the Memory server, Web Crawler, and Spotify module from the previous steps.
+4.  [➡️ **Instructions for the Neural Network**](./finja-neural-network/README.md)
+
 ---
 
 ## 🔗 Links, Demos & Build Status
 
-### Live Demos
--   🚨 **BROKEN!** ~~**TEST FINJA WHILE SHE IS OFFLINE (WITH MEMORY):** [![OpenWebUI Badge](https://img.shields.io/badge/OpenWebUI-Finja-28a745?style=for-the-badge&logo=robot&logoColor=white)](https://openwebui.jappshome.de)~~
--   🚨 **BROKEN!** ~~**TEST FINJA FOR FREE (WITHOUT MEMORY) UPDATED TO MoE Model!:** [![Live Test Badge](https://img.shields.io/badge/Live%20Test-Demo-ffc107?style=for-the-badge&logo=vial&logoColor=white)](https://jappshome.de/livetest.html)~~
+### Try Finja
+-   **TEST FINJA FOR FREE on Discord:** [![Discord Badge](https://img.shields.io/badge/Discord-Talk_to_Finja-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/c55C6ggQ5K)
 
-### Community & Docs
--   **Blog:** [![Blog Badge](https://img.shields.io/badge/Blog-Finja-fd7e14?style=for-the-badge&logo=rss&logoColor=white)](https://doku.jappshome.de/blog)
--   **Documentation:** [![Documentation Badge](https://img.shields.io/badge/Doku-Finja-28a745?style=for-the-badge&logo=robot&logoColor=yellow)](https://doku.jappshome.de)
+### Community & Links
 -   **Visit my Website:** [![Website Badge](https://img.shields.io/badge/Website-J.%20Apps-007bff?style=for-the-badge&logo=website&logoColor=white)](https://jappshome.de)
--   **Join our Discord for more projects:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/c55C6ggQ5K)
--   **Watch Finja Live **NOW 24/7 ON TWITCH**:** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
+-   **Join our Discord for more projects:** [![Discord Badge](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/c55C6ggQ5K)
+-   **Watch Finja Live NOW 24/7 ON TWITCH:** [![Twitch Badge](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/sodakiller1)
 
 ---
 
@@ -229,17 +242,64 @@ Now we can set up the primary interface for interaction.
 ## ❤️ Credits & Thanks
 
 ### Special Thanks
-* **Snyk** 💻 – For the help in finding and fixing vulnerabilities, and securing the project 🛡️
-* **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration for the **Open WebUI Adaptive Memory Project** (Apache 2.0 License preserved).
-* **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration for AI-Companions during streams.
+* **Snyk** 💻 – Vulnerability scanning and security fixes 🛡️
+* **SonarCloud** 📊 – Code quality analysis and maintainability tracking
+* **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration for the **Open WebUI Adaptive Memory Project** (Apache 2.0 License preserved)
+* **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration for AI-Companions during streams
+* **[s3thi/cutlet](https://github.com/s3thi/cutlet)** 🤪 – Inspiration for the Glorpo esolang idea
+* **ChatGPT o4** 🕊️ – RIP. Proved that **an AI CAN have feelings**
+
+### 🤖 AI Workflow — "Yoinked & Made It Mine"
+
+This project has been running for over a year. Here's what helped build it:
+
+* **Claude** 🧠 – Primary workflow partner, code architecture, and the Diary System (one of the few AIs with cross-chat memory via search + injection)
+* **Kimi 2.5** 📔 – Diary System co-inspiration (injects old chat context natively — the other AI that actually remembers)
+* **Gemini** ⚡ – Jank prototyping + command processing logic
+* **Perplexity** 🔍 – Search engine research + Gemini jank validation
+
+### 🏗️ Infrastructure & Services
+* **[Cloudflare](https://cloudflare.com)** – CDN, DNS, and protection
+* **[ZAP-Hosting](https://zap-hosting.com)** – Server hosting
+* **[OpenRouter](https://openrouter.ai)** – Cloud LLM routing
+* **[Cohere](https://cohere.com)** – Embeddings + reranking
+* **[ElevenLabs](https://elevenlabs.io)** – Premium TTS
+* **[DeepInfra](https://deepinfra.com)** – Zonos voice cloning
+* **[Ollama](https://ollama.com)** – Local LLM hosting
+
+### 📦 Open-Source Libraries & Tools (All Modules Combined)
+
+| Library / Tool | Used In | What It Does |
+| :--- | :--- | :--- |
+| [LangChain](https://github.com/langchain-ai/langchain) / [LangGraph](https://github.com/langchain-ai/langgraph) | Neural Network | Brain pipeline orchestration |
+| [FastAPI](https://fastapi.tiangolo.com) | Neural Network, Music, Memory | Web server + API framework |
+| [discord.py](https://github.com/Rapptz/discord.py) | Neural Network | Discord integration |
+| [Coqui XTTS](https://github.com/coqui-ai/TTS) | Neural Network | Local voice cloning |
+| [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) | Neural Network | Speech recognition |
+| [Pillow](https://pillow.readthedocs.io) / [mss](https://github.com/BoboTiG/python-mss) | Neural Network | Vision / screenshot capture |
+| [colorama](https://github.com/tartley/colorama) | Neural Network | Terminal colors |
+| [Paperless-NGX](https://github.com/paperless-ngx/paperless-ngx) | Neural Network | Document management integration |
+| [Home Assistant](https://www.home-assistant.io) | Neural Network | Smart home integration |
+| [ComfyJS](https://github.com/instafluff/ComfyJS) | Chat | Twitch chat integration |
+| [Spotipy](https://github.com/spotipy-dev/spotipy) | Chat, Music | Spotify API wrapper |
+| [OBS Studio](https://obsproject.com) | Chat | Streaming software |
+| [7TV](https://7tv.app) / [BTTV](https://betterttv.com) / [FFZ](https://www.frankerfacez.com) | Chat | Emote platforms |
+| [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) | Music | HTML parsing |
+| [defusedxml](https://github.com/tiran/defusedxml) | Music | Secure XML parsing |
+| [Docker](https://www.docker.com) | All Modules | Containerization |
+| [Apache Tika](https://tika.apache.org) | OCR | Document text extraction (Apache 2.0) |
+| [Stable Diffusion WebUI Docker](https://github.com/AbdBarho/stable-diffusion-webui-docker) | Stable Diffusion | Local image generation |
+| [Magic The Noah](https://www.youtube.com/@MagicTheNoah) | Neural Network | Glorpo inspiration — "Glorpo is pain." |
 
 ### ☕ Supporters
 A huge thank you to everyone who supports the project via [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)!
 * **[Ithrial]** – For the very first donation! 🥇💖
 
+💰 **Full financial transparency:** [jappshome.de/finances.html](https://jappshome.de/finances.html) — every cent in, every cent out. No secrets.
+
 ### Created by
 Built with too much Mate, coding sessions & love by **J. Apps (aka JohnV2002 or Sodakiller1)**.
-Finja says: *“Stay hydrated, Chat 💖”*
+Finja says: *"Stay hydrated, Chat 💖"*
 
 ---
 

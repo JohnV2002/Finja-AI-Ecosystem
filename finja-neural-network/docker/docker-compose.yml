@@ -1,0 +1,105 @@
+# ==========================================
+# YourAI AI - Docker Compose
+# ==========================================
+# Defines the Docker Compose runtime for the YourAI AI service.
+#
+# Main Responsibilities:
+# - Build and run the main YourAI container.
+# - Mount persistent Docker volumes and live project folders.
+# - Configure runtime environment variables, health checks, and log rotation.
+#
+# Side Effects:
+# - Starts a long-running container on port 8051.
+# - Persists application state in named volumes and docker/data.
+# - Reads secrets from docker/data/.env.
+#
+# Usage:
+#   cd /path/to/yourai
+#   docker compose -f docker/docker-compose.yml up -d --build
+#
+# Logs:    docker compose -f docker/docker-compose.yml logs -f
+# Restart: docker compose -f docker/docker-compose.yml restart
+# Stop:    docker compose -f docker/docker-compose.yml down
+# ==========================================
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1450"  # MTU fix for TrueNAS; prevents stalled downloads during builds.
+
+services:
+  yourai:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      network: host
+    container_name: yourai-ai
+    restart: unless-stopped
+    ports:
+      - "8051:8051"
+
+    # Persistent data that survives container restarts.
+    volumes:
+      - yourai-memory:/app/memory
+      - yourai-diary:/app/diary
+      - yourai-diary-altpersona:/app/diary_altpersona
+      - yourai-documents:/app/documents
+      - yourai-temp-audio:/app/temp_audio
+      - yourai-best-refs:/app/best_refs
+      - yourai-breeding:/app/breeding_results
+      # State and config as a folder mount; atomic writes like os.replace need the same filesystem.
+      - ./data:/app/docker_data
+      # Frontend live mount: scp plus restart is enough; no rebuild needed.
+      - ../frontend:/app/frontend
+      # Website Autonomy uses local HTML/CSS/JS instead of scraping through Cloudflare.
+      - ../autonom_website:/app/autonom_website
+      # Lab Autonomy uses local HTML/CSS/JS instead of scraping through Cloudflare.
+      - ../website_lab:/app/website_lab
+
+    # Environment variables; never bake secrets into the image.
+    env_file:
+      - ./data/.env
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Berlin
+      - COHERE_EMBED_MODEL=${COHERE_EMBED_MODEL:-embed-multilingual-v3.0}
+      - USE_DIARY_SEMANTIC_SEARCH=${USE_DIARY_SEMANTIC_SEARCH:-1}
+      - DIARY_SEMANTIC_CANDIDATE_LIMIT=${DIARY_SEMANTIC_CANDIDATE_LIMIT:-160}
+      - DIARY_SEMANTIC_TOP_N=${DIARY_SEMANTIC_TOP_N:-24}
+      - DIARY_SEMANTIC_MIN_SCORE=${DIARY_SEMANTIC_MIN_SCORE:-0.18}
+      - LLM_STATS_BASE_URL=${LLM_STATS_BASE_URL:-https://api.zeroeval.com}
+      - EXPERT_POOL_FILE=${EXPERT_POOL_FILE:-/app/docker_data/expert_model_pool.json}
+      - EXPERT_POOL_LOCK_FILE=${EXPERT_POOL_LOCK_FILE:-/app/docker_data/expert_model_pool.json.lock}
+      - EXPERT_POOL_PRICE_CAP_USD_PER_M=${EXPERT_POOL_PRICE_CAP_USD_PER_M:-3.00}
+      - EXPERT_POOL_TOP_N=${EXPERT_POOL_TOP_N:-3}
+      # YouTube/Shorts browser runs behind the VPN container and publishes 8060 on the VM host.
+      # yourai-youtube is not resolvable from this compose network, so use the VM host endpoint.
+      - YOUTUBE_API_URL=${YOUTUBE_API_URL:-http://YOUR_SERVICES_HOST_IP:8060}
+      # Instagram Reels browser follows the same pattern on port 8061.
+      - INSTAGRAM_API_URL=${INSTAGRAM_API_URL:-http://YOUR_SERVICES_HOST_IP:8061}
+
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8051/events"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+    # Logging guard so Docker logs stay bounded.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  yourai-memory:
+  yourai-diary:
+  yourai-diary-altpersona:
+  yourai-documents:
+  yourai-temp-audio:
+  yourai-best-refs:
+  yourai-breeding:

@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v4.4.2
+# 📚 Finja Cloud Memory v4.4.3
 
 A lightweight, lightning-fast external **Memory Service** acting as long-term memory for AI projects like Finja. This system is designed for seamless integration with **OpenWebUI** via the `adaptive_memory_v4` Plugin.
 
@@ -28,10 +28,12 @@ docker-compose up -d --build
 ```
 ---
 
-## 🆕 Updates & Changelog (v4.4.2 Unified)
+## 🆕 Updates & Changelog
 
-This update unifies the Server and the Plugin under version 4.4.2 and brings massive improvements across the board.
+### v4.4.3
+* **TTS Cache MP3 Support:** The `/upload_tts_cache` endpoint now accepts both MP3 and WAV files, detecting the format from the uploaded filename. Old WAV cache entries are automatically replaced when an MP3 version is uploaded. Retrieval via `/get_tts_audio` prefers MP3 over WAV (legacy fallback). Correct MIME types (`audio/mpeg` for MP3, `audio/wav` for WAV) are served.
 
+### v4.4.2
 * **Massive SonarQube Refactoring:** Greatly reduced cognitive complexity across the plugin. Monolithic functions have been broken down into single-purpose helper methods for enhanced maintainability.
 * **Comprehensive Test Suite Added:** Introduced a full `pytest` test suite (`test_memory_server.py` and `test_adaptive_memory.py`) to verify both FastAPI endpoints and internal OpenWebUI Plugin logic. Ready for GitHub Actions CI!
 * **True TTS Network Caching:** Fully integrated robust `/upload_tts_cache` and `/get_tts_audio` endpoints, replacing previous placeholder logic. The server now natively accepts generated audio files (e.g., `.wav`) from OpenWebUI and streams them back instantaneously to clients, functioning as a real caching layer to save precious generation time.

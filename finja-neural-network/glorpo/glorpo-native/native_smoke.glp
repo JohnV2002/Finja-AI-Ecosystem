@@ -1,0 +1,57 @@
+gloo double(x):
+    glorpback x * 2
+
+nums = [3, 1, 2]
+nums.glorpshove(4)
+first, second = nums[0], nums[1]
+total = glorpsum(nums)
+big = glorpchonk(nums)
+small = glorpsmol(nums)
+label = "ok" glorb total == 10 glorpelse "bad"
+
+text = "  Glorpo Pain  ".glorptrim().glorpscream()
+parts = "a,b,c".glorpchop(",")
+joined = "-".glorpglue(parts)
+
+data = {"name": "YourAI", "count": total}
+data["extra"] = big
+
+mapped = glorplist(glorpmorph(double, nums))
+filtered = glorplist(glorpsift(glorbda n: n > 2, nums))
+
+glorptry:
+    glorpswear glorpno, "boom"
+glorpcatch AssertionError:
+    caught = "yes"
+glorpalways:
+    caught = caught + "!"
+
+glorpwith open(__file__, "r") glorpas handle:
+    has_file = handle.read().glorpbegin("def double")
+
+matched = "no"
+glorpcheck big:
+    glorpwhen 1:
+        matched = "small"
+    glorpwhen 4:
+        matched = "big"
+    glorpwhen _:
+        matched = "other"
+
+glorpswear first == 3, "first mismatch"
+glorpswear second == 1, "second mismatch"
+glorpswear total == 10, "sum mismatch"
+glorpswear big == 4, "max mismatch"
+glorpswear small == 1, "min mismatch"
+glorpswear label == "ok", "ternary mismatch"
+glorpswear text == "GLORPO PAIN", "string chain mismatch"
+glorpswear joined == "a-b-c", "join mismatch"
+glorpswear data["name"] == "YourAI", "dict get mismatch"
+glorpswear data["extra"] == 4, "dict set mismatch"
+glorpswear mapped[0] == 6, "map mismatch"
+glorpswear filtered[0] == 3, "filter mismatch"
+glorpswear caught == "yes!", "try mismatch"
+glorpswear has_file, "with/open mismatch"
+glorpswear matched == "big", "match mismatch"
+
+glorp("native smoke ok")

@@ -1,0 +1,27 @@
+{
+  "name": "glorpo-lang",
+  "publisher": "yourai-glorpo",
+  "displayName": "Glorpo Language",
+  "description": "Syntax highlighting for Glorpo (.glp) - Glorpo is pain.",
+  "version": "1.1.0",
+  "engines": { "vscode": "^1.70.0" },
+  "categories": ["Programming Languages", "Themes"],
+  "contributes": {
+    "languages": [{
+      "id": "glorpo",
+      "aliases": ["Glorpo", "glorpo"],
+      "extensions": [".glp"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "glorpo",
+      "scopeName": "source.glorpo",
+      "path": "./syntaxes/glorpo.tmLanguage.json"
+    }],
+    "themes": [{
+      "label": "Glorpo - YourAI Dark",
+      "uiTheme": "vs-dark",
+      "path": "./themes/glorpo-yourai-theme.json"
+    }]
+  }
+}

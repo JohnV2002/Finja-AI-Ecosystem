@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+  Glorpo Home Page
+  ================
+  Demo page rendered through the Glorpo front engine.
+
+  Main Responsibilities:
+  - Introduce the Glorpo Web demo.
+  - Show regular HTML source that will be converted into Glorpo tags.
+  - Link to other demo pages.
+
+  Side Effects:
+  - Rendered by the PHP front router.
+  - May be transformed into Glorpo custom elements before reaching the browser.
+-->
+<html lang="de">
+<head>
+    <title>Glorpo Web — Home</title>
+</head>
+<body>
+
+<header style="background:#1a1a2e;color:#e0e0ff;padding:2rem;border-radius:8px;margin-bottom:2rem;">
+    <h1 style="color:#a78bfa;margin:0 0 0.5rem 0;">Glorpo Web 🧬</h1>
+    <p style="color:#94a3b8;margin:0;">HTML. Aber falsch. Aber richtig.</p>
+</header>
+
+<nav style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+    <a href="?p=home" style="background:#f1f5f9;padding:0.4rem 1rem;border-radius:20px;text-decoration:none;font-size:0.9em;">Home</a>
+    <a href="?p=about" style="background:#f1f5f9;padding:0.4rem 1rem;border-radius:20px;text-decoration:none;font-size:0.9em;">Über Glorpo</a>
+    <a href="?p=demo" style="background:#f1f5f9;padding:0.4rem 1rem;border-radius:20px;text-decoration:none;font-size:0.9em;">Demo</a>
+</nav>
+
+<main>
+    <section style="padding:1.5rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:2rem;">
+        <h2>Was ist das hier?</h2>
+        <p>
+            Diese Seite sieht <strong>völlig normal</strong> aus.
+            Aber drück mal <em>F12</em> oder schau dir den Quelltext an.
+        </p>
+        <p>
+            Spoiler: Es gibt kein einziges <code>&lt;div&gt;</code> oder <code>&lt;p&gt;</code> im Browser.
+            Nur <code>&lt;glorpbox&gt;</code> und <code>&lt;glorp&gt;</code>.
+        </p>
+    </section>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;">
+        <div style="flex:1;min-width:200px;padding:1rem;background:#f8fafc;border-radius:6px;border-left:4px solid #a78bfa;">
+            <h3>Normal aussehen</h3>
+            <p>Der Browser rendert alles korrekt.</p>
+        </div>
+        <div style="flex:1;min-width:200px;padding:1rem;background:#f8fafc;border-radius:6px;border-left:4px solid #a78bfa;">
+            <h3>Alien-Quellcode</h3>
+            <p>F12 zeigt Glorpo. Was ist ein <code>glorp</code>?</p>
+        </div>
+        <div style="flex:1;min-width:200px;padding:1rem;background:#f8fafc;border-radius:6px;border-left:4px solid #a78bfa;">
+            <h3>PHP Magic</h3>
+            <p>Du schreibst normales HTML. PHP macht den Rest.</p>
+        </div>
+    </div>
+
+    <section style="padding:1.5rem;border:1px solid #e2e8f0;border-radius:8px;">
+        <h2>Liste der Verwirrung</h2>
+        <ul>
+            <li>Kein <code>&lt;div&gt;</code> im Output</li>
+            <li>Kein <code>&lt;p&gt;</code> im Output</li>
+            <li>Kein <code>&lt;h1&gt;</code> im Output</li>
+            <li>Aber alles funktioniert</li>
+            <li>Glorpo is pain.</li>
+        </ul>
+    </section>
+</main>
+
+<footer style="margin-top:3rem;padding-top:1rem;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:0.85em;text-align:center;">
+    <p>Glorpo Web &mdash; "Glorpo is pain." &mdash; Built with alien HTML 🧬</p>
+</footer>
+
+</body>
+</html>

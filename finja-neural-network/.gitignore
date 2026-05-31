@@ -1,0 +1,54 @@
+# Secrets
+.env
+access_keys.json
+chatapp-*.json
+google-services.json
+*-firebase-adminsdk-*.json
+*service-account*.json
+*service_account*.json
+users_db.json
+user_sessions.json
+persona_state.json
+feedback_data.json
+runtime_config.json
+tts_volume.json
+tts_usage.json
+app_chat_log.jsonl
+debug_log.jsonl
+discord_channels.json
+fcm_tokens.json
+finja_output.txt
+finja_voice_id.json
+image_usage.json
+prompt_router_cache.json
+expert_model_pool.json
+expert_model_pool.json.lock
+
+# Instance data
+diary/
+diary_altpersona/
+best_refs/
+breeding_results/
+documents/
+temp_audio/
+body/temp_audio/
+temp_uploads/
+vision_input.png
+*.migrated
+
+# Build artifacts
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+glorpo.egg-info/
+build/
+
+# Media
+*.wav
+*.mp3
+
+# IDE
+.vscode/
+.claude/
+.idea/

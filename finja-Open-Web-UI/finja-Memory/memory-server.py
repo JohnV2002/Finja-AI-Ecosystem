@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 4.4.2
+  Version: 4.4.3
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -28,6 +28,13 @@
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
+ Updates 4.4.3:
+ ---------------------------------------------------------------------
+  + **TTS Cache MP3 Support:** Upload endpoint now accepts both MP3 and WAV,
+    detects format from uploaded filename. Old WAV cache entries are auto-replaced
+    when MP3 version is uploaded. Retrieval prefers MP3 over WAV (legacy).
+    Correct MIME types (audio/mpeg for MP3, audio/wav for WAV).
+
  Updates 4.4.2:
  ---------------------------------------------------------------------
   + **True TTS Caching:** Replaced placeholder TTS generation with fully
@@ -110,6 +117,7 @@ from fastapi import FastAPI, HTTPException, Body, Request, UploadFile, File, For
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Annotated
 import uuid, time, json, threading, os, hashlib, shutil # Added shutil
+import urllib.request
 from dotenv import load_dotenv
 import aiofiles
 from datetime import datetime # Added datetime for backup timestamp
@@ -122,6 +130,9 @@ load_dotenv()
 
 # Get API Key from environment variable
 API_KEY = os.getenv("MEMORY_API_KEY")
+FINJA_DASHBOARD_URL = os.getenv("FINJA_DASHBOARD_URL", "http://192.168.178.27:8051").rstrip("/")
+MEMORY_ANALYTICS_ENABLED = os.getenv("MEMORY_ANALYTICS_ENABLED", "1").lower() not in ("0", "false", "no", "off")
+SERVER_STARTED_AT = time.time()
 
 if not API_KEY:
     raise ValueError("MEMORY_API_KEY environment variable is required!")
@@ -148,6 +159,55 @@ os.makedirs(BACKUP_DIR, exist_ok=True) # Create backup dir
 
 # Stores when a user cache was last accessed (for automatic cleanup)
 cache_last_accessed: Dict[str, float] = {}
+
+
+def _duration_ms(started_at: float) -> int:
+    return max(0, int((time.time() - started_at) * 1000))
+
+
+def _post_metric(payload: Dict[str, Any]) -> None:
+    try:
+        body = json.dumps(payload).encode("utf-8")
+        request = urllib.request.Request(
+            f"{FINJA_DASHBOARD_URL}/event",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(request, timeout=0.7).read()
+    except Exception:
+        # Analytics must never block or break the memory service.
+        pass
+
+
+def emit_metric(
+    metric_name: str,
+    title: str,
+    duration_ms: Optional[int] = None,
+    result_count: Optional[int] = None,
+    candidate_count: Optional[int] = None,
+    cache_hit: Optional[bool] = None,
+    user_id: Optional[str] = None,
+    details: str = "",
+    status: str = "success",
+) -> None:
+    if not MEMORY_ANALYTICS_ENABLED or not FINJA_DASHBOARD_URL or duration_ms is None:
+        return
+    payload = {
+        "event_type": "system_info",
+        "node_name": "memory_server",
+        "title": title,
+        "content": details,
+        "duration_ms": duration_ms,
+        "metric_name": metric_name,
+        "result_count": result_count,
+        "candidate_count": candidate_count,
+        "cache_hit": cache_hit,
+        "source": "memory_server",
+        "for_user": user_id or "",
+        "status": status,
+    }
+    threading.Thread(target=_post_metric, args=(payload,), daemon=True).start()
 
 # -------------------------
 # Data Models (Schemas)
@@ -305,11 +365,32 @@ def auth_check(request: Request):
 # API Endpoints
 # -------------------------
 
+@app.get("/health")
+def health():
+    """Lightweight health endpoint for Finja's analytics cockpit."""
+    try:
+        memory_files = len([
+            name for name in os.listdir(USER_MEMORY_DIR)
+            if name.endswith(".json")
+        ])
+    except Exception:
+        memory_files = 0
+    return {
+        "status": "ok",
+        "service": "finja-memory-server",
+        "uptime_s": int(time.time() - SERVER_STARTED_AT),
+        "cached_users": len(user_memories),
+        "memory_files": memory_files,
+        "max_ram_memories": MAX_RAM_MEMORIES,
+    }
+
 @app.post("/add_memory", responses={401: {"description": "Unauthorized"}})
 async def add_memory(request: Request, mem: Annotated[MemoryItem, Body(...)]):
     """Adds a single memory and utilizes the RAM cache."""
+    started_at = time.time()
     auth_check(request)
     uid = mem.user_id or "default"
+    cache_hit = uid in user_memories
 
     if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
@@ -326,15 +407,27 @@ async def add_memory(request: Request, mem: Annotated[MemoryItem, Body(...)]):
 
     # Optional: Trigger immediate save or rely on auto-save
     # save_to_disk(uid)
+    emit_metric(
+        "memory_write",
+        "Memory write",
+        duration_ms=_duration_ms(started_at),
+        result_count=1,
+        candidate_count=len(memories),
+        cache_hit=cache_hit,
+        user_id=uid,
+        details=f"batch=no; cache_hit={'yes' if cache_hit else 'no'}",
+    )
     return {"status": "added", "id": mem.id}
 
 @app.post("/add_memories", responses={401: {"description": "Unauthorized"}})
 def add_memories(request: Request, batch: Annotated[List[MemoryItem], Body(...)]):
     """Adds a list of memories and utilizes the RAM cache."""
+    started_at = time.time()
     auth_check(request)
     if not batch: return {"status": "no_data"}
     # Assume all items in batch are for the same user
     uid = batch[0].user_id or "default"
+    cache_hit = uid in user_memories
 
     if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
@@ -354,18 +447,31 @@ def add_memories(request: Request, batch: Annotated[List[MemoryItem], Body(...)]
 
     # Optional: Trigger immediate save or rely on auto-save
     # save_to_disk(uid)
+    emit_metric(
+        "memory_write",
+        "Memory batch write",
+        duration_ms=_duration_ms(started_at),
+        result_count=added_count,
+        candidate_count=len(memories),
+        cache_hit=cache_hit,
+        user_id=uid,
+        details=f"batch=yes; cache_hit={'yes' if cache_hit else 'no'}",
+    )
     return {"status": "batch_added", "added": added_count, "total_in_ram": len(memories)}
 
 @app.get("/get_memories", responses={401: {"description": "Unauthorized"}})
 def get_memories(request: Request, user_id: Optional[str] = None, query: Optional[str] = None, limit: int = 50):
     """Retrieve memories, preferably from the fast RAM cache."""
+    started_at = time.time()
     auth_check(request)
     uid = user_id or "default"
+    cache_hit = uid in user_memories
 
     if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
 
     memories = user_memories.get(uid, [])
+    candidate_count = len(memories)
     filtered = memories
     if query:
         try:
@@ -378,13 +484,26 @@ def get_memories(request: Request, user_id: Optional[str] = None, query: Optiona
             filtered = memories
 
     # Return the latest 'limit' matching memories
-    return filtered[-limit:]
+    result = filtered[-limit:]
+    emit_metric(
+        "memory_search",
+        "Memory search",
+        duration_ms=_duration_ms(started_at),
+        result_count=len(result),
+        candidate_count=candidate_count,
+        cache_hit=cache_hit,
+        user_id=uid,
+        details=f"query={'yes' if query else 'no'}; limit={limit}; cache_hit={'yes' if cache_hit else 'no'}",
+    )
+    return result
 
 @app.get("/memory_stats", responses={401: {"description": "Unauthorized"}})
 def memory_stats(request: Request, user_id: Optional[str] = None):
     """Statistics about a user's memories from the RAM cache."""
+    started_at = time.time()
     auth_check(request)
     uid = user_id or "default"
+    cache_hit = uid in user_memories
 
     if uid not in user_memories: load_from_disk(uid)
     cache_last_accessed[uid] = time.time()
@@ -394,6 +513,16 @@ def memory_stats(request: Request, user_id: Optional[str] = None):
     # Get actual file size if it exists
     file_size = os.path.getsize(filepath) if file_exists else 0
 
+    emit_metric(
+        "memory_stats",
+        "Memory stats",
+        duration_ms=_duration_ms(started_at),
+        result_count=len(user_memories.get(uid, [])),
+        candidate_count=len(user_memories.get(uid, [])),
+        cache_hit=cache_hit,
+        user_id=uid,
+        details=f"file_exists={'yes' if file_exists else 'no'}; cache_hit={'yes' if cache_hit else 'no'}",
+    )
     return {
         "user_id": uid,
         "memories_in_ram": len(user_memories.get(uid, [])),
@@ -569,11 +698,24 @@ async def add_voice_memory(request: Request, user_id: Annotated[str, Form(...)],
 @app.post("/upload_tts_cache", responses={401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})
 async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], file: Annotated[UploadFile, File(...)]):
     """Receives generated TTS audio and stores it in the cache."""
+    started_at = time.time()
     auth_check(request)
     
-    # Calculate hash to determine filename
+    # Calculate hash to determine filename, keep uploaded format (.mp3 or .wav)
     text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
-    filename = f"{text_hash}.wav" # We use wav
+    ext = os.path.splitext(file.filename or "tts.mp3")[1] or ".mp3"
+    if ext not in (".wav", ".mp3"):
+        ext = ".mp3"
+    # Remove old format if switching (e.g. .wav → .mp3 upgrade)
+    old_ext = ".wav" if ext == ".mp3" else ".mp3"
+    old_path = os.path.join(TTS_CACHE_DIR, f"{text_hash}{old_ext}")
+    if os.path.exists(old_path):
+        try:
+            os.remove(old_path)
+            print(f"INFO:    TTS Cache: Removed old {old_ext} for upgrade to {ext}")
+        except OSError:
+            pass
+    filename = f"{text_hash}{ext}"
     filepath = os.path.join(TTS_CACHE_DIR, filename)  # NOSONAR - filename is sha256 hex hash, no path traversal possible
 
     try:
@@ -583,9 +725,26 @@ async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], fi
                 await out_file.write(content)
         
         print(f"INFO:    TTS Cache ADDED: '{text[:20]}...' -> {filename}")
+        emit_metric(
+            "tts_cache_upload",
+            "TTS cache upload",
+            duration_ms=_duration_ms(started_at),
+            result_count=1,
+            cache_hit=True,
+            details=f"ext={ext}",
+        )
         return {"status": "cached", "file": filename}
     except Exception as e:
         print(f"ERROR:   Failed to cache TTS upload: {e}")
+        emit_metric(
+            "tts_cache_upload",
+            "TTS cache upload failed",
+            duration_ms=_duration_ms(started_at),
+            result_count=0,
+            cache_hit=False,
+            status="error",
+            details="upload_failed",
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/get_tts_audio", responses={401: {"description": "Unauthorized"}, 404: {"description": "Not Found"}})
@@ -595,17 +754,35 @@ def get_tts_audio(request: Request, text: str):
     If YES: Returns the file directly (Audio Stream).
     If NO: 404 (Signal for clients: 'You need to generate!')
     """
+    started_at = time.time()
     auth_check(request)
     
     text_hash = hashlib.sha256(text.strip().encode('utf-8')).hexdigest()
-    # Check for wav and mp3
-    for ext in [".wav", ".mp3"]:
+    # Check MP3 first (preferred), then WAV (legacy)
+    for ext, mime in [(".mp3", "audio/mpeg"), (".wav", "audio/wav")]:
         filepath = os.path.join(TTS_CACHE_DIR, f"{text_hash}{ext}")  # NOSONAR - filename is sha256 hex hash
         if os.path.exists(filepath):
-            print(f"INFO:    TTS Cache HIT: Serve '{text[:20]}...'")
-            return FileResponse(filepath, media_type=f"audio/{ext.strip('.')}")  # NOSONAR
+            print(f"INFO:    TTS Cache HIT: Serve '{text[:20]}...' ({ext})")
+            emit_metric(
+                "tts_cache",
+                "TTS cache hit",
+                duration_ms=_duration_ms(started_at),
+                result_count=1,
+                cache_hit=True,
+                details=f"ext={ext}",
+            )
+            return FileResponse(filepath, media_type=mime)  # NOSONAR
 
     print(f"INFO:    TTS Cache MISS: '{text[:20]}...'")
+    emit_metric(
+        "tts_cache",
+        "TTS cache miss",
+        duration_ms=_duration_ms(started_at),
+        result_count=0,
+        cache_hit=False,
+        status="warning",
+        details="miss",
+    )
     raise HTTPException(status_code=404, detail="Audio not found in cache")
 
 @app.post("/delete_user_memories", responses={400: {"description": "Bad Request"}, 401: {"description": "Unauthorized"}, 500: {"description": "Server Error"}})

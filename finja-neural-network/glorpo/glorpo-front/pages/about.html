@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+  Glorpo About Page
+  =================
+  Demo page explaining the Glorpo Web concept.
+
+  Main Responsibilities:
+  - Explain what Glorpo Web does.
+  - Describe the PHP conversion flow.
+  - Provide an example of Glorpo-tagged output.
+
+  Side Effects:
+  - Rendered by the PHP front router.
+  - May be transformed into Glorpo custom elements before reaching the browser.
+-->
+<html lang="de">
+<head>
+    <title>Über Glorpo — Glorpo Web</title>
+</head>
+<body>
+
+<nav style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+    <a href="?p=home" style="background:#f1f5f9;padding:0.4rem 1rem;border-radius:20px;text-decoration:none;font-size:0.9em;">← Home</a>
+    <a href="?p=demo" style="background:#f1f5f9;padding:0.4rem 1rem;border-radius:20px;text-decoration:none;font-size:0.9em;">Demo</a>
+</nav>
+
+<main style="max-width:700px;">
+    <h1>Über Glorpo 🧬</h1>
+
+    <p>
+        <strong>Glorpo</strong> ist eine esoterische Programmiersprache, bei der
+        Python-Code wie absoluter Nonsens aussieht — aber nativ funktioniert.
+    </p>
+
+    <blockquote style="border-left:4px solid #a78bfa;margin:1.5rem 0;padding-left:1rem;color:#555;">
+        "Glorpo is pain." — Magic The Noah
+    </blockquote>
+
+    <h2>Die Idee</h2>
+    <p>
+        Was wäre wenn <code>def</code> in Python <code>gloo</code> hieße?
+        Und <code>if</code> → <code>glorb</code>? Und <code>print</code> → <code>glorp</code>?
+    </p>
+    <p>
+        Glorpo Web bringt das gleiche Chaos ins HTML. Du schreibst normales HTML,
+        PHP glorpifiziert es — und wer F12 drückt, fragt sich ob er halluziniert.
+    </p>
+
+    <h2>Warum?</h2>
+    <ul>
+        <li>Weil es geht</li>
+        <li>Weil es lustig ist</li>
+        <li>Weil "Glorpo is pain." und das stimmt</li>
+        <li>Als leichte HTML-Obfuskierung ohne JS-Obfuskierung</li>
+    </ul>
+
+    <h2>Wie funktioniert es?</h2>
+    <p>
+        PHP liest deine normale <code>.html</code> Datei, ersetzt alle Tags durch
+        ihre Glorpo-Äquivalente, und schickt das Ergebnis an den Browser.
+        Eine <code>glorpo.css</code> definiert für jeden Glorpo-Tag das korrekte Rendering.
+    </p>
+
+    <div style="background:#0f172a;color:#a78bfa;padding:1rem;border-radius:6px;font-family:monospace;font-size:0.9em;margin:1rem 0;">
+        Du schreibst: &lt;div&gt;&lt;h1&gt;Hallo&lt;/h1&gt;&lt;/div&gt;<br>
+        Browser kriegt: &lt;glorpbox&gt;&lt;glorphat&gt;Hallo&lt;/glorphat&gt;&lt;/glorpbox&gt;
+    </div>
+</main>
+
+</body>
+</html>

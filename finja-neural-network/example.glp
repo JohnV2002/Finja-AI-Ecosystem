@@ -1,0 +1,30 @@
+# Glorpo is pain. Glorpo is having pain.
+
+glorpkin Animal:
+    gloo __glorpbirth__(glorpself, name, sound):
+        glorpself.name = name
+        glorpself.sound = sound
+
+    gloo speak(glorpself):
+        glorp(f"{glorpself.name} says: {glorpself.sound}!")
+
+    gloo __glorpface__(glorpself):
+        glorpback f"Animal({glorpself.name})"
+
+gloo make_zoo():
+    animals = glorplist()
+    animals.glorpshove(Animal("Glorpo", "PAIN"))
+    animals.glorpshove(Animal("Fox", "Ring-ding-ding"))
+    animals.glorpshove(Animal("Cat", "Meow"))
+
+    glorpach animal glorpin animals:
+        animal.speak()
+
+    glorp(f"Zoo has {glorpsize(animals)} animals")
+    loudest = glorpchonk(animals, key=glorbda a: glorpsize(a.sound))
+    glorp(f"Loudest: {loudest.name}")
+    glorpback animals
+
+glorb __glorpname__ == "__glorpmain__":
+    zoo = make_zoo()
+    glorp("Glorpo is done. Glorpo is having done.")
