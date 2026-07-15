@@ -54,7 +54,7 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 ---
 
 ## 📊 Project Status
-*As of: May 2026*
+*As of: July 2026*
 
 | Main Component | Version | Status | Remarks | Bug Report (Sonar/Snyk) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -167,7 +167,7 @@ flowchart TD
 -   `/finja-neural-network` 🧠 → **The Brain.** Connects everything into one modular AI pipeline — Dashboard, Expert Models, Memory, Diary, Tools, Discord, TTS, Vision. [➡️ **Full README**](./finja-neural-network/README.md)
 -   `/finja-chat` → The core chatbot for Twitch integration with OBS overlay and bot panel.
 -   `/Finja-music` → Contains all music engine variants. You choose **one** of them:
-    -   `/finja-everthing-in-once` → **(Recommended)** Bundles all music sources (TruckersFM, Spotify, etc.) controlled via a comfortable web interface.
+    -   `/finja-everything-in-once` → **(Recommended)** Bundles all music sources (TruckersFM, Spotify, etc.) controlled via a comfortable web interface.
     -   `/finja-music-docker-spotify` → A specific Docker version optimized purely for Spotify.
     -   `/finja-music-standalone` → The classic modular system.
 -   `/finja-Open-Web-UI` → Collection of Docker modules for OpenWebUI (Memory, OCR, Web Crawler, etc.).
@@ -237,13 +237,13 @@ The heart of music recognition.
 1.  Navigate to the `Finja-music/` directory.
 2.  Here you have a choice. **For most users, we recommend the `finja-everthing-in-once` version.**
 3.  Follow the `README.md` in the `finja-everthing-in-once` folder to start the web interface, configure your API keys, and build your song database.
-4.  [➡️ **Instructions for the All-in-One Music Engine**](./Finja-music/finja-everthing-in-once/README.md)
+4.  [➡️ **Instructions for the All-in-One Music Engine**](./Finja-music/finja-everything-in-once/README.md)
 
 ### Step 3: Giving the Voice (Chatbot)
 Now we can set up the primary interface for interaction.
 1.  Navigate to the `finja-chat/` directory.
 2.  Follow the `README.md` there to configure the **OBS Chat Overlay** and the **Bot Control Panel**.
-3.  [➡️ **Instructions for the Chat System**](./finja-chat/README.md)
+3.  [➡️ **Instructions for the Chat System**](./finja-chat/readme.md)
 
 ### Step 4: Connecting the Brain (Neural Network)
 1.  Navigate to the `finja-neural-network/` directory.
