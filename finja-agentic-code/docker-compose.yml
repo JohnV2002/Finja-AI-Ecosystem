@@ -1,0 +1,20 @@
+services:
+  orchestrator:
+    build:
+      context: ./orchestrator
+    container_name: finja-agent-orchestrator
+    ports:
+      - "8077:8077"
+    env_file:
+      - .env
+    environment:
+      JOBS_DIR: /jobs
+      WORKER_IMAGE: ${WORKER_IMAGE:-finja-agent-worker:dev}
+      WORKER_NETWORK: ${WORKER_NETWORK:-none}
+      AGENT_JOBS_HOST_DIR: ${AGENT_JOBS_HOST_DIR}
+      MAX_PARALLEL_JOBS: ${MAX_PARALLEL_JOBS:-2}
+      JOB_TIMEOUT_SECONDS: ${JOB_TIMEOUT_SECONDS:-600}
+    volumes:
+      - ${AGENT_JOBS_HOST_DIR}:/jobs
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped

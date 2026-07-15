@@ -1,0 +1,16 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+#
+# Export your YouTube cookies using a browser extension (e.g. "Get cookies.txt LOCALLY")
+# and save this file as "www.youtube.com_cookies.txt" in the project root.
+#
+# Format: domain  includeSubdomains  path  secure  expiry  name  value
+
+.youtube.com	TRUE	/	FALSE	1813348179	SID	YOUR_SID_VALUE_HERE
+.youtube.com	TRUE	/	TRUE	1813348179	__Secure-1PSID	YOUR_SECURE_1PSID_VALUE_HERE
+.youtube.com	TRUE	/	TRUE	1813348179	__Secure-3PSID	YOUR_SECURE_3PSID_VALUE_HERE
+.youtube.com	TRUE	/	FALSE	1813348179	HSID	YOUR_HSID_VALUE_HERE
+.youtube.com	TRUE	/	TRUE	1813348179	SSID	YOUR_SSID_VALUE_HERE
+.youtube.com	TRUE	/	TRUE	1813348180	LOGIN_INFO	YOUR_LOGIN_INFO_VALUE_HERE
+.youtube.com	TRUE	/	TRUE	1813487659	PREF	f4=4000000&f6=40000000&tz=Europe.Berlin&f7=100

@@ -1,0 +1,8 @@
+pygetwindow
+mss
+rapidocr
+onnxruntime
+psutil
+Pillow
+requests
+python-dotenv

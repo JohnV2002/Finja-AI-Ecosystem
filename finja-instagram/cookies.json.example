@@ -1,0 +1,41 @@
+[
+  {
+    "domain": ".instagram.com",
+    "expirationDate": 1813348178.0,
+    "hostOnly": false,
+    "httpOnly": true,
+    "name": "sessionid",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": true,
+    "session": false,
+    "storeId": "0",
+    "value": "YOUR_SESSION_ID_HERE"
+  },
+  {
+    "domain": ".instagram.com",
+    "expirationDate": 1813348178.0,
+    "hostOnly": false,
+    "httpOnly": false,
+    "name": "ds_user_id",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": true,
+    "session": false,
+    "storeId": "0",
+    "value": "YOUR_USER_ID_HERE"
+  },
+  {
+    "domain": ".instagram.com",
+    "expirationDate": 1813348178.0,
+    "hostOnly": false,
+    "httpOnly": false,
+    "name": "csrftoken",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": true,
+    "session": false,
+    "storeId": "0",
+    "value": "YOUR_CSRF_TOKEN_HERE"
+  }
+]

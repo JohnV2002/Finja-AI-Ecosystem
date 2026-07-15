@@ -144,5 +144,27 @@ def test_memory_stats(client, auth_headers):
     assert "memories_in_ram" in resp.json()
     assert resp.json()["memories_in_ram"] == 1
 
+def test_query_uses_local_vector_ranking_not_latest_only(client, auth_headers):
+    payload = [
+        {
+            "user_id": "rank_user",
+            "text": "Music is an important permanent preference.",
+            "meta": {"importance_score": 1.0},
+        },
+        {
+            "user_id": "rank_user",
+            "text": "Music was mentioned once in passing.",
+            "meta": {"importance_score": 0.0},
+        },
+    ]
+    client.post("/add_memories", headers=auth_headers, json=payload)
+
+    resp = client.get("/get_memories?user_id=rank_user&query=music&limit=1", headers=auth_headers)
+
+    assert resp.status_code == 200
+    memories = resp.json()
+    assert len(memories) == 1
+    assert memories[0]["text"] == "Music is an important permanent preference."
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

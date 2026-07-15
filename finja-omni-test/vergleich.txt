@@ -1,0 +1,13 @@
+============================================================================
+  MODEL COMPARISON  (best accuracy first)
+============================================================================
+Model                Acc%  Text%  Empty%  Err  Avg s  Median   FPS  Total s
+----------------------------------------------------------------------------
+RapidOCR-onnx        98.2  100.0   94.3    0   0.71   0.697  1.41   195.25
+RapidOCR-latin5fast  96.4   97.8   93.2    0   1.76   1.738  0.57   482.73
+----------------------------------------------------------------------------
+
+  -> Best Accuracy: RapidOCR-onnx  (98.2% correct, 0.71 s/Frame)
+  -> Best Speed/Accuracy-Mix: RapidOCR-onnx  (98.2% @ 0.71 s/Frame)
+
+  Legend:  Acc% = all frames correct | Text% = text found if there | Empty% = empty recognized if none there

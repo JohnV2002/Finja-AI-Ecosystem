@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--
+======================================================================
+         Finja Canvas – Frontend
+======================================================================
+
+  Project: Finja - Twitch Interactivity Suite
+  Module:  finja-canvas / index.html
+  Author:  J. Apps (JohnV2002 / Sodakiller1)
+  Version: 1.0.0
+
+----------------------------------------------------------------------
+
+  Copyright (c) 2026 J. Apps
+  Licensed under the MIT License
+
+======================================================================
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pixel Canvas Experiment</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-color: #8b5cf6;
+            /* Fancy purple for the glow */
+            --grid-color: #30363d;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            text-align: center;
+            background: #161b22;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .canvas-container {
+            margin: 20px auto;
+            /* The fancy glowing border around the canvas */
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            overflow: hidden;
+            display: flex;
+        }
+
+        canvas {
+            display: block;
+            background-color: #000;
+        }
+
+        .status {
+            font-size: 0.9rem;
+            color: #8b949e;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <h1>AI Pixel Canvas</h1>
+
+        <div class="canvas-container">
+            <!-- Resolution: 640x640 (We act as if it is a 64x64 grid, where each pixel is 10x10 large) -->
+            <canvas id="pixelCanvas" width="640" height="640"></canvas>
+        </div>
+
+        <p class="status">Status: Waiting for coordinates from the CSV... ⏳</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 64;
+        const pixelSize = canvas.width / gridSize;
+
+        function drawGrid() {
+            ctx.strokeStyle = '#1f2428';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += pixelSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += pixelSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+        }
+
+        function drawPixel(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        }
+
+        // Reads the color.csv and paints the pixels
+        function loadAndDrawColors() {
+            // Fetch gets the CSV file
+            fetch('color.csv')
+                .then(response => response.text())
+                .then(data => {
+                    // color.csv has no header, painter.py just appends lines
+                    const rows = data.split('\n');
+
+                    rows.forEach(row => {
+                        if (row.trim() !== '') {
+                            const [x, y, color] = row.split(',');
+                            drawPixel(parseInt(x), parseInt(y), color.trim());
+                        }
+                    });
+                })
+                .catch(error => console.log("Waiting for color.csv or server is not running...", error));
+        }
+
+        // Draw grid and then poll the CSV every second
+        drawGrid();
+        setInterval(loadAndDrawColors, 1000);
+    </script>
+
+</body>
+
+</html>

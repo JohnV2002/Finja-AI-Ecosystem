@@ -1,0 +1,11 @@
+.env
+.git
+.claude
+.vscode
+__pycache__
+*.pyc
+gallery/
+canvas.csv
+color.csv
+what_to_draw.json
+shape_template.json

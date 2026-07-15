@@ -1,0 +1,142 @@
+# ======================================================================
+#          Finja Instagram Reels – Docker Compose
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-instagram
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.0
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License
+#
+# ----------------------------------------------------------------------
+#
+#   Stack: Gluetun (VPN) + finja-instagram (Chrome + API)
+#   All traffic from finja-instagram is routed through the VPN tunnel.
+#   Kill Switch: if VPN drops → no internet → no IP leaks.
+#
+#   Setup:
+#     1. Copy .env.example to .env and fill in your VPN credentials
+#     2. Copy cookies.json.example to cookies.json and add your cookies
+#     3. docker compose up -d --build
+#     4. docker compose logs -f
+#     5. Verify VPN: curl http://localhost:8061/ip
+#
+# ======================================================================
+
+services:
+  # ---- VPN Gateway (ProtonVPN via Gluetun) ----
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: finja-vpn-instagram
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
+    # Ports defined here because finja-instagram has no own network —
+    # all traffic goes through gluetun, so ports must be mapped here.
+    ports:
+      - "8061:8061"   # Instagram API (for dev/test, remove in production)
+      # - "8000:8000" # Gluetun Control API (optional, debugging only)
+
+    volumes:
+      - gluetun-data:/gluetun
+
+    environment:
+      # ---- ProtonVPN Config ----
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      # Credentials from .env (NEVER hardcode here!)
+      - OPENVPN_USER=${PROTON_USER}
+      - OPENVPN_PASSWORD=${PROTON_PASS}
+      # Server selection
+      - SERVER_COUNTRIES=${VPN_COUNTRY:-Netherlands}
+      # Free tier or Plus? (set to true for free-only servers)
+      - FREE_ONLY=false
+      # ---- Gluetun Settings ----
+      - TZ=Europe/Berlin
+      - UPDATER_PERIOD=24h
+
+    healthcheck:
+      test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---- Instagram Reels Browser + API ----
+  finja-instagram:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finja-instagram
+    restart: unless-stopped
+
+    # THE MAGIC: No own network — everything goes through gluetun!
+    # = built-in kill switch. VPN down → no internet.
+    network_mode: "service:gluetun"
+
+    depends_on:
+      gluetun:
+        condition: service_healthy
+
+    # No ports here! They are defined in the gluetun service above.
+
+    volumes:
+      # Persist Chrome profile (Instagram login cookies!)
+      - chrome-profile:/data/chrome-profile
+      # Instagram cookies (JSON export, injected at startup)
+      - ./cookies.json:/app/cookies.json:ro
+      # Screenshots (optional, for debugging)
+      - ./screenshots:/app/screenshots
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Berlin
+      - INSTAGRAM_API_PORT=8061
+      - CHROME_PORT=9222
+      - INSTAGRAM_TARGET_URL=${INSTAGRAM_TARGET_URL:-about:blank}
+      - FINJA_BRAIN_URL=${FINJA_BRAIN_URL:-http://finja-ai:8051}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+
+    # Security
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource Limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  chrome-profile:
+    name: finja-instagram-chrome-profile
+  gluetun-data:
+    name: finja-instagram-gluetun
+
+# Later: Shared network with Finja Brain
+# Then gluetun needs an additional network for internal communication:
+# networks:
+#   finja-net:
+#     external: true

@@ -1,0 +1,15 @@
+# Secrets — NEVER commit!
+.env
+*.key
+
+# Local Data / Private Screenshots
+captures/
+benchmark_results/
+*.db
+finja_thoughts.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,0 +1,20 @@
+# Finja Instagram Reels - Docker Ignore
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.git/
+.gitignore
+screenshots/
+*.md
+
+# Local launcher and prototype (not needed in container)
+autopilot.py
+startbrowser.py
+
+# Sensitive files — never include in Docker image!
+www.instagram.com_cookies.json
+www.instagram.com_cookies.txt
+*.example
+.env

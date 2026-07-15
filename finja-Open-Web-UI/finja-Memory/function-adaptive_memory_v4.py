@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module: adaptive-memory (OpenWebUI Plugin)
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 4.4.2 (Ollama Payload Switch)
+  Version: 4.4.5 (Ollama Payload Switch)
 
 ----------------------------------------------------------------------
 

@@ -2,29 +2,7 @@
 
 An overview of the remaining features for the Finja Memory Service and the OpenWebUI Plugin.
 
----
 
-## 🟡 Priority 1: Security
-
-### SECURE FILE STORAGE (Encryption)
-
-- **Core idea:** Encrypt user data at rest to protect it from unauthorized access (even by the admin).
-
-- **Approaches:** Server-side (master key or user-specific derived key) vs. Client-side (plugin encrypts before sending).
-
-- **Challenge:** Key management without a user password, protection from admin vs. editability.
-
-### NEED HELP with this!
-
-### Private Memory Lock (Encryption - Part of Priority 1)
-
-- **Application:** Applies to the "Secrets" memory bank.
-
-- **Implementation:** An optional passphrase per user_id is used to encrypt and decrypt memories client-side in the plugin (via AES-GCM). The server only stores the encrypted ciphertext.
-
-### I NEED HELP with this!
-
----
 
 ## 🟡 Priority 0.5: Backups & Better User Feedback
 

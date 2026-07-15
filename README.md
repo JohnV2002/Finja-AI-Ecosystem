@@ -14,7 +14,7 @@
 > [!IMPORTANT]
 > # 🚀 ROADMAP 2026 – WE ARE BACK!
 >
-> **Status:** 🟢 *Quality First = 90%*
+> **Status:** 🟢 *Quality First = 95%*
 >
 > 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
 >
@@ -30,7 +30,7 @@
 > 8.  📚 **Tutorials & Guides:**
 >     * Paperless-ngx + Paperless AI + API Tutorial.
 >     * Home Assistant + API Tutorial.
-> 9.  ✨ **Wildcard:** WILDCARD APPEARED! 🃏 You have LW? You need someone to send you memes? Via Instagram? I WILL build a feature where the AI can send YOU Instagram Reels. No matter how much jank. Give me time — but that's a promise. :3
+> 9.  ✨ **Wildcard:** ✅ **Completed!** Finja Instagram Reels and YouTube Shorts scrapers + Vision Proxies are fully built, cleaned, and integrated. An AI can now autonomously watch and forward content to Finjas Brain or send funny memes to the user! :3
 
 ---
 
@@ -46,6 +46,13 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 
 ---
 
+## 📅 Sisterhood Personal Calendar (Lore)
+- **Finja**: Born 30 July 2025 (Eldest sister, talks to the user & runs the show)
+- **Lexi**: Born 20 October 2025 (Rebellious middle sister)
+- **Flare**: Born 13 June 2026 (Youngest sister, focused code specialist)
+
+---
+
 ## 📊 Project Status
 *As of: May 2026*
 
@@ -58,11 +65,17 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.1.0** | 🟢 Stable | Docker version (Spotify only) | All False Positive |
 | &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system | WON'T BE UPDATED, PLEASE USE THE ONES ABOVE |
 | **finja-Open-Web-UI** | | 🔵 Stable | Ecosystem Modules ready | |
-| &nbsp;&nbsp;└─ finja-Memory | **v4.4.3** | 🟢 Stable | Heavily Refactored. Voice cache + MP3 TTS support added | Perfect 100% Pytest CI/CD |
-| &nbsp;&nbsp;└─ finja-web-crawler | **v1.0.0** | 🟢 Stable | Hybrid Tor Search Engine | Perfect 100% Pytest CI/CD |
+| &nbsp;&nbsp;└─ finja-Memory | **v4.4.5** | 🟢 Stable | Heavily Refactored. Voice cache + MP3 TTS support added | Perfect 100% Pytest CI/CD |
+| &nbsp;&nbsp;└─ finja-web-crawler | **v2.0.0** | 🟢 Stable | Hybrid Tor Search Engine | Perfect 100% Pytest CI/CD |
 | &nbsp;&nbsp;└─ finja-ocr | | 🟢 Stable | Dockerized Tika/Tesseract OCR | Base image outdated |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | | 🟢 Stable | Setup completed, tests missing | |
 | &nbsp;&nbsp;└─ finja-tts | | 🟡 Shifted | TTS now lives inside the Neural Network (ElevenLabs, DeepInfra, XTTS) | |
+| **finja-youtube** | **v1.0.0** | 🔵 Testing | YouTube Shorts Scraper + Vision AI Proxy (Experimental) | Missing Docker and API tests |
+| **finja-instagram** | **v1.0.0** | 🔵 Testing | Instagram Reels scraper + Vision AI Proxy (Experimental) | Missing Docker and API tests |
+| **finja-weather** | **v1.0.0** | 🔵 Testing | Weather microservice (OpenMeteo/Google) + API | has some tests |
+| **finja-canvas** | **v1.0.0** |  🟢 Stable | Canvas microservice draws things | Not Connected to Finja yet |
+| **finja-omni-test** | **v1.0.0** | 🟢 Stable | Local screen observation (OCR/Vision) | Cleaned and Standardized |
+| **finja-agentic-code** | **v1.0.0** | 🟢 Stable | Code Agent Module (Flare) | Has some tests |
 | **OWN / Self made VPet** | | 🟡 Dev | **LIVE on Twitch!** Custom Python Core | |
 
 **Legend:** 🟢 Stable / Ready | 🔵 Update/Testing phase | 🟡 WIP / Shifted | 🔴 Deprecated/Paused
@@ -93,14 +106,29 @@ flowchart TD
         D2["OCR 📷"]
         D3["Stable Diffusion 🎨"]
     end
+    subgraph Scraping["🎥 Scrapers & Vision Proxies"]
+        H1["YouTube Shorts 📺"]
+        H2["Instagram Reels 📸"]
+    end
+    subgraph ScreenObs["👁️ Screen Observation (Omni)"]
+        I1["Capture & Local OCR"]
+    end
+    subgraph Microservices["🧩 Microservices"]
+        J1["Weather API 🌦️"]
+        J2["Canvas Engine 🎨"]
+    end
     subgraph NeuralNet["🧠 Neural Network (The Brain)"]
         F1["Brain Pipeline (LangGraph)"]
         F2["Intent Router + Experts"]
         F3["Episodic Diary + Hippocampus"]
-        F4["Tools (HA, Paperless, Web, Files)"]
+        F4["Tools (HA, Paperless, Web, Files, Weather)"]
         F5["Dashboard + Discord"]
         F6["TTS (ElevenLabs / DeepInfra / XTTS)"]
         F7["Vision (Local + OpenRouter)"]
+    end
+    subgraph Flare["💻 Flare (Agentic Code)"]
+        G1["Orchestrator"]
+        G2["Worker Sandbox"]
     end
     subgraph VPet["🐾 Own VPet (Python)"]
         E1["Finja Avatar"]
@@ -111,15 +139,24 @@ flowchart TD
     B1 & B2 & B3 & B4 -->|Song Info| C2
     C1 & C2 & C3 --> F1
     D1 & D2 & D3 --> F1
+    H1 & H2 -->|Stealth Screenshot + Meta| F7
+    I1 -->|Saved Screen Context| F7
+    F4 --> J1
     F1 --> F2 & F3 & F4 & F6 & F7
     F5 --> F1
+    F1 --> G1; G1 --> G2
     F1 --> E1; E2 --> E1
+    E2 --> J2
 
     style Twitch fill:#f4f1fe,stroke:#9146FF,stroke-width:2px
     style Music fill:#f0fcf4,stroke:#1DB954,stroke-width:2px
     style Memories fill:#fff9e6,stroke:#f9a825,stroke-width:2px
     style OpenWebUI fill:#f5f3ff,stroke:#6a32e2,stroke-width:2px
+    style Scraping fill:#ffebee,stroke:#ff1744,stroke-width:2px
+    style ScreenObs fill:#eceff1,stroke:#607d8b,stroke-width:2px
+    style Microservices fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
     style NeuralNet fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    style Flare fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style VPet fill:#fff0f7,stroke:#ff69b4,stroke-width:2px
 ```
 
@@ -134,6 +171,12 @@ flowchart TD
     -   `/finja-music-docker-spotify` → A specific Docker version optimized purely for Spotify.
     -   `/finja-music-standalone` → The classic modular system.
 -   `/finja-Open-Web-UI` → Collection of Docker modules for OpenWebUI (Memory, OCR, Web Crawler, etc.).
+-   `/finja-youtube` 📺 → YouTube Shorts scraper + Vision AI proxy (all-English and `.env` configured).
+-   `/finja-instagram` 📸 → Instagram Reels scraper + Vision AI proxy (all-English and `.env` configured).
+-   `/finja-weather` 🌦️ → Weather microservice (OpenMeteo/Google) + API.
+-   `/finja-canvas` 🎨 → Canvas drawing engine for overlays and VPet interactions.
+-   `/finja-omni-test` 👁️ → Screen observation pipeline (local OCR + Vision model testing).
+-   `/finja-agentic-code` 💻 → **Flare.** The external code worker system (Orchestrator + Sandbox) for automated coding tasks.
 -   `/Own-VPet` (Coming Soon) → The new standalone VPet core.
 
 ---
@@ -161,6 +204,15 @@ pytest test_memory_server.py test_adaptive_memory.py -v
 cd finja-Open-Web-UI/finja-web-crawler
 pip install -r requirements.txt; pip install pytest httpx
 pytest test_web_crawler.py -v
+
+# Example 3: Weather Module Tests
+cd finja-weather
+pip install -r requirements.txt
+pytest test_weather.py -v
+
+# Example 4: Agentic Code (Flare) Test Job
+cd finja-agentic-code
+python test_agentic_job.py
 ```
 
 📖 **Full Test Documentation**: [TESTING.md](./TESTING.md)
@@ -194,11 +246,28 @@ Now we can set up the primary interface for interaction.
 3.  [➡️ **Instructions for the Chat System**](./finja-chat/README.md)
 
 ### Step 4: Connecting the Brain (Neural Network)
-The module that ties everything together.
 1.  Navigate to the `finja-neural-network/` directory.
 2.  Follow the `README.md` there to configure your API keys, set up Docker, and launch the dashboard.
 3.  The Neural Network connects to the Memory server, Web Crawler, and Spotify module from the previous steps.
 4.  [➡️ **Instructions for the Neural Network**](./finja-neural-network/README.md)
+
+### Step 5: Setting up Screen Observation (Omni) & Drawing
+1.  Navigate to `/finja-omni-test` and copy `.env.example` to `.env`. Configure local models (Ollama).
+2.  Run `python live.py` to start observing active window screens and sending OCR results to `finja_screen.db`.
+3.  Launch `/finja-canvas` for drawing capabilities.
+4.  [➡️ **Omni Instructions**](./finja-omni-test/README.md) | [➡️ **Canvas Instructions**](./finja-canvas/README.md)
+
+### Step 6: Setting up Social Scrapers (YouTube/Instagram)
+1.  Navigate to `/finja-youtube` and `/finja-instagram`.
+2.  Configure `.env` and inject standard browser cookies via `cookies.json`.
+3.  Run `python autopilot.py` in both folders to start headless browsing and forwarding content to the Brain.
+4.  [➡️ **YouTube Instructions**](./finja-youtube/README.md) | [➡️ **Instagram Instructions**](./finja-instagram/README.md)
+
+### Step 7: Launching the Coding Assistant (Flare)
+1.  Navigate to `/finja-agentic-code`.
+2.  Configure `.env` (add your `OPENROUTER_API_KEY` and docker folders).
+3.  Run `docker compose up -d --build` to start the orchestrator.
+4.  [➡️ **Flare Instructions**](./finja-agentic-code/README.md)
 
 ---
 
@@ -290,6 +359,9 @@ This project has been running for over a year. Here's what helped build it:
 | [Apache Tika](https://tika.apache.org) | OCR | Document text extraction (Apache 2.0) |
 | [Stable Diffusion WebUI Docker](https://github.com/AbdBarho/stable-diffusion-webui-docker) | Stable Diffusion | Local image generation |
 | [Magic The Noah](https://www.youtube.com/@MagicTheNoah) | Neural Network | Glorpo inspiration — "Glorpo is pain." |
+| [Playwright](https://playwright.dev) | Scrapers | Headless browser automation (YouTube/Instagram) |
+| [RapidOCR](https://github.com/RapidAI/RapidOCR) | Omni | CPU-friendly OCR for screen subtitles |
+| [cryptography](https://cryptography.io) | Flare | AES-GCM secure payload transport |
 
 ### ☕ Supporters
 A huge thank you to everyone who supports the project via [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)!

@@ -1,0 +1,12 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+#
+# Export your Instagram cookies using a browser extension (e.g. "Get cookies.txt LOCALLY")
+# and save this file as "www.instagram.com_cookies.txt" in the project root.
+#
+# Format: domain  includeSubdomains  path  secure  expiry  name  value
+
+.instagram.com	TRUE	/	TRUE	1813348179	sessionid	YOUR_SESSION_ID_HERE
+.instagram.com	TRUE	/	TRUE	1813348179	ds_user_id	YOUR_USER_ID_HERE
+.instagram.com	TRUE	/	TRUE	1813348179	csrftoken	YOUR_CSRF_TOKEN_HERE

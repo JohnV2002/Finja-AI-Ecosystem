@@ -1,0 +1,33 @@
+# ======================================================================
+#          Finja Weather API – Docker Compose
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-weather
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.0
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License
+#
+# ----------------------------------------------------------------------
+#
+#   Stateless weather microservice.
+#   Port 8095 -> container 80.
+#
+# ======================================================================
+
+services:
+  weather:
+    build: .
+    container_name: finja_weather
+    ports:
+      - "8095:80"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - WEATHER_PROVIDER=${WEATHER_PROVIDER:-open-meteo}

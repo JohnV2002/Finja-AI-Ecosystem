@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-cloud-memory
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 4.4.2
+#   Version: 4.4.5
 #
 # ----------------------------------------------------------------------
 #
@@ -43,7 +43,7 @@ services:
       - ./backups:/app/backups
     # Forward host port 8000 to container port 8000
     ports:
-      - "8000:8000"
+      - "8007:8000"
     # Run as host user to avoid permission issues on Linux
     user: "${UID:-1000}:${GID:-1000}"
     # Auto-restart unless manually stopped

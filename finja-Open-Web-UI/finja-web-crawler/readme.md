@@ -1,4 +1,4 @@
-# 🌐 Web Crawler API
+# 🌐 Finja Web Crawler v2.0.0
 
 A streamlined, fast, and secure web crawler that sends search queries anonymously via **DuckDuckGo (DDGS)** over **Tor** —  
 and automatically falls back to **Google HTML scraping** if too few results are found.  
@@ -18,10 +18,20 @@ Perfect as an **external web search service for Open WebUI**. 🕵️‍♀️�
 
 ---
 
+## 🆕 Updates & Changelog (v2.0.0)
+
+* **🐳 Custom Tor Sidecar (`Dockerfile.tor`):** Replaced the third-party `dperson/torproxy` image with a self-built, minimal Alpine + Tor container. Full control over the Tor configuration via a local `torrc` file, runs as unprivileged `tor` user, and weighs only ~15 MB.
+* **⚙️ Custom `torrc` Configuration:** New `torrc` config file included in the repository. Configure SOCKS port, logging, data directory, and client-only mode directly — no more black-box third-party images.
+* **🔒 Security Hardened:** Both the crawler container (`appuser`) and the Tor sidecar (`tor` user) now run as non-root for defense in depth.
+* **📦 Updated `docker-compose.yml`:** The `tor` service now builds from `Dockerfile.tor` instead of pulling an external image, keeping the entire stack self-contained and reproducible.
+
+---
+
 ## ✨ Features
 
 - **Hybrid Search**: DuckDuckGo (`ddgs`) via **Tor** first → if too few hits: **Google Fallback**
 - **Wikipedia Fallback**: If nothing is found at all → `https://en.wikipedia.org/wiki/Tabby_cat`
+- **Custom Tor Proxy**: Self-built Alpine Tor SOCKS5 sidecar — no third-party images required
 - **API Server (FastAPI)**: JSON Endpoint `POST /search`
 - **Randomized User-Agents** per request (makes blocking harder)
 - **Access Protection** via **Bearer Token** (from `.env`, mandatory for Open WebUI)
@@ -33,12 +43,17 @@ Perfect as an **external web search service for Open WebUI**. 🕵️‍♀️�
 
 ## 📁 Project Structure
 
-- `.env` → contains your secret `BEARER_TOKEN`
-- `docker-compose.yml`
-- `Dockerfile`
-- `requirements.txt`
-- `main.py` → the active hybrid crawler (Tor + DDGS + Google Fallback)
-- `generate_token.py` → Token generator (optional; only used to generate tokens)
+| File | Description |
+|------|-------------|
+| `.env` | Contains your secret `BEARER_TOKEN` |
+| `docker-compose.yml` | Orchestrates the crawler + Tor sidecar |
+| `Dockerfile` | Multi-stage build for the crawler API (Python/FastAPI) |
+| `Dockerfile.tor` | **NEW** — Custom Alpine-based Tor SOCKS5 proxy sidecar |
+| `torrc` | **NEW** — Tor daemon configuration (see section below) |
+| `requirements.txt` | Python dependencies |
+| `main.py` | The active hybrid crawler (Tor + DDGS + Google Fallback) |
+| `generate_token.py` | Token generator (optional; only used to generate tokens) |
+| `test_web_crawler.py` | Pytest test suite |
 
 ---
 
@@ -64,8 +79,79 @@ BEARER_TOKEN=my-secure-super-token
 ```bash
 docker compose up --build -d
 ```
+This builds **both** containers:
+- **`tor`** — the custom Tor SOCKS5 proxy from `Dockerfile.tor`
+- **`search-proxy`** — the FastAPI crawler from `Dockerfile`
+
 The API is now available at `http://127.0.0.1:8080` (depending on the port mapping in `docker-compose.yml`).
-**Note:** On the first start, it may take a moment for the Tor service to fully initialize.
+**Note:** On the first start, it may take a moment for the Tor service to fully initialize and establish a circuit.
+
+---
+
+## ⚙️ The `torrc` Configuration File
+
+The `torrc` file controls how the Tor daemon behaves inside the sidecar container. It is copied into the image at build time (`COPY torrc /etc/tor/torrc`).
+
+### Default Configuration
+
+```ini
+SocksPort 0.0.0.0:9050    # Listen on all interfaces (required for Docker networking)
+Log notice stdout          # Log notices to stdout (visible via docker logs)
+DataDirectory /var/lib/tor # Where Tor stores its state (consensus, keys, etc.)
+ClientOnly 1               # Never act as a relay or exit node — client mode only
+```
+
+### What each option does
+
+| Option | Description |
+|--------|-------------|
+| `SocksPort 0.0.0.0:9050` | Opens a SOCKS5 proxy on port 9050. The `0.0.0.0` binding is necessary so the crawler container can reach the Tor proxy via Docker's internal network. |
+| `Log notice stdout` | Sends Tor log messages (notice level) to stdout. This makes logs visible via `docker logs tor` for easy debugging. |
+| `DataDirectory /var/lib/tor` | The directory where Tor stores its cached network consensus, keys, and circuit state. This is the default Alpine location. |
+| `ClientOnly 1` | **Important!** Ensures the Tor instance only acts as a client and will **never** become a relay or exit node. This is a critical safety measure. |
+
+### Customizing `torrc`
+
+You can add additional options to `torrc` before building the container. Some useful ones:
+
+```ini
+# Use specific exit nodes (e.g., only German exits)
+ExitNodes {de}
+StrictNodes 1
+
+# Increase circuit timeout for slow networks
+CircuitBuildTimeout 30
+
+# Disable fetching directory info you don't need
+FetchUselessDescriptors 0
+```
+
+> ⚠️ After editing `torrc`, you **must rebuild** the container for changes to take effect:
+> ```bash
+> docker compose up --build -d
+> ```
+
+---
+
+## 🐳 The `Dockerfile.tor` (Tor Sidecar)
+
+The `Dockerfile.tor` builds a minimal Tor SOCKS5 proxy container. It replaces the previously used third-party `dperson/torproxy` image with a self-built alternative.
+
+### Why a custom Tor image?
+- **Full control** over the Tor version and configuration
+- **No third-party dependency** — you know exactly what's running
+- **Minimal size** (~15 MB) — just Alpine + Tor, nothing else
+- **Security hardened** — runs as the unprivileged `tor` user
+
+### How it works
+1. Starts from `alpine:3.22` (tiny base image)
+2. Installs the `tor` package via `apk`
+3. Copies your local `torrc` into the image
+4. Switches to the `tor` user (non-root)
+5. Exposes port `9050` (SOCKS5 proxy)
+6. Runs `tor -f /etc/tor/torrc` on startup
+
+The crawler container (`search-proxy`) connects to this sidecar via `socks5h://tor:9050` using Docker's internal DNS resolution.
 
 ---
 
@@ -134,14 +220,19 @@ Content-Type: application/json
 - For public operations: Use a **Reverse Proxy** with additional authentication and rate-limiting.
 - The Google fallback is a **risk**. Captchas or IP bans are possible.
 - **User-Agent rotation** is active, but does not reduce legal risks.
+- Both containers run as **non-root users** (`appuser` / `tor`) for defense in depth.
 
 ---
 
 ## 🧰 Troubleshooting
 
-- **401 Unauthorized**: The `Authorization: Bearer <YOUR_TOKEN>` header is missing or incorrect.
-- **Slow / No Results**: Give Tor some time after startup. DDG/Google can still throttle or block you.
-- **Port Conflicts**: Check the port mapping in `docker-compose.yml`. The app itself listens on port `80` inside the container.
+| Problem | Solution |
+|---------|----------|
+| **401 Unauthorized** | The `Authorization: Bearer <YOUR_TOKEN>` header is missing or incorrect. |
+| **Slow / No Results** | Give Tor some time after startup to build circuits. DDG/Google can still throttle or block you. |
+| **Port Conflicts** | Check the port mapping in `docker-compose.yml`. The app listens on port `80` inside the container, Tor on `9050`. |
+| **Tor not connecting** | Run `docker logs tor` to check for errors in the torrc config. |
+| **Changes to torrc not applied** | You must rebuild: `docker compose up --build -d` |
 
 ---
 

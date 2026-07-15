@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v4.4.3
+# 📚 Finja Cloud Memory v4.4.5 
 
 A lightweight, lightning-fast external **Memory Service** acting as long-term memory for AI projects like Finja. This system is designed for seamless integration with **OpenWebUI** via the `adaptive_memory_v4` Plugin.
 
@@ -28,12 +28,13 @@ docker-compose up -d --build
 ```
 ---
 
-## 🆕 Updates & Changelog
 
-### v4.4.3
-* **TTS Cache MP3 Support:** The `/upload_tts_cache` endpoint now accepts both MP3 and WAV files, detecting the format from the uploaded filename. Old WAV cache entries are automatically replaced when an MP3 version is uploaded. Retrieval via `/get_tts_audio` prefers MP3 over WAV (legacy fallback). Correct MIME types (`audio/mpeg` for MP3, `audio/wav` for WAV) are served.
+## 🆕 Updates & Changelog (v4.4.5)
 
-### v4.4.2
+* **🔐 Encryption at Rest (`encrypt_memory_at_rest.py`):** New standalone utility to encrypt all user memory JSON files at rest using AES-256-GCM. Supports key rotation (re-encrypts already-encrypted files), validates JSON integrity before writing, and provides a clear OK/FAIL summary. Just set `FINJA_DATA_ENCRYPTION_KEY` in your `.env` and run the script.
+* **TTS Cache Hash Normalization:** Text is now normalized (leftover markdown stripped, whitespace collapsed) before hashing in `/upload_tts_cache` and `/get_tts_audio`. Trivial formatting differences no longer cause avoidable cache misses.
+* **Provider-Scoped TTS Cache:** `/upload_tts_cache` and `/get_tts_audio` now require a `provider` field (e.g. `"chatterbox"`, `"elevenlabs"`). Switching TTS providers no longer serves stale audio from a different engine.
+* **TTS Cache MP3 Support:** Upload endpoint accepts both MP3 and WAV, auto-detects format. Old WAV entries are replaced when an MP3 version is uploaded. Retrieval prefers MP3 over WAV (legacy).
 * **Massive SonarQube Refactoring:** Greatly reduced cognitive complexity across the plugin. Monolithic functions have been broken down into single-purpose helper methods for enhanced maintainability.
 * **Comprehensive Test Suite Added:** Introduced a full `pytest` test suite (`test_memory_server.py` and `test_adaptive_memory.py`) to verify both FastAPI endpoints and internal OpenWebUI Plugin logic. Ready for GitHub Actions CI!
 * **True TTS Network Caching:** Fully integrated robust `/upload_tts_cache` and `/get_tts_audio` endpoints, replacing previous placeholder logic. The server now natively accepts generated audio files (e.g., `.wav`) from OpenWebUI and streams them back instantaneously to clients, functioning as a real caching layer to save precious generation time.
@@ -48,6 +49,7 @@ docker-compose up -d --build
 ### Server (`memory-server.py`)
 -   **Intelligent RAM Cache:** Keeps active user data in memory for lightning-fast reads and automatically frees memory after a period of inactivity.
 -   **Persistent Storage:** Saves all memories as portable JSON files per user inside a Docker volume.
+-   **🔐 Encryption at Rest:** Optional AES-256-GCM encryption for all stored memory files via `encrypt_memory_at_rest.py`. Supports key rotation and validates JSON integrity before writing.
 -   **Voice-Memory Scaffold:** Provides API endpoints for accepting voice files (`/add_voice_memory`) and caching voice output (`/get_or_create_speech`), prepared for STT/TTS models.
 -   **Data Control:** Includes an API endpoint (`/delete_user_memories`) allowing the plugin to securely and completely delete all of a user's data upon request.
 -   **Security:** Access is secured via an `X-API-Key` defined in a `.env` file.

@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-web-crawler
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 2.0.0
 #
 # ----------------------------------------------------------------------
 #
@@ -14,10 +14,11 @@
 #
 # ======================================================================
 
-version: '3.8'
 services:
   tor:
-    image: dperson/torproxy
+    build:
+      context: .
+      dockerfile: Dockerfile.tor
     container_name: tor
     ports:
       - "9050:9050"

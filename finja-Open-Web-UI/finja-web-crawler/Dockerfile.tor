@@ -1,0 +1,45 @@
+# ======================================================================
+#          Finja Web Crawler – Tor Sidecar (Dockerfile.tor)
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-web-crawler / tor-proxy
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 2.0.0
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the Apache License 2.0
+#
+# ----------------------------------------------------------------------
+#
+#   Description:
+#     Minimal Alpine-based Tor SOCKS5 proxy sidecar container.
+#     Replaces the previous third-party "dperson/torproxy" image
+#     with a self-built, lightweight alternative for full control
+#     over the Tor configuration and faster startup.
+#
+#   Configuration:
+#     The container loads its Tor settings from a local "torrc" file
+#     that is copied into the image at build time. See the torrc
+#     file in this repository for all available options.
+#
+#   ✨ New in 2.0.0:
+#     • Replaced dperson/torproxy with custom Alpine + Tor build
+#     • Custom torrc config for full control over Tor behaviour
+#     • Runs as unprivileged "tor" user (security hardened)
+#     • Minimal image size (~15 MB)
+#
+# ======================================================================
+
+FROM alpine:3.22
+
+RUN apk add --no-cache tor
+
+COPY torrc /etc/tor/torrc
+
+USER tor
+EXPOSE 9050
+
+CMD ["tor", "-f", "/etc/tor/torrc"]
