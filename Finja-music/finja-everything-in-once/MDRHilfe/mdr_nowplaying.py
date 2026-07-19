@@ -5,7 +5,7 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0 (MDR Module)
+  Version: 1.2.0 (MDR Module)
 
   ✨ New in 1.1.0:
     • Complete English documentation with docstrings

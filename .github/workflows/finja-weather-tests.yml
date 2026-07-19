@@ -42,7 +42,10 @@ jobs:
         working-directory: ./finja-weather
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-mock pyyaml
+          # httpx2: recent Starlette releases require this for TestClient
+          # (fastapi.testclient raises RuntimeError without it -- httpx
+          # alone is no longer enough).
+          pip install pytest pytest-cov pytest-mock pyyaml httpx2
           pip install -r requirements.txt
 
       - name: Run API tests

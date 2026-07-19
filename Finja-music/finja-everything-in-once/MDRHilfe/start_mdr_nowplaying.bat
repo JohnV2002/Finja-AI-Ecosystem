@@ -5,7 +5,7 @@
 @REM
 @REM   Project: Finja - Twitch Interactivity Suite
 @REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-@REM   Version: 1.1.0 (MDR Module)
+@REM   Version: 1.2.0 (MDR Module)
 @REM
 @REM   Description: Starts the Python crawler (mdr_nowplaying.py) that fetches
 @REM                the currently playing song from MDR Sachsen-Anhalt.

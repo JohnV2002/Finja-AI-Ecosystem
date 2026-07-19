@@ -7,10 +7,16 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-everything-in-one
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
   Description: Central web server and control hub for all music modules.
 
-  ✨ New in 1.1.0:
+  ✨ New in 1.2.0:
+    • Version number aligned with the rest of the finja-music module
+      (2026-07-20) -- no functional changes in this file specifically;
+      the /cmd/sleep|wake|auto backend this file exposes was confirmed
+      still fully wired to the restored Sleep Control panel in Musik.html
+
+  📜 Changelog 1.1.0:
     • Complete English translation of all code and documentation
     • Comprehensive docstrings for all 63+ functions and 10+ classes
     • Full type hints for better IDE support and code safety

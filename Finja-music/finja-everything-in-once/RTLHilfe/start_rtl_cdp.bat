@@ -6,7 +6,7 @@ REM
 REM   Project: Finja - Twitch Interactivity Suite
 REM   Module: RTL Helper - Browser Automation
 REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-REM   Version: 1.1.0
+REM   Version: 1.2.0
 REM   Description: Launches Chrome with CDP and starts RTL now-playing scraper
 REM
 REM   Features:

@@ -4,9 +4,18 @@
 <!--                                                                        -->
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
 <!--   Author: J. Apps (JohnV2002 / Sodakiller1)                            -->
-<!--   Version: 1.1.0                                                       -->
+<!--   Version: 1.2.0                                                       -->
 <!--                                                                        -->
-<!--   ✨ New in 1.1.0:                                                     -->
+<!--   ✨ New in 1.2.0:                                                     -->
+<!--     • Restored the Sleep Control panel (sleep/wake/auto) that this     -->
+<!--       GitHub revision was missing -- the /cmd/sleep|wake|auto backend  -->
+<!--       in webserver.py was still fully implemented, only this button   -->
+<!--       panel had been dropped                                          -->
+<!--     • Fixed a label typo: "Activate RTL 98.0" -> "Activate RTL 89.0"  -->
+<!--       (digits transposed; 89.0 is the station's actual name, matches  -->
+<!--       RTLHilfe/*)                                                     -->
+<!--                                                                        -->
+<!--   📜 Changelog 1.1.0:                                                  -->
 <!--     • Complete English documentation                                   -->
 <!--     • All comments and UI text translated to English                   -->
 <!--     • Added copyright header                                           -->
@@ -29,107 +38,107 @@
     /* ===========================================
        Base Styles
        =========================================== */
-    body { 
-      font-family: system-ui, sans-serif; 
-      background-color: #1f1f1f; 
-      color: #fff; 
-      text-align: center; 
-      padding: 20px; 
+    body {
+      font-family: system-ui, sans-serif;
+      background-color: #1f1f1f;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
     }
 
-    h1, h2 { 
-      color: #a07aff; 
+    h1, h2 {
+      color: #a07aff;
     }
 
-    h2 { 
-      border-top: 1px solid #444; 
-      padding-top: 25px; 
-      margin-top: 30px; 
+    h2 {
+      border-top: 1px solid #444;
+      padding-top: 25px;
+      margin-top: 30px;
     }
 
-    p { 
-      color: #ccc; 
+    p {
+      color: #ccc;
     }
 
-    .container { 
-      max-width: 600px; 
-      margin: 0 auto; 
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     /* ===========================================
        Button Group Layout
        =========================================== */
-    .button-group { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 15px; 
-      margin-top: 20px; 
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
     }
 
     button {
-      border: none; 
-      padding: 12px 24px; 
-      font-size: 16px; 
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
       font-weight: bold;
-      border-radius: 10px; 
-      cursor: pointer; 
-      transition: all 0.2s; 
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
       width: 80%;
     }
 
-    button:hover { 
-      transform: scale(1.03); 
+    button:hover {
+      transform: scale(1.03);
     }
 
     /* ===========================================
        Source Buttons (Music Sources)
        =========================================== */
-    .btn-source { 
-      background-color: #76f7ff; 
-      color: #1f1f1f; 
+    .btn-source {
+      background-color: #76f7ff;
+      color: #1f1f1f;
     }
 
-    .btn-source.active { 
-      background-color: #a07aff; 
-      color: #000000; 
+    .btn-source.active {
+      background-color: #a07aff;
+      color: #000000;
     }
 
-    .btn-deactivate { 
-      background-color: #ff7a7a; 
-      color: #000000; 
-      margin-top: 5px; 
+    .btn-deactivate {
+      background-color: #ff7a7a;
+      color: #000000;
+      margin-top: 5px;
     }
 
     /* ===========================================
        Helper Script Buttons
        =========================================== */
-    .btn-helper { 
-      background-color: #4a4a4a; 
-      color: #fff; 
-      border: 1px solid #666; 
+    .btn-helper {
+      background-color: #4a4a4a;
+      color: #fff;
+      border: 1px solid #666;
     }
 
-    .btn-helper:hover { 
-      background-color: #5a5a5a; 
+    .btn-helper:hover {
+      background-color: #5a5a5a;
     }
 
     /* ===========================================
        Status Display
        =========================================== */
-    #status { 
-      margin-top: 25px; 
-      min-height: 20px; 
-      font-style: italic; 
-      color: #88ff88; 
+    #status {
+      margin-top: 25px;
+      min-height: 20px;
+      font-style: italic;
+      color: #88ff88;
     }
 
     /* ===========================================
        Disabled Button States
        =========================================== */
-    .btn-disabled { 
-      opacity: 0.5; 
-      cursor: not-allowed; 
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     /* RTL Button - Disabled (Red) */
@@ -206,6 +215,25 @@
     </div>
 
     <!-- ===========================================
+         Sleep Control Section
+         =========================================== -->
+    <div style="margin: 20px; padding: 15px; border: 2px solid #5865F2; border-radius: 10px; background: rgba(0,0,0,0.5); color: white;">
+      <h3>🦊 Finja Sleep Control</h3>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="handleSleepCommand('sleep')" style="background: #e74c3c; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+          💤 SLEEP
+        </button>
+        <button onclick="handleSleepCommand('wake')" style="background: #2ecc71; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+          ☀️ WAKE UP
+        </button>
+        <button onclick="handleSleepCommand('auto')" style="background: #3498db; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+          🕒 AUTO (Time)
+        </button>
+      </div>
+      <p id="status_msg" style="margin-top: 10px; font-size: 0.9em; color: #ccc;"></p>
+    </div>
+
+    <!-- ===========================================
          Database & Helper Scripts Section
          =========================================== -->
     <h2>Database & Helper Scripts</h2>
@@ -235,19 +263,19 @@
     // ===========================================
     // DOM References & State
     // ===========================================
-    
+
     const statusElement = document.getElementById('status');
-    
+
     // Track currently active music source
     let activeSource = null;
-    
+
     // Track whether RTL browser has been started (required before activating RTL source)
     let rtlBrowserStarted = false;
 
     // ===========================================
     // Music Source Control Functions
     // ===========================================
-    
+
     /**
      * Handle click on a music source button
      * @param {string} sourceName - Name of the source (truckersfm, spotify, rtl, mdr)
@@ -274,7 +302,7 @@
      */
     function updateSourceButtons(sourceName) {
       activeSource = sourceName;
-      
+
       // Remove old deactivate button if present
       const oldDeactivateBtn = document.getElementById('btn-deactivate');
       if (oldDeactivateBtn) {
@@ -286,7 +314,7 @@
         btn.classList.remove('active');
         btn.textContent = btn.textContent.replace('Restart', 'Activate');
       });
-      
+
       if (sourceName) {
         // Mark active button and change text to "Restart"
         const activeButton = document.getElementById(`btn-${sourceName}`);
@@ -304,10 +332,29 @@
     }
 
     // ===========================================
+    // Sleep Control Function
+    // ===========================================
+
+    /**
+     * Handle sleep control commands
+     * @param {string} mode - 'sleep', 'wake', or 'auto'
+     */
+    async function handleSleepCommand(mode) {
+      let msg = 'Sending command...';
+
+      if (mode === 'sleep') msg = 'Sending Finja to bed... 💤';
+      if (mode === 'wake') msg = 'Waking Finja up... ☀️';
+      if (mode === 'auto') msg = 'Activating auto time mode... 🕒';
+
+      // Reuses the existing sendCommand function -- builds /cmd/sleep, /cmd/wake, /cmd/auto
+      await sendCommand('/cmd/' + mode, msg);
+    }
+
+    // ===========================================
     // Helper Script Handlers (Individual Functions)
     // Extracted to reduce cognitive complexity
     // ===========================================
-    
+
     /**
      * Handle artist review - opens new tab
      */
@@ -330,7 +377,7 @@
      */
     async function handleRtlBrowserStart() {
       statusElement.textContent = 'Starting RTL browser (Chrome)...';
-      
+
       try {
         const response = await fetch('/run/rtl_start_browser');
         const result = await response.json();
@@ -338,7 +385,7 @@
         if (result.success) {
           statusElement.textContent = `Success: ${result.message}`;
           rtlBrowserStarted = true;
-          
+
           const rtlButton = document.getElementById('btn-rtl');
           rtlButton.disabled = false;
           rtlButton.textContent = 'Activate RTL 89.0';
@@ -357,7 +404,7 @@
      */
     async function handleRepeatCounter() {
       statusElement.textContent = 'Starting RTL repeat counter...';
-      
+
       try {
         const response = await fetch('/run/gimick_repeat_counter');
         const result = await response.json();
@@ -378,14 +425,14 @@
      */
     async function handleMdrStart() {
       statusElement.textContent = 'Starting MDR NowPlaying (XML/HTML/ICY)...';
-      
+
       try {
         const response = await fetch('/run/start_mdr');
         const result = await response.json();
 
         if (result.success) {
           statusElement.textContent = `Success: ${result.message}`;
-          
+
           const mdrButton = document.getElementById('btn-mdr');
           mdrButton.disabled = false;
           mdrButton.textContent = 'Activate MDR';
@@ -403,7 +450,7 @@
     // Helper Script Router
     // Maps script names to their handlers
     // ===========================================
-    
+
     /**
      * Map of script names to their handler functions
      */
@@ -423,12 +470,12 @@
     async function runHelper(scriptName) {
       // Check if there's a specific handler for this script
       const handler = helperHandlers[scriptName];
-      
+
       if (handler) {
         await handler();
         return;
       }
-      
+
       // Default handling for scripts without specific handlers
       await sendCommand(`/run/${scriptName}`, `Running helper script '${scriptName}'...`);
     }
@@ -436,7 +483,7 @@
     // ===========================================
     // General Command Function
     // ===========================================
-    
+
     /**
      * Send a command to the server
      * @param {string} endpoint - API endpoint to call
@@ -444,14 +491,14 @@
      */
     async function sendCommand(endpoint, loadingMessage) {
       statusElement.textContent = loadingMessage;
-      
+
       try {
         const response = await fetch(endpoint);
         const result = await response.json();
 
         if (result.success) {
           statusElement.textContent = `Success: ${result.message}`;
-          
+
           // Update button state only for source actions
           if (endpoint.startsWith('/activate/')) {
             updateSourceButtons(endpoint.split('/')[2]);

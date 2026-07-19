@@ -10,7 +10,7 @@ REM
 REM    Project: Finja - Twitch Interactivity Suite
 REM    Module: finja-everything-in-one
 REM    Author: J. Apps (JohnV2002 / Sodakiller1)
-REM    Version: 1.1.0
+REM    Version: 1.2.0
 REM    Description: Starts the central Python web server (webserver.py)
 REM
 REM    ✨ New in 1.1.0:

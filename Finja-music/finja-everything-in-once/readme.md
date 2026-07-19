@@ -1,11 +1,19 @@
 # 🎶 Finja Music - All-in-One Edition
 *Multi-source NowPlaying system with OBS overlays, radio scrapers & AI reactions. 💜*
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/yourusername/finja-music)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/yourusername/finja-music)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v1.1.0:**
+> **✨ New in v1.2.0:**
+> - **Fix:** Restored the Sleep Control panel (sleep/wake/auto) in `Musik.html` —
+>   the `/cmd/sleep|wake|auto` backend was still fully implemented, only the
+>   button panel had gone missing
+> - **Fix:** Label typo "Activate RTL 98.0" → "Activate RTL 89.0" (digits
+>   transposed; 89.0 is the station's actual name)
+> - Production and the public repo brought to a shared baseline
+>
+> **Changelog v1.1.0:**
 > - **Documentation:** Complete English documentation with comprehensive comments
 > - **Code Quality:** All SonarQube & Snyk issues resolved across all files
 > - **Security:** Path validation, SSRF protection, XSS prevention
@@ -67,6 +75,7 @@ The central control hub for all music sources.
 
 **Features:**
 - One-click activation for TruckersFM, Spotify, RTL, MDR
+- Sleep Control panel (manually force sleep/wake, or hand control back to the time-based auto schedule)
 - Database management tools
 - Helper script launchers
 - Real-time status display
@@ -256,6 +265,14 @@ All overlays read from the `Nowplaying/` folder:
 | **Activate MDR** | Starts MDR listener (requires helper) |
 | **Deactivate** | Stops current source |
 
+### Sleep Control Section
+
+| Button | Action |
+|--------|--------|
+| **💤 SLEEP** | Force sleep mode now (pauses music, `game_state.txt` → `force_sleep`) |
+| **☀️ WAKE UP** | Force wake mode now (resumes music, `game_state.txt` → `force_wake`) |
+| **🕒 AUTO (Time)** | Clear manual override, hand control back to the time-based schedule |
+
 ### Database & Helper Scripts Section
 
 | Button | Action |
@@ -305,6 +322,25 @@ All overlays read from the `Nowplaying/` folder:
 | `config/config_min.json` | Main brain configuration |
 | `config/config_spotify.json` | Spotify API credentials |
 | `songs_kb.json` | Song knowledge database |
+
+### Tests
+
+| File | Purpose |
+|------|---------|
+| `test_music_resources.py` | Sanity checks: OBS HTML files exist, helper script syntax, batch file integrity |
+| `test_music_webserver.py` | Full suite: API endpoints, HTML structure, security (path traversal, JSON injection, XSS) |
+
+---
+
+## 🧪 Running Tests
+
+```bash
+pip install pytest
+pytest test_music_resources.py test_music_webserver.py -v
+```
+
+Tests run against the source files directly (webserver started in-process where
+needed) — no live Spotify/RTL/MDR credentials or a running Chrome instance required.
 
 ---
 

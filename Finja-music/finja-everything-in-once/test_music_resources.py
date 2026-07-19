@@ -6,9 +6,14 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
 
-  ✨ New in 1.1.0:
+  ✨ New in 1.2.0:
+    • Adopted into Production ("Finja MUSIK" folder) as part of the
+      module version/header unification (2026-07-20) -- no functional
+      changes in this file specifically
+
+  📜 Changelog 1.1.0:
     • Complete English documentation
     • Comprehensive endpoint tests
     • HTML functionality tests

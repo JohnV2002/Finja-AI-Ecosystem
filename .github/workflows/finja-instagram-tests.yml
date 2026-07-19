@@ -42,8 +42,9 @@ jobs:
         working-directory: ./finja-instagram
         run: |
           python -m pip install --upgrade pip
-          # Test tools (pyyaml is needed by test_docker_config.py)
-          pip install pytest pytest-cov pytest-mock pyyaml
+          # Test tools (pyyaml is needed by test_docker_config.py; httpx2
+          # is needed by fastapi.testclient on recent Starlette releases)
+          pip install pytest pytest-cov pytest-mock pyyaml httpx2
           # App dependencies -- only the Playwright *package* is needed
           # since Chrome/CDP is fully mocked in the tests, no browser
           # binaries are downloaded here.
