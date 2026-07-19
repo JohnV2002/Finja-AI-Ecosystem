@@ -7,7 +7,12 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
+
+  ✨ New in 1.2.0:
+    • Adopted into Production ("Finja Musik Docker" folder) as part of
+      the module version/header unification (2026-07-20) -- 6 new tests
+      carried over from GitHub (song-features endpoint coverage)
 
   ✨ Features:
     • Validates file structure (Docker, Configs, Python files)

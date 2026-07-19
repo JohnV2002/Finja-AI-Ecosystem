@@ -1,12 +1,20 @@
 # 🎵 Finja Music System (Docker)
 *Intelligent Spotify tracking, reaction generation & knowledge base for streamers. 💙*
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-yellow.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-> **✨ New in v1.1.0:**
+> **✨ New in v1.2.0:**
+> - **Fix:** The example `.env` shipped with the repo used `CLIENT_ID`/`CLIENT_SECRET`
+>   (no `SPOTIFY_` prefix, no refresh token) — `app.py` never reads those names, so
+>   filling it in did nothing. Replaced with a correct `.env.example`.
+> - **Change:** Real credentials now live in `private/.env` (never synced/committed)
+>   instead of a plain `.env` at the repo root
+> - Production and the public repo brought to a shared baseline
+>
+> **Changelog v1.1.0:**
 > - **Song Features API:** New `/get/songs` and `/get/song_features` endpoints for BPM, Key, Energy, Danceability queries
 > - **BPM Enrichment Pipeline:** `jank_scraper.js` (Spicetify extension) + `merge_bpm.py` for automated BPM/Key data collection
 > - **Landing Page:** Root endpoint with API provider attribution
@@ -41,7 +49,11 @@
    ```
 
 2. **Add credentials:**
-   Create a `.env` file in the root directory:
+   ```bash
+   mkdir -p private
+   cp .env.example private/.env
+   ```
+   Then edit `private/.env`:
    ```ini
    SPOTIFY_CLIENT_ID=your_id_here
    SPOTIFY_CLIENT_SECRET=your_secret_here
@@ -102,8 +114,14 @@ cd finja-music-docker-spotify
 
 ### Step 2: Environment Setup
 
-Create a `.env` file. **Do not share this file!**
+Copy the template and fill in your real values. **Never commit `private/`!**
 
+```bash
+mkdir -p private
+cp .env.example private/.env
+```
+
+`private/.env`:
 ```ini
 SPOTIFY_CLIENT_ID=abc123...
 SPOTIFY_CLIENT_SECRET=def456...
@@ -198,7 +216,10 @@ finja-music-docker-spotify/
 ├── test_music_app.py       # Unit & Integration tests
 ├── jank_scraper.js         # Spicetify BPM/Key scraper extension
 ├── merge_bpm.py            # Migration tool: merge scraped BPM data into KB
-├── .env                    # Secrets (Excluded from git)
+├── .env.example            # Template -- copy to private/.env and fill in
+├── .gitignore
+├── .dockerignore
+├── private/                # Real secrets (private/.env) -- never synced/committed
 ├── Memory/                 # Data folder
 │   ├── memory.json         # Long-term history
 │   ├── reactions.json      # Config for text output
@@ -284,21 +305,12 @@ python merge_bpm.py
 
 ### Best Practices
 
-- ⚠️ **Never commit `.env` files** to version control
+- ⚠️ **Never commit `private/`** — that's where `private/.env` and your real Spotify credentials live
 - ⚠️ **Never share Spotify Tokens** publicly
-- ⚠️ **Add `.env` to `.gitignore`**
 - ⚠️ **Restrict API access** if running on a public server (use a reverse proxy)
 
-### `.gitignore` Recommendation
-
-```gitignore
-.env
-__pycache__/
-*.pyc
-.pytest_cache/
-cache/
-Nowplaying/
-```
+`.gitignore` already covers `private/`, `.env`, caches, and the real (vs. seed/example)
+`Memory/`/`SongsDB/` data files — see the repo's own `.gitignore` for the full list.
 
 ---
 

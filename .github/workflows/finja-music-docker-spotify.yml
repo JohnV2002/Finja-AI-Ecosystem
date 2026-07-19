@@ -45,8 +45,9 @@ jobs:
         working-directory: ./Finja-music/finja-music-docker-spotify
         run: |
           python -m pip install --upgrade pip
-          # Test Tools
-          pip install pytest pytest-cov pytest-mock httpx
+          # Test Tools (httpx2: requirements.txt pins starlette>=1.0.0,
+          # whose TestClient hard-requires httpx2 -- httpx alone isn't enough)
+          pip install pytest pytest-cov pytest-mock httpx httpx2
           # App Dependencies (Core requirements)
           pip install fastapi uvicorn requests
           # Install from requirements.txt if present

@@ -2,12 +2,15 @@
 #  Project: Finja Musik Docker Spotify - Docker Compose
 #  Module: finja-music-docker-spotify
 #  Author: J. Apps (JohnV2002 / Sodakiller1)
-#  Version: 1.1.0
+#  Version: 1.2.0
 #  Description: Docker Compose configuration for the Music API service.
 #
 #  ✨ New in 1.1.0:
 #    • Updated port mapping to match Dockerfile (8022)
 #    • Updated copyright to 2026
+#    • env_file moved to ./private/.env (2026-07-20) -- private/ is never
+#      synced or committed; .env.example at the repo root documents the
+#      real variable names (SPOTIFY_CLIENT_ID/SECRET/REFRESH_TOKEN)
 #
 # ---------------------------------------------------------------------
 #  Copyright (c) 2026 J. Apps
@@ -21,7 +24,7 @@ services:
     build: .
     container_name: finja-musik-api
     env_file:
-      - .env
+      - ./private/.env
     ports:
       - "8022:8022"
     volumes:

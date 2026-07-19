@@ -2,10 +2,14 @@
 #  Project: Finja Cloud Musik API Docker - Dockerfile
 #  Module: finja-music-docker-spotify
 #  Author: J. Apps (JohnV2002 / Sodakiller1)
-#  Version: 1.1.0
+#  Version: 1.2.0
 #  Description: Dockerfile for the Music API service.
 #
-#  ✨ New in 1.1.0:
+#  ✨ New in 1.2.0:
+#    • Version number aligned with the rest of the module (2026-07-20) --
+#      no functional changes in this file specifically
+#
+#  📜 Changelog 1.1.0:
 #    • Fixed SonarQube issue docker:S7019 (Shell form to Exec form)
 #    • Translated comments to English
 #    • Updated copyright to 2026
