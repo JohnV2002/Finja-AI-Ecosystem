@@ -66,6 +66,13 @@ jobs:
 
       - name: Generate coverage report
         working-directory: ./finja-chat
+        env:
+          # Same mock credentials as the dedicated spotify step above --
+          # needed here too because pytest re-imports spotify_request_server_env.py,
+          # which instantiates a real SpotifyOAuth() at module level.
+          SPOTIPY_CLIENT_ID: "test_client_id"
+          SPOTIPY_CLIENT_SECRET: "test_client_secret"
+          SPOTIPY_REDIRECT_URI: "http://localhost:8888/callback"
         run: |
           pytest test_*.py --cov=. --cov-report=term --cov-report=xml
 
