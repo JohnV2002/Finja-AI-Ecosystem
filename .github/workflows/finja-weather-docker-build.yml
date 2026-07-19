@@ -1,0 +1,23 @@
+name: Finja Weather Docker Build Check
+
+on:
+  push:
+    paths:
+      - 'finja-weather/**'
+  pull_request:
+    paths:
+      - 'finja-weather/**'
+
+jobs:
+  docker-build-only:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # We only build the image. If this succeeds, the Dockerfile syntax
+      # and Python dependency resolution are both sound.
+      - name: Build Docker image
+        working-directory: ./finja-weather
+        run: docker build . --file Dockerfile --tag finja-weather:check

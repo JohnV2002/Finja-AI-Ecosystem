@@ -1,0 +1,27 @@
+# Finja Weather API - Docker Ignore
+#
+# Defense in depth: the Dockerfile currently COPYs only the exact files it
+# needs (requirements.txt, weather_api.py, providers.py) rather than
+# `COPY . .`, so nothing here is actively exploitable today. This exists so
+# a future Dockerfile change to a blanket COPY can't silently start baking
+# secrets or test/dev files into the image.
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.git/
+.gitignore
+*.md
+
+# Tests (never needed inside the running container)
+test_*.py
+
+# Test coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets — never include in a Docker image!
+.env
