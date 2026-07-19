@@ -1,0 +1,138 @@
+<!-- ====================================================================== -->
+<!--                        Finja's Commands Overlay                       -->
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Project: Finja - Twitch Interactivity Suite                          -->
+<!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
+<!--   Version: 2.3.0                                                       -->
+<!--   Description: Static OBS overlay -- hardcoded command list as its own -->
+<!--                browser source, NO JS, no connection to                -->
+<!--                bot_merged.html/BroadcastChannel.                      -->
+<!--                                                                        -->
+<!--   ✨ New in 2.3.0:                                                     -->
+<!--     • Given a proper header/version for the first time (part of        -->
+<!--       unifying all Chat module version numbers) -- no code changes.    -->
+<!--       List is noticeably outdated (no !ask/!theme/!rgb etc., several   -->
+<!--       lines commented out) -- worth reviewing separately, left as-is   -->
+<!--                                                                        -->
+<!--   Copyright (c) 2026 J. Apps                                           -->
+<!--   Licensed under the MIT License.                                      -->
+<!-- ====================================================================== -->
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Finja Commands</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: "Nunito", sans-serif;
+    }
+
+    #box {
+      display: inline-block;
+      padding: 20px 26px;
+      border-radius: 16px;
+      background: rgba(10,16,28,0.65);
+      border-left: 4px solid #7aa2ff; /* Finja Blue Accent 💙 */
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      color: #eaf6ff;
+      font-size: 18px;
+      line-height: 1.6;
+      backdrop-filter: blur(6px);
+      max-width: 420px;
+    }
+
+    h2 {
+      margin: 0 0 16px 0;
+      font-size: 22px;
+      color: #7aa2ff;
+      font-weight: 700;
+    }
+
+    .section {
+      margin: 16px 0 8px 0;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255,255,255,0.12);
+    }
+
+    .section-title {
+      font-size: 16px;
+      opacity: 0.85;
+      margin: 0 0 8px 0;
+      color: #a0b4ff;
+    }
+
+    .cmd {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 4px 0;
+    }
+
+    .emoji {
+      font-size: 20px;
+      width: 26px;
+      text-align: center;
+    }
+
+    .text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      #box { font-size: 16px; padding: 16px 20px; }
+      .emoji { font-size: 18px; width: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="box">
+    <h2>Chat — Commands 💙</h2>
+
+    <div class="section">
+      <div class="section-title">💬 for everyone</div>
+     <!-- <div class="cmd"><span class="emoji">🤖</span><span class="text">!ask     → Frage Lexi etwas!</span></div> -->
+      <div class="cmd"><span class="emoji">⏱️</span><span class="text">!uptime  → Shows Stream time</span></div>
+      <div class="cmd"><span class="emoji">🥤</span><span class="text">!soda    → POGGERS® Sponsor Link</span></div>
+    <!--  <div class="cmd"><span class="emoji">🧭</span><span class="text">!help    → Show all commands</span></div> -->
+    </div>
+    
+    <div class="section">
+      <div class="section-title">🎵 Song Requests</div>
+      <div class="cmd"><span class="emoji">🎵</span><span class="text">!sr      → Song wish (Spotify)</span></div>
+    </div>
+
+    <!-- Zukünftige Commands (auskommentiert) -->
+<!--
+    <div class="section">
+      <div class="section-title">🎨 Visuals (Mods)</div>
+      <div class="cmd"><span class="emoji">✨</span><span class="text">!theme glass|dark|light|neon</span></div>
+      <div class="cmd"><span class="emoji">🌈</span><span class="text">!rgb off|ring|fill|both</span></div>
+      <div class="cmd"><span class="emoji">🌀</span><span class="text">!rgbspeed 2-30</span></div>
+      <div class="cmd"><span class="emoji">🔘</span><span class="text">!ring 6-10</span></div>
+      <div class="cmd"><span class="emoji">🪄</span><span class="text">!opacity 0-100</span></div>
+      <div class="cmd"><span class="emoji">🎨</span><span class="text">!accent finja|channel|custom #hex</span></div>
+    </div>    
+    
+    <div class="section">
+      <div class="section-title">🐾 Zukünftig</div>
+      <div class="cmd"><span class="emoji">🍪</span><span class="text">!snack   → Finja isst</span></div>
+      <div class="cmd"><span class="emoji">✨</span><span class="text">!happy   → Finja freut sich</span></div>
+      <div class="cmd"><span class="emoji">😴</span><span class="text">!sleep   → Finja schläft</span></div>
+      <div class="cmd"><span class="emoji">💧</span><span class="text">!drink   → Finja bekommt was zu trinken</span></div>
+      <div class="cmd"><span class="emoji">📋</span><span class="text">!rq      → Liste der Wünsche (Mods)</span></div>
+      <div class="cmd"><span class="emoji">✅</span><span class="text">!accept  → Wunsch annehmen (Mods)</span></div>
+      <div class="cmd"><span class="emoji">❌</span><span class="text">!deny    → Wunsch ablehnen (Mods)</span></div>
+    </div>
+    -->
+  </div>
+</body>
+</html>

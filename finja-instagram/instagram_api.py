@@ -9,7 +9,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -35,6 +35,15 @@
   NOTE: Uses Desktop Mode (Full HD) instead of Mobile Mode because
   ArrowDown navigation is more stable on the desktop layout for Reels.
 
+----------------------------------------------------------------------
+ New in v1.1.0:
+----------------------------------------------------------------------
+  • Merged Production + GitHub tracks (2026-07-19)
+  • Kept Production's domain-prefixed cookie filename default
+    (www.instagram.com_cookies.json) instead of GitHub's generic
+    cookies.json -- real Production files use this name, so adopting
+    GitHub's default verbatim would have silently broken cookie loading
+
 ======================================================================
 """
 
@@ -54,7 +63,7 @@ CHROME_PORT = int(os.environ.get("CHROME_PORT", 9222))
 API_PORT = int(os.environ.get("INSTAGRAM_API_PORT", 8061))
 
 _SCRIPT_DIR = str(Path(__file__).parent)
-COOKIES_JSON = os.environ.get("COOKIES_JSON", os.path.join(_SCRIPT_DIR, "cookies.json"))
+COOKIES_JSON = os.environ.get("COOKIES_JSON", os.path.join(_SCRIPT_DIR, "www.instagram.com_cookies.json"))
 COOKIES_TXT = os.environ.get("COOKIES_TXT", os.path.join(_SCRIPT_DIR, "www.instagram.com_cookies.txt"))
 INSTAGRAM_TARGET_URL = os.environ.get("INSTAGRAM_TARGET_URL", "https://www.instagram.com/reels/")
 

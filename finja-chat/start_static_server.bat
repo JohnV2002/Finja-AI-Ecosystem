@@ -4,15 +4,16 @@
 @REM
 @REM   Project: Finja - Twitch Interactivity Suite
 @REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-@REM   Version: 2.2.1
+@REM   Version: 2.3.0
 @REM   Description: Batch script to start static file server for overlay.
 @REM
-@REM   ✨ New in 2.2.1:
+@REM   ✨ New in 2.3.0:
+@REM     • Merged Production + GitHub tracks (2026-07-19)
+@REM
+@REM   📜 Changelog 2.2.1:
 @REM     • Improved error handling and user feedback
 @REM     • Python version detection with fallbacks
-@REM     • Clear status messages in English
 @REM     • Port conflict detection
-@REM     • Helpful startup information
 @REM
 @REM   📜 Changelog 2.1.0:
 @REM     • Simple HTTP server for serving overlay files
@@ -33,7 +34,7 @@ REM ======================================================================
 cd /d "%~dp0"
 echo.
 echo ======================================================================
-echo   Finja Static File Server v2.2.1
+echo   Finja Static File Server v2.3.0
 echo ======================================================================
 echo.
 
@@ -46,7 +47,7 @@ REM Try Python launcher first (Windows recommended way)
 where py >nul 2>&1
 if %errorlevel%==0 (
   echo [OK] Python launcher (py) found
-  
+
   REM Prefer Python 3.10 if available
   py -3.10 --version >nul 2>&1
   if %errorlevel%==0 (

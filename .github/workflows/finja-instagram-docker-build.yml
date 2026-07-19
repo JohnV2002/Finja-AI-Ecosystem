@@ -1,0 +1,23 @@
+name: Finja Instagram Docker Build Check
+
+on:
+  push:
+    paths:
+      - 'finja-instagram/**'
+  pull_request:
+    paths:
+      - 'finja-instagram/**'
+
+jobs:
+  docker-build-only:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # We only build the image. If this succeeds, the Dockerfile syntax,
+      # apt packages, and Python dependency resolution are all sound.
+      - name: Build Docker image
+        working-directory: ./finja-instagram
+        run: docker build . --file Dockerfile --tag finja-instagram:check

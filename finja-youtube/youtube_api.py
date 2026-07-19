@@ -9,7 +9,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-youtube
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -36,7 +36,14 @@
   This container is intentionally "dumb" — it only executes actions.
 
 ----------------------------------------------------------------------
- New in v1.0.0:
+ New in v1.1.0:
+----------------------------------------------------------------------
+  • Adopted into Production ("Finja - Browser test" folder)
+    as part of the module version/header unification (2026-07-19) --
+    no functional changes in this file specifically
+
+----------------------------------------------------------------------
+ Changelog v1.0.0:
 ----------------------------------------------------------------------
   • Initial release
   • Headless Chrome via Playwright CDP

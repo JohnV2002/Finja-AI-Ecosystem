@@ -5,10 +5,15 @@
 #
 #   Project: Finja - Twitch Interactivity Suite
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.2.1
+#   Version: 2.3.0
 #   Description: HTTP bridge between Twitch bot and VPet Desktop Pet plugin.
 #
-#   ✨ New in 2.2.1:
+#   ✨ New in 2.3.0:
+#     • Version number aligned with the rest of the Chat module (unified
+#       module version, changelog still stays per-file) -- no code changes
+#       to this file
+#
+#   📜 Changelog 2.2.1:
 #     • Complete English documentation
 #     • Professional file header with version info
 #     • Comprehensive inline comments for all functions

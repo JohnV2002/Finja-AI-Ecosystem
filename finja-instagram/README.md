@@ -1,4 +1,4 @@
-# 📸 Finja Instagram Reels v1.0.0
+# 📸 Finja Instagram Reels v1.1.0
 
 A headless Instagram Reels browser container that scrolls through Reels, takes screenshots, scrapes metadata, and lets an external **Vision-LLM (the Brain)** decide whether to **like** and **forward** a video — all routed anonymously through a **VPN tunnel (Gluetun + ProtonVPN)**.
 
@@ -37,7 +37,7 @@ While automated interaction goes against Instagram's TOS, following these patter
 - **Human-Like Delays:** Notice how `autopilot.py` waits a random 10-18 seconds between swipes. Don't swipe every 2 seconds — real humans actually watch the videos for a bit.
 - **Don't Spam Likes:** Humans don't like *every single* video they see. The bot should only like a realistic percentage of videos (the Brain/LLM logic should filter heavily).
 - **Give the Bot "Sleep":** Nobody watches Instagram 24/7. Use the `/sleep` endpoint to pause the container for several hours a day (e.g., during the night) to simulate a normal human sleep schedule.
-- **VPN IP Rotation:** If Instagram starts throwing CAPTCHAs or blocking requests, change the `VPN_COUNTRY` in your `.env` or restart the Gluetun container to grab a fresh IP address.
+- **VPN IP Rotation:** If Instagram starts throwing CAPTCHAs or blocking requests, change the `VPN_COUNTRY_IG` in your `.env` or restart the Gluetun container to grab a fresh IP address.
 
 ---
 
@@ -53,9 +53,13 @@ While automated interaction goes against Instagram's TOS, following these patter
 | `docker-compose.yml` | Orchestrates Gluetun (VPN) + finja-instagram |
 | `requirements.txt` | Python dependencies |
 | `.env.example` | Template for VPN credentials & App Config |
-| `cookies.json.example` | Template for Instagram cookie export (JSON format) |
+| `www.instagram.com_cookies.json.example` | Template for Instagram cookie export (JSON format) |
 | `www.instagram.com_cookies.txt.example` | Template for Instagram cookies (Netscape format) |
 | `.dockerignore` | Excludes sensitive files from Docker build |
+| `private/` | Your real cookie files — never synced or committed |
+| `test_instagram_api.py` | Unit tests: cookie parsing (JSON+TXT) + REST endpoints (mocked Chrome/Playwright) |
+| `test_autopilot.py` | Unit tests: cookie injection, buffer-buster retry logic, Brain/Discord placeholders |
+| `test_docker_config.py` | Config tests: Dockerfile/Compose/entrypoint/`.dockerignore` sanity checks |
 
 ---
 
@@ -69,12 +73,12 @@ The container needs your Instagram cookies to browse Reels while logged in. With
    - Chrome: [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg)
 2. **Log in to Instagram** in your browser.
 3. **Export cookies** for `instagram.com`:
-   - Save as `www.instagram.com_cookies.json` (or `cookies.json`) in the project root.
+   - Save as `private/www.instagram.com_cookies.json`.
 
 > ⚠️ **SECURITY WARNING**: These files contain real session tokens! **Never commit them to Git!**
-> They are already listed in `.dockerignore`. Make sure your `.gitignore` excludes them too.
+> They are already listed in `.dockerignore`. `private/` is never synced or committed either.
 
-See `cookies.json.example` for the full template structure.
+See `www.instagram.com_cookies.json.example` for the full template structure.
 
 ---
 
@@ -98,7 +102,9 @@ Edit `.env` and configure your VPN and App settings:
 # VPN Settings
 PROTON_USER=your-openvpn-username
 PROTON_PASS=your-openvpn-password
-VPN_COUNTRY=Netherlands
+# Deliberately a DIFFERENT country than finja-youtube's VPN_COUNTRY,
+# for IP diversity between the two services.
+VPN_COUNTRY_IG=Germany
 
 # App Settings
 INSTAGRAM_TARGET_URL=about:blank
@@ -112,7 +118,13 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 
 ### 3. Add Your Cookies
 
-Replace the placeholder values in `cookies.json.example` with your real exported Instagram cookies and save it as `www.instagram.com_cookies.json` or `cookies.json`.
+```bash
+mkdir -p private
+cp www.instagram.com_cookies.json.example private/www.instagram.com_cookies.json
+```
+
+Replace the placeholder values with your real exported Instagram cookies.
+`private/` is never synced or committed — that's where all local secrets live.
 
 ### 4. Start the Stack
 
@@ -169,13 +181,44 @@ Clicks the like button on the current video in the visible viewport:
 
 ---
 
+## 🧪 Running Tests
+
+Tests run directly on the host (no Docker needed) and don't require a real Chrome
+connection or VPN credentials — everything is mocked.
+
+```bash
+pip install pytest pyyaml playwright fastapi uvicorn httpx python-dotenv
+```
+
+**API Tests** (cookie parsing + REST endpoints, mocked Chrome/Playwright):
+```bash
+pytest test_instagram_api.py -v
+```
+
+**Autopilot Tests** (cookie injection, buffer-buster retries, Brain/Discord placeholders):
+```bash
+pytest test_autopilot.py -v
+```
+
+**Docker Config Tests** (Dockerfile, Compose, entrypoint, `.dockerignore` sanity):
+```bash
+pytest test_docker_config.py -v
+```
+
+**All Tests:**
+```bash
+pytest -v
+```
+
+---
+
 ## 🧰 Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | **No VPN connection** | Check `.env` credentials. Run `docker compose logs gluetun` for errors. |
 | **Chrome not starting** | Check `docker compose logs finja-instagram`. Look for FINJA-130 errors. |
-| **"No cookie file found"** | Copy `cookies.json.example` to `cookies.json` and add your real cookies. |
+| **"No cookie file found"** | Copy `www.instagram.com_cookies.json.example` to `private/www.instagram.com_cookies.json` and add your real cookies. |
 | **Instagram blocks requests / asks for login** | Your cookies may have expired. Re-export from your browser and restart. |
 | **Port 8061 not accessible** | Port is mapped on the `gluetun` service, not `finja-instagram`. Check Gluetun health. |
 

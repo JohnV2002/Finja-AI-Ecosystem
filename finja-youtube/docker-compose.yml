@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-youtube
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -20,10 +20,20 @@
 #
 #   Setup:
 #     1. Copy .env.example to .env and fill in your VPN credentials
-#     2. Copy cookies.json.example to cookies.json and add your cookies
+#        (.env must stay in this directory -- Compose only auto-loads
+#        it from here for ${VAR} substitution, not from private/)
+#     2. Copy cookies.json.example to private/cookies.json and add your
+#        cookies (private/ is never synced/committed)
 #     3. docker compose up -d --build
 #     4. docker compose logs -f
 #     5. Verify VPN: curl http://localhost:8060/ip
+#
+#   New in v1.1.0:
+#     • Merged Production + GitHub tracks (2026-07-19): added the
+#       YOUTUBE_TARGET_URL/MOBILE_UA/FINJA_BRAIN_URL/DISCORD_WEBHOOK_URL
+#       passthroughs from GitHub
+#     • cookies.json bind mount moved to ./private/cookies.json (was
+#       ./cookies.json) -- private/ is never synced/committed
 #
 # ======================================================================
 
@@ -96,8 +106,9 @@ services:
     volumes:
       # Persist Chrome profile (YouTube login cookies!)
       - chrome-profile:/data/chrome-profile
-      # YouTube cookies (JSON export, injected at startup)
-      - ./cookies.json:/app/cookies.json:ro
+      # YouTube cookies (JSON export, injected at startup) -- lives in
+      # private/, never synced/committed
+      - ./private/cookies.json:/app/cookies.json:ro
       # Screenshots (optional, for debugging)
       - ./screenshots:/app/screenshots
 

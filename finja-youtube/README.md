@@ -1,4 +1,4 @@
-# 📺 Finja YouTube Shorts v1.0.0
+# 📺 Finja YouTube Shorts v1.1.0
 
 A headless YouTube Shorts browser container that scrolls through Shorts, takes screenshots, scrapes metadata, and lets an external **Vision-LLM (the Brain)** decide whether to **like** and **forward** a video — all routed anonymously through a **VPN tunnel (Gluetun + ProtonVPN)**.
 
@@ -42,6 +42,10 @@ Built as a standalone Docker service for the **Finja AI Ecosystem**. 🕵️‍�
 | `cookies.json.example` | Template for YouTube cookie export (JSON format) |
 | `www.youtube.com_cookies.txt.example` | Template for YouTube cookies (Netscape format) |
 | `.dockerignore` | Excludes sensitive files from Docker build |
+| `private/` | Your real `cookies.json`/`www.youtube.com_cookies.txt` — never synced or committed |
+| `test_youtube_api.py` | Unit tests: cookie parsing + REST endpoints (mocked Chrome/Playwright) |
+| `test_autopilot.py` | Unit tests: Brain/Discord placeholders + autopilot loop sanity checks |
+| `test_docker_config.py` | Config tests: Dockerfile/Compose/entrypoint/`.dockerignore` sanity checks |
 
 ---
 
@@ -55,8 +59,8 @@ The container needs your YouTube cookies to browse Shorts while logged in. Witho
    - Chrome: [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) or [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 2. **Log in to YouTube** in your browser
 3. **Export cookies** for `youtube.com`:
-   - **JSON format** → save as `cookies.json` in the project root
-   - **Netscape TXT format** → save as `www.youtube.com_cookies.txt` (optional, for yt-dlp compatibility)
+   - **JSON format** → save as `private/cookies.json`
+   - **Netscape TXT format** → save as `private/www.youtube.com_cookies.txt` (optional, for yt-dlp compatibility)
 
 > ⚠️ **SECURITY WARNING**: These files contain real session tokens! **Never commit them to Git!**
 > They are already listed in `.dockerignore`. Make sure your `.gitignore` excludes them too.
@@ -118,10 +122,12 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ### 3. Add Your Cookies
 
 ```bash
-cp cookies.json.example cookies.json
+mkdir -p private
+cp cookies.json.example private/cookies.json
 ```
 
 Replace the placeholder values with your real exported YouTube cookies.
+`private/` is never synced or committed — that's where all local secrets live.
 
 ### 4. Start the Stack
 
@@ -188,6 +194,37 @@ Clicks the like button on the current video:
 
 ---
 
+## 🧪 Running Tests
+
+Tests run directly on the host (no Docker needed) and don't require a real Chrome
+connection or VPN credentials — everything is mocked.
+
+```bash
+pip install pytest pyyaml playwright fastapi uvicorn httpx python-dotenv
+```
+
+**API Tests** (cookie parsing + REST endpoints, mocked Chrome/Playwright):
+```bash
+pytest test_youtube_api.py -v
+```
+
+**Autopilot Tests** (Brain/Discord placeholders + loop sanity checks):
+```bash
+pytest test_autopilot.py -v
+```
+
+**Docker Config Tests** (Dockerfile, Compose, entrypoint, `.dockerignore` sanity):
+```bash
+pytest test_docker_config.py -v
+```
+
+**All Tests:**
+```bash
+pytest -v
+```
+
+---
+
 ## 💡 Tips & Tricks (Best Practices for Account Longevity)
 
 While automated interaction goes against YouTube's TOS, following these patterns helps the container blend in as normal human traffic. (Note: This is not a guarantee against bans, but rather a sharing of what has worked in practice).
@@ -207,7 +244,7 @@ While automated interaction goes against YouTube's TOS, following these patterns
 |---------|----------|
 | **No VPN connection** | Check `.env` credentials. Run `docker compose logs gluetun` for errors. |
 | **Chrome not starting** | Check `docker compose logs finja-youtube`. Look for FINJA-130 errors. |
-| **"No cookies.json found"** | Copy `cookies.json.example` to `cookies.json` and add your real cookies. |
+| **"No cookies.json found"** | Copy `cookies.json.example` to `private/cookies.json` and add your real cookies. |
 | **YouTube blocking requests** | Your cookies may have expired. Re-export from your browser. |
 | **Port 8060 not accessible** | Port is mapped on the `gluetun` service, not `finja-youtube`. Check Gluetun health. |
 

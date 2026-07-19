@@ -1,11 +1,17 @@
 # 💬 Finja Chat System
 *OBS Chat Overlay + Bot Panel + Song Requests — cute, fast, Gen-Z approved. 💙*
 
-[![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)](https://github.com/yourusername/finja-chat)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/yourusername/finja-chat)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v2.2.1:**
+> **✨ New in v2.3.0:**
+> - **Song request toggle:** switch live between 24/7 auto-filter and manual
+>   moderation via a button in the bot panel (no server restart needed)
+> - **Fix:** `!pulse` was documented but had no effect — now properly wired up
+> - Production and the public repo brought to a shared baseline
+>
+> **Changelog v2.2.1:**
 > - **Code Quality:** All SonarQube issues resolved across all files
 > - **Documentation:** Complete English documentation with comprehensive comments
 > - **Finja stays ALWAYS blue** — no matter what accent is set!
@@ -247,7 +253,8 @@ For AI chat responses:
 
 **2. Create `.env` file:**
 
-Create a `.env` file in the project root:
+Copy `.env.example` to `private/.env` (the `private/` folder is never committed —
+that's where all local secrets/credentials live):
 
 ```env
 # Spotify Credentials
@@ -259,6 +266,10 @@ SPOTIPY_REDIRECT_URI=http://localhost:8080/callback
 SR_COOLDOWN_SECS=120
 SR_FORCE_NOW=false
 SR_MAX_PENDING_PER_USER=1
+# false = auto-filter mode (popularity/label check, auto-queues if it passes)
+# true  = full moderation queue (!accept/!deny/!rq)
+SR_MODERATED=false
+SR_MIN_POPULARITY=15
 
 # Optional: Preferred Device
 SPOTIFY_DEVICE_NAME=My Computer
@@ -378,18 +389,35 @@ The overlay fetches emotes from the ivr.fi API, which indexes 7TV emotes by thei
 ### File Structure
 
 ```
-finja-chat/
-├── bot_merged_fixed.html              # Bot control panel
-├── index_merged_fixed.html            # OBS overlay
-├── spotify_request_server_env_fixed.py # Song request server
-├── command_bridge.py                   # VPet bridge
-├── start_static_server.bat             # Windows server launcher
-├── start_server_with_env.bat           # Windows SR server launcher
-├── test_command_bridge.py              # Bridge tests
-├── test_spotify_request_server.py      # SR server tests
-├── .env.example                        # Environment template
-└── README.md                           # This file
+Chat/
+├── bot_merged.html                 # Bot control panel
+├── index_merged.html               # OBS overlay
+├── commands.html                   # Commands overlay
+├── spotify_request_server_env.py   # Song request server
+├── command_bridge.py               # VPet bridge
+├── start_static_server.bat         # Windows overlay/panel launcher
+├── start_server_with_env.bat       # Windows SR server launcher
+├── test_command_bridge.py          # Bridge tests
+├── test_spotify_request_server.py  # SR server tests
+├── test_batch_files.py             # Launcher script tests
+├── .env.example                    # Environment template (safe to share)
+├── private/                        # NEVER synced/committed -- real .env,
+│                                    # personal scratch files, local cache
+└── readme.md                       # This file
 ```
+
+### Syncing with the public repo
+
+Production (this folder) is the source of truth. To publish an update:
+
+1. Make all changes here, in `Chat/`.
+2. Copy the changed files into the public repo folder, **excluding**
+   `private/` and `__pycache__/`.
+3. Commit and push from within the public repo.
+
+Never edit files directly in the public repo folder — always edit here first,
+otherwise the two copies drift apart again (which is exactly what this
+structure is meant to prevent).
 
 ### Running Tests
 

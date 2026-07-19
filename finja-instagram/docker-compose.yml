@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-instagram
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -14,22 +14,42 @@
 #
 # ----------------------------------------------------------------------
 #
-#   Stack: Gluetun (VPN) + finja-instagram (Chrome + API)
+#   Stack: Gluetun (VPN) + finja-instagram (Chrome + API), Desktop mode
+#   (no mobile emulation!) using ArrowDown Reel navigation.
 #   All traffic from finja-instagram is routed through the VPN tunnel.
 #   Kill Switch: if VPN drops → no internet → no IP leaks.
 #
+#   Service/volume names are deliberately suffixed (-instagram/-ig)
+#   instead of the generic names finja-youtube uses, so both stacks can
+#   run side by side on the same machine without colliding.
+#
 #   Setup:
 #     1. Copy .env.example to .env and fill in your VPN credentials
-#     2. Copy cookies.json.example to cookies.json and add your cookies
+#        (.env must stay in this directory -- Compose only auto-loads
+#        it from here for ${VAR} substitution, not from private/)
+#     2. Provide cookie file(s) in private/ (never synced/committed):
+#        - private/www.instagram.com_cookies.json (preferred)
+#        - private/www.instagram.com_cookies.txt (Netscape fallback)
 #     3. docker compose up -d --build
 #     4. docker compose logs -f
-#     5. Verify VPN: curl http://localhost:8061/ip
+#     5. Health: curl http://localhost:8061/health
+#
+#   New in v1.1.0:
+#     • Merged Production + GitHub tracks (2026-07-19): added the
+#       INSTAGRAM_TARGET_URL/FINJA_BRAIN_URL/DISCORD_WEBHOOK_URL
+#       passthroughs from GitHub
+#     • Cookie mounts moved to ./private/ (was project root) -- private/
+#       is never synced/committed
+#     • Kept Production's disambiguated service/volume names
+#       (gluetun-instagram, chrome-profile-ig, gluetun-ig-data,
+#       VPN_COUNTRY_IG) rather than GitHub's generic ones -- these exist
+#       specifically so this stack never collides with finja-youtube's
 #
 # ======================================================================
 
 services:
   # ---- VPN Gateway (ProtonVPN via Gluetun) ----
-  gluetun:
+  gluetun-instagram:
     image: qmcgaw/gluetun
     container_name: finja-vpn-instagram
     restart: unless-stopped
@@ -42,10 +62,9 @@ services:
     # all traffic goes through gluetun, so ports must be mapped here.
     ports:
       - "8061:8061"   # Instagram API (for dev/test, remove in production)
-      # - "8000:8000" # Gluetun Control API (optional, debugging only)
 
     volumes:
-      - gluetun-data:/gluetun
+      - gluetun-ig-data:/gluetun
 
     environment:
       # ---- ProtonVPN Config ----
@@ -54,8 +73,9 @@ services:
       # Credentials from .env (NEVER hardcode here!)
       - OPENVPN_USER=${PROTON_USER}
       - OPENVPN_PASSWORD=${PROTON_PASS}
-      # Server selection
-      - SERVER_COUNTRIES=${VPN_COUNTRY:-Netherlands}
+      # Server selection -- deliberately a DIFFERENT country than
+      # finja-youtube's VPN_COUNTRY, for IP diversity between the two
+      - SERVER_COUNTRIES=${VPN_COUNTRY_IG:-Germany}
       # Free tier or Plus? (set to true for free-only servers)
       - FREE_ONLY=false
       # ---- Gluetun Settings ----
@@ -85,19 +105,21 @@ services:
 
     # THE MAGIC: No own network — everything goes through gluetun!
     # = built-in kill switch. VPN down → no internet.
-    network_mode: "service:gluetun"
+    network_mode: "service:gluetun-instagram"
 
     depends_on:
-      gluetun:
+      gluetun-instagram:
         condition: service_healthy
 
     # No ports here! They are defined in the gluetun service above.
 
     volumes:
       # Persist Chrome profile (Instagram login cookies!)
-      - chrome-profile:/data/chrome-profile
-      # Instagram cookies (JSON export, injected at startup)
-      - ./cookies.json:/app/cookies.json:ro
+      - chrome-profile-ig:/data/chrome-profile
+      # Instagram cookies (JSON + TXT, injected at startup) -- live in
+      # private/, never synced/committed
+      - ./private/www.instagram.com_cookies.json:/app/www.instagram.com_cookies.json:ro
+      - ./private/www.instagram.com_cookies.txt:/app/www.instagram.com_cookies.txt:ro
       # Screenshots (optional, for debugging)
       - ./screenshots:/app/screenshots
 
@@ -130,9 +152,9 @@ services:
         max-file: "3"
 
 volumes:
-  chrome-profile:
+  chrome-profile-ig:
     name: finja-instagram-chrome-profile
-  gluetun-data:
+  gluetun-ig-data:
     name: finja-instagram-gluetun
 
 # Later: Shared network with Finja Brain

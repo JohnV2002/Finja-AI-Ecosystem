@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram / browser-launcher
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -30,6 +30,13 @@
 
   NOTE: Desktop Mode is required because ArrowDown navigation
   in the Reels feed is most stable in the desktop layout.
+
+----------------------------------------------------------------------
+ New in v1.1.0:
+----------------------------------------------------------------------
+  • Adopted into Production ("Finja - Instagram test" folder) as part
+    of the module version/header unification (2026-07-19) -- no
+    functional changes in this file specifically
 
 ======================================================================
 """

@@ -6,7 +6,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-instagram / entrypoint
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -25,6 +25,10 @@
 #   NOTE: Desktop Mode is used because ArrowDown navigation
 #   requires a desktop layout for Reels to work reliably.
 #
+#   New in v1.1.0:
+#     • Adopted into Production ("Finja - Instagram test" folder) as
+#       part of the module version/header unification (2026-07-19) --
+#       no functional changes in this file specifically
 # ======================================================================
 
 set -e

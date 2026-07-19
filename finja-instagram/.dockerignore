@@ -14,6 +14,7 @@ autopilot.py
 startbrowser.py
 
 # Sensitive files — never include in Docker image!
+private/
 www.instagram.com_cookies.json
 www.instagram.com_cookies.txt
 *.example

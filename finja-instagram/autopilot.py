@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram / autopilot
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -31,6 +31,14 @@
   NOTE: The LLM call and Discord webhook are stubbed out.
   Configure the API URLs via .env or replace the functions entirely.
 
+----------------------------------------------------------------------
+ New in v1.1.0:
+----------------------------------------------------------------------
+  • Merged Production + GitHub tracks (2026-07-19)
+  • Kept Production's domain-prefixed cookie filename default
+    (www.instagram.com_cookies.json) instead of GitHub's generic
+    cookies.json -- real Production files use this name
+
 ======================================================================
 """
 
@@ -54,7 +62,7 @@ DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 # J. APPS COOKIE SMUGGLER
 # ==========================================
 
-def load_instagram_cookies(context, filepath="cookies.json"):
+def load_instagram_cookies(context, filepath="www.instagram.com_cookies.json"):
     if not os.path.exists(filepath):
         print(f"⚠️ Cookie file '{filepath}' not found in directory! FINJA-130!")
         return False

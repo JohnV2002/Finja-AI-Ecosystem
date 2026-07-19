@@ -6,15 +6,20 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.2.1
+  Version: 2.3.0
   Description: Unit tests for command bridge server.
 
-  ✨ New in 2.2.2:
+  ✨ New in 2.3.0:
+    • Version number aligned with the rest of the Chat module (unified
+      module version, changelog still stays per-file) -- no code changes
+      to this file
+
+  📜 Changelog 2.2.2:
     • Added CORS header validation tests
     • Added specific test for 'null' JSON body payload
     • Updated docstrings to reflect expanded coverage
-  
-  📜 New in 2.2.1:
+
+  📜 Changelog 2.2.1:
     • Complete English documentation with docstrings
     • Improved test coverage and edge cases
     • Type hints for better IDE support

@@ -58,8 +58,8 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 
 | Main Component | Version | Status | Remarks | Bug Report (Sonar/Snyk) |
 | :--- | :--- | :--- | :--- | :--- |
-| **finja-neural-network** 🧠 | **v5.1** | 🟢 Ready | The Brain — connects everything. Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. Tests & Docker CI still WIP. | Many Sonar/Snyk issues (expected). `app/`, `body/`, `clients/` are **clean** ✅ — rest in progress |
-| **finja-chat** | **v2.2.1** | 🟢 Stable | LLM support integrated, modularized | **0 Bugs** (Clean! 🎉) |
+| **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything. Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. Tests & Docker CI still WIP. | Many Sonar/Snyk issues (expected). |
+| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch Chat and Commands | Sonar + Snyk Later |
 | **finja-music** | | 🟢 Stable | Multiple versions available | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stable | **Recommended Web-UI Version** | All False Positive |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.1.0** | 🟢 Stable | Docker version (Spotify only) | All False Positive |

@@ -1,0 +1,18 @@
+# Secrets — NEVER commit!
+.env
+
+# Local-only files — synced manually from Production
+# (Z:\Bilder\Streaming\Finja - Browser test), never meant to reach this repo.
+# Safety net in case a future sync copies them over by accident.
+private/
+TODO.md
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Docker/runtime
+screenshots/

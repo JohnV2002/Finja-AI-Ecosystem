@@ -6,7 +6,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-youtube / entrypoint
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -22,6 +22,11 @@
 #     4. Wait until Chrome CDP port is ready
 #     5. Start the FastAPI server (youtube_api.py)
 #
+# ----------------------------------------------------------------------
+#   New in v1.1.0:
+#     • Adopted into Production (Z:\Bilder\Streaming\Finja - Browser test)
+#       as part of the module version/header unification (2026-07-19) --
+#       no functional changes in this file specifically
 # ======================================================================
 
 set -e

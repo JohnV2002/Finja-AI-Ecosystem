@@ -6,12 +6,19 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.2.2
+  Version: 2.3.0
   Description: Unit tests for Spotify song request server.
 
-  ✨ New in 2.2.2: -
+  ✨ New in 2.3.0:
+    • Added force_moderated_mode fixture (MODERATED became an SR_MODERATED
+      env toggle instead of hardcoded after the Production+GitHub merge;
+      this suite still specifically targets moderated mode)
+    • Adjusted 4 assertions from English to German -- Production keeps
+      German Finja replies for the real live audience
+    • Added 4 new tests for GET/POST /mode (song request toggle)
+    • Version number aligned with the rest of the Chat module
 
-  📜 New in 2.2.1:
+  📜 Changelog 2.2.1:
     • Complete English documentation with docstrings
     • Improved test coverage for edge cases
     • Type hints for better IDE support
@@ -95,6 +102,20 @@ def mock_spotify() -> Generator:
         yield mock_sp
 
 
+@pytest.fixture(autouse=True)
+def force_moderated_mode() -> Generator:
+    """
+    Force MODERATED=True for this test suite.
+
+    This suite exercises the full moderation queue (!accept/!deny/!rq),
+    which needs MODERATED=True. Production defaults to MODERATED=False
+    (auto-filter mode, see SR_MODERATED in .env.example) since the 2026-07-19
+    merge -- these tests intentionally cover the alternate, opt-in mode.
+    """
+    with patch('spotify_request_server_env.MODERATED', True):
+        yield
+
+
 @pytest.fixture
 def client() -> TestClient:
     """
@@ -170,6 +191,76 @@ class TestHealthEndpoint:
         
         assert isinstance(data["pending"], int)
         assert data["pending"] >= 0
+
+    def test_health_check_returns_moderated_flag(self, client: TestClient) -> None:
+        """Test that health check includes the current moderated flag."""
+        response = client.get("/health")
+        data = response.json()
+
+        assert "moderated" in data
+        assert isinstance(data["moderated"], bool)
+
+
+# ==============================================================================
+# Mode Endpoint Tests
+# ==============================================================================
+
+class TestModeEndpoint:
+    """
+    Tests for GET/POST /mode -- switching between auto-filter and moderation
+    queue mode at runtime (for the bot panel toggle button).
+    """
+
+    def test_get_mode_returns_current_state(self, client: TestClient) -> None:
+        """Test that GET /mode reflects the forced moderated=True from the fixture."""
+        response = client.get("/mode")
+
+        assert response.status_code == 200
+        assert response.json() == {"moderated": True}
+
+    def test_post_mode_switches_to_auto_filter(self, client: TestClient) -> None:
+        """Test that POST /mode with moderated=false switches modes."""
+        response = client.post("/mode", json={"moderated": False})
+
+        assert response.status_code == 200
+        assert response.json() == {"moderated": False}
+
+        # Reflected in subsequent GET /mode and /health calls
+        assert client.get("/mode").json() == {"moderated": False}
+        assert client.get("/health").json()["moderated"] is False
+
+    def test_post_mode_switches_back_to_moderated(self, client: TestClient) -> None:
+        """Test that POST /mode with moderated=true switches back."""
+        client.post("/mode", json={"moderated": False})
+        response = client.post("/mode", json={"moderated": True})
+
+        assert response.status_code == 200
+        assert response.json() == {"moderated": True}
+
+    def test_post_mode_affects_new_song_requests(self, client: TestClient) -> None:
+        """Test that switching to auto-filter mode changes /sr behavior live."""
+        client.post("/mode", json={"moderated": False})
+
+        with patch('spotify_request_server_env.sp') as mock_sp:
+            mock_sp.track.return_value = {
+                'id': 'test_track_id',
+                'name': 'Test Song',
+                'artists': [{'name': 'Test Artist'}],
+                'album': {'id': 'album1'},
+                'popularity': 90,
+            }
+            mock_sp.album.return_value = {'label': 'Some Label'}
+
+            response = client.post("/chat", json={
+                "user": "testuser",
+                "message": "!sr spotify:track:abc123",
+                "is_mod": False,
+                "is_broadcaster": False,
+            })
+
+        data = response.json()
+        # Auto-filter mode queues directly instead of creating a pending request
+        assert "AUTO-QUEUED" in data.get("reply", "") or data.get("reply", "").startswith("DECLINED")
 
 
 # ==============================================================================
@@ -378,7 +469,8 @@ class TestSongRequests:
             assert response.status_code == 200
             data = response.json()
             assert "finja" in data
-            assert "saved" in data["finja"].lower() or "taken" in data["finja"].lower()
+            # Production keeps German user-facing messages (real stream audience)
+            assert "gespeichert" in data["finja"].lower()
 
     def test_song_request_spotify_uri(self, client: TestClient) -> None:
         """
@@ -449,7 +541,8 @@ class TestSongRequests:
             data = response.json()
             assert "finja" in data
             # Check for the actual "nohit" message from finja_reply
-            assert "couldn't find" in data["finja"].lower() or "couldn't" in data["finja"].lower()
+            # (Production keeps German user-facing messages, real stream audience)
+            assert "nix" in data["finja"].lower() and "gefunden" in data["finja"].lower()
 
 
 # ==============================================================================
@@ -506,7 +599,8 @@ class TestCooldowns:
             finja_msg = data.get("finja", "").lower()
             
             # Should contain cooldown message
-            assert "cooldown" in finja_msg or "wait" in finja_msg or "breather" in finja_msg
+            # (Production keeps German user-facing messages, real stream audience)
+            assert "durchatmen" in finja_msg
 
     def test_moderator_bypass_cooldown(self, client: TestClient) -> None:
         """
@@ -730,7 +824,8 @@ class TestEdgeCases:
         })
         
         data = response.json()
-        assert "not found" in data.get("reply", "").lower()
+        # (Production keeps German user-facing messages, real stream audience)
+        assert "nicht gefunden" in data.get("reply", "").lower()
 
 
 # ==============================================================================

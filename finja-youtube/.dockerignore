@@ -10,6 +10,7 @@ screenshots/
 *.md
 
 # Sensitive files — never include in Docker image!
+private/
 cookies.json
 www.youtube.com_cookies.txt
 *.example

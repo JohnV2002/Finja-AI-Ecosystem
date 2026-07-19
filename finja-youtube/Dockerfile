@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-youtube
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -26,6 +26,10 @@
 #     • CRLF fix for Windows → Linux compatibility
 #     • Healthcheck endpoint on port 8060
 #
+#   New in v1.1.0:
+#     • Adopted into Production (Z:\Bilder\Streaming\Finja - Browser test)
+#       as part of the module version/header unification (2026-07-19) --
+#       no functional changes in this file specifically
 # ======================================================================
 
 FROM python:3.11-slim
