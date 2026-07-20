@@ -6,7 +6,12 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-agentic-code / orchestrator
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.0.1
+
+  New in v1.0.1:
+    • Migrated the startup banner from the deprecated
+      @app.on_event("startup") hook to the FastAPI lifespan
+      context manager (silences the Starlette DeprecationWarning).
 
 ----------------------------------------------------------------------
 
@@ -33,6 +38,7 @@ import urllib.request
 import uuid
 import base64
 import hashlib
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
@@ -102,7 +108,23 @@ CODE_EXTENSIONS = {
     ".txt",
 }
 
-app = FastAPI(title="Finja Agentic Code Orchestrator", version="0.1.0")
+@asynccontextmanager
+async def _lifespan(app: "FastAPI"):
+    if ORCHESTRATOR_AUTH_TOKEN:
+        print("[FLARE] Bearer auth ENABLED on job endpoints.", flush=True)
+    else:
+        print("[FLARE] WARNING: ORCHESTRATOR_AUTH_TOKEN is empty -> job endpoints are OPEN. "
+              "Set it on the VM before wiring Finja.", flush=True)
+    if transport_enabled():
+        print("[FLARE] Code transport encryption ENABLED (AES-GCM envelope).", flush=True)
+    else:
+        print("[FLARE] WARNING: CODE_AGENT_TRANSPORT_KEY is empty -> job payloads/status use plaintext JSON.", flush=True)
+    if KEEP_JOB_WORKSPACE:
+        print("[FLARE] KEEP_JOB_WORKSPACE enabled -> staged plaintext workspace is retained for debugging.", flush=True)
+    yield
+
+
+app = FastAPI(title="Finja Agentic Code Orchestrator", version="0.1.0", lifespan=_lifespan)
 job_slots = threading.Semaphore(MAX_PARALLEL_JOBS)
 TRANSPORT_MAGIC = b"FINJACODE1\n"
 TRANSPORT_NONCE_SIZE = 12
@@ -219,21 +241,6 @@ def write_json(path: Path, payload: dict) -> None:
 
 def read_json(path: Path) -> dict:
     return json.loads(read_text(path))
-
-
-@app.on_event("startup")
-def _startup_banner() -> None:
-    if ORCHESTRATOR_AUTH_TOKEN:
-        print("[FLARE] Bearer auth ENABLED on job endpoints.", flush=True)
-    else:
-        print("[FLARE] WARNING: ORCHESTRATOR_AUTH_TOKEN is empty -> job endpoints are OPEN. "
-              "Set it on the VM before wiring Finja.", flush=True)
-    if transport_enabled():
-        print("[FLARE] Code transport encryption ENABLED (AES-GCM envelope).", flush=True)
-    else:
-        print("[FLARE] WARNING: CODE_AGENT_TRANSPORT_KEY is empty -> job payloads/status use plaintext JSON.", flush=True)
-    if KEEP_JOB_WORKSPACE:
-        print("[FLARE] KEEP_JOB_WORKSPACE enabled -> staged plaintext workspace is retained for debugging.", flush=True)
 
 
 class JobFile(BaseModel):

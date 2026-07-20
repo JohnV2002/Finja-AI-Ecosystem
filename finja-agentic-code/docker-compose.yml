@@ -1,3 +1,25 @@
+# ======================================================================
+#          Flare (Finja Agentic Code) – Docker Compose
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-agentic-code
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.1
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License
+#
+# ----------------------------------------------------------------------
+#
+#   Orchestrates the orchestrator service. The orchestrator itself spawns
+#   short-lived worker containers (finja-agent-worker:dev) via the mounted
+#   Docker socket -- those are not services here, they're launched on demand.
+#
+# ======================================================================
+
 services:
   orchestrator:
     build:

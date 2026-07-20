@@ -1,3 +1,4 @@
+# Flare (Finja Agentic Code) / orchestrator - Dependencies - Version: 1.0.1
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4

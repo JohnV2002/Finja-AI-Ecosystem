@@ -1,3 +1,24 @@
+# ======================================================================
+#          Flare (Finja Agentic Code) – Orchestrator Dockerfile
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-agentic-code / orchestrator
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.1
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License
+#
+# ----------------------------------------------------------------------
+#
+#   Builds the orchestrator API (FastAPI). Includes the Docker CLI so it
+#   can spawn short-lived worker containers via the mounted Docker socket.
+#
+# ======================================================================
+
 FROM python:3.11-slim
 
 WORKDIR /app

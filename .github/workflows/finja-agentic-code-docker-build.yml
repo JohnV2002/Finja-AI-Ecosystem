@@ -1,0 +1,29 @@
+name: Finja Agentic Code Docker Build Check
+
+on:
+  push:
+    paths:
+      - 'finja-agentic-code/**'
+  pull_request:
+    paths:
+      - 'finja-agentic-code/**'
+
+jobs:
+  docker-build-only:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Build BOTH images. This module ships two: the long-running
+      # orchestrator API and the short-lived worker sandbox the
+      # orchestrator spawns per job. If both build, Dockerfile syntax and
+      # dependency resolution are sound for the whole stack.
+      - name: Build orchestrator image
+        working-directory: ./finja-agentic-code/orchestrator
+        run: docker build . --file Dockerfile --tag finja-agent-orchestrator:check
+
+      - name: Build worker image
+        working-directory: ./finja-agentic-code/worker
+        run: docker build . --file Dockerfile --tag finja-agent-worker:check

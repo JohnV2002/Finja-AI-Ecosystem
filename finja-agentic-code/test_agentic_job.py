@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-agentic-code / test
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.0.1
 
 ----------------------------------------------------------------------
 

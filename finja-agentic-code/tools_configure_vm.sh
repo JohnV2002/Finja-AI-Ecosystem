@@ -1,4 +1,26 @@
 #!/usr/bin/env bash
+# ======================================================================
+#          Flare (Finja Agentic Code) – VM Environment Configurator
+# ======================================================================
+#
+#   Project: Finja - Twitch Interactivity Suite
+#   Module:  finja-agentic-code
+#   Author:  J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 1.0.1
+#
+# ----------------------------------------------------------------------
+#
+#   Copyright (c) 2026 J. Apps
+#   Licensed under the MIT License
+#
+# ----------------------------------------------------------------------
+#
+#   Writes/updates the orchestrator's .env on the host VM (idempotent
+#   key=value upsert), and copies OPENROUTER_API_KEY over from Finja's
+#   own .env if one is already set there.
+#
+# ======================================================================
+
 set -euo pipefail
 
 cd /home/john/finja-agentic-code
