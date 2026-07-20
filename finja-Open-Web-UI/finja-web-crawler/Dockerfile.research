@@ -1,0 +1,41 @@
+# ======================================================================
+#          Finja Research Orchestrator - Dockerfile
+# ======================================================================
+#
+#   Project: Finja Web Crawler
+#   Module: finja-research-orchestrator
+#   Author: J. Apps (JohnV2002 / Sodakiller1)
+#   Version: 2.1.0
+#
+# ----------------------------------------------------------------------
+#
+#   Mother Docker for search/crawl/research orchestration.
+#   The actual untrusted page-read worker is a separate future service.
+#
+# ======================================================================
+
+FROM python:3.12-alpine AS builder
+WORKDIR /app
+
+RUN apk add --no-cache gcc linux-headers musl-dev
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.12-alpine
+WORKDIR /app
+
+RUN addgroup -S appgroup && \
+    adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY research_orchestrator.py .
+
+USER appuser
+
+EXPOSE 80
+CMD ["uvicorn", "research_orchestrator:app", "--host", "0.0.0.0", "--port", "80"]

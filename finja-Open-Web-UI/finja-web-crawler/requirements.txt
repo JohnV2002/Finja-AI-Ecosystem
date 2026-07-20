@@ -7,3 +7,4 @@ beautifulsoup4>=4.14.3
 requests>=2.33.0
 requests[socks]
 urllib3>=2.6.3
+docker>=7.1.0

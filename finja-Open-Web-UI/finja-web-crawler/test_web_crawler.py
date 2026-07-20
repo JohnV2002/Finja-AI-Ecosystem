@@ -4,8 +4,9 @@
 ======================================================================
 
   Project: Finja - Twitch Interactivity Suite
-  Module: finja-web-crawler
+  Module: finja-web-crawler / tests
   Author: J. Apps (JohnV2002 / Sodakiller1)
+  Version: 2.1.0
 
 ----------------------------------------------------------------------
   Description:

@@ -1,4 +1,4 @@
-# Finja Omni Test
+# Finja Omni Test v1.0.0
 
 This module represents the testbed for Finja's screen observation capabilities (similar to "Omni" but completely local). It uses OCR and Vision-Language Models (VLMs) to read and see what's happening on the screen without using a camera, but rather by capturing the active window.
 

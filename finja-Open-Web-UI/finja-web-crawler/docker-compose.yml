@@ -1,11 +1,11 @@
-# ======================================================================
+﻿# ======================================================================
 #          Finja Web Crawler - Docker Compose
 # ======================================================================
 #
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-web-crawler
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.0.0
+#   Version: 2.1.0
 #
 # ----------------------------------------------------------------------
 #
@@ -14,11 +14,16 @@
 #
 # ======================================================================
 
+networks:
+  default:
+    name: finja-web-crawler-net
+
 services:
   tor:
     build:
       context: .
       dockerfile: Dockerfile.tor
+    image: finja-web-crawler-tor:local
     container_name: tor
     ports:
       - "9050:9050"
@@ -34,3 +39,81 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+  # Static crawl workers are kept as an emergency fallback. Normal mode uses
+  # crawl-spawner below, which starts one short-lived baby worker per crawl.
+  crawl-worker:
+    profiles: ["static-workers"]
+    build:
+      context: .
+      dockerfile: Dockerfile.crawl-worker
+    image: finja-crawl-worker:local
+    scale: ${CRAWL_WORKER_REPLICAS:-4}
+    depends_on:
+      - tor
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 0.50
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - FETCH_PROXY=socks5h://tor:9050
+      - CRAWL_TIMEOUT_SEC=${CRAWL_TIMEOUT_SEC:-12}
+      - CRAWL_MAX_RESPONSE_BYTES=${CRAWL_MAX_RESPONSE_BYTES:-2097152}
+      - CRAWL_MAX_REDIRECTS=${CRAWL_MAX_REDIRECTS:-3}
+      - CRAWL_MAX_CONCURRENT=${CRAWL_MAX_CONCURRENT:-1}
+
+  crawl-spawner:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawl-spawner
+    image: finja-crawl-spawner:local
+    container_name: finja_crawl_spawner
+    depends_on:
+      - tor
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CRAWL_WORKER_IMAGE=${CRAWL_WORKER_IMAGE:-finja-crawl-spawner:local}
+      - CRAWL_SPAWN_NETWORK=${CRAWL_SPAWN_NETWORK:-finja-web-crawler-net}
+      - CRAWL_SPAWN_MAX_PARALLEL=${CRAWL_SPAWN_MAX_PARALLEL:-4}
+      - CRAWL_SPAWN_START_TIMEOUT_SEC=${CRAWL_SPAWN_START_TIMEOUT_SEC:-8}
+      - CRAWL_SPAWN_TOTAL_TIMEOUT_SEC=${CRAWL_SPAWN_TOTAL_TIMEOUT_SEC:-24}
+      - FETCH_PROXY=socks5h://tor:9050
+      - CRAWL_TIMEOUT_SEC=${CRAWL_TIMEOUT_SEC:-12}
+      - CRAWL_MAX_RESPONSE_BYTES=${CRAWL_MAX_RESPONSE_BYTES:-2097152}
+      - CRAWL_MAX_REDIRECTS=${CRAWL_MAX_REDIRECTS:-3}
+
+  research-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.research
+    container_name: finja_research_orchestrator
+    ports:
+      - "8090:80"
+    depends_on:
+      - search-proxy
+      - crawl-spawner
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SEARCH_API_URL=http://search-proxy/search
+      - CRAWL_WORKER_URL=${CRAWL_WORKER_URL:-http://crawl-spawner}
+      - RESEARCH_REQUEST_TIMEOUT_SEC=${RESEARCH_REQUEST_TIMEOUT_SEC:-20}
+      - RESEARCH_MAX_SEARCH_RESULTS=${RESEARCH_MAX_SEARCH_RESULTS:-8}
+      - RESEARCH_MAX_SOURCES=${RESEARCH_MAX_SOURCES:-3}
+      - RESEARCH_MAX_PARALLEL_CRAWLS=${RESEARCH_MAX_PARALLEL_CRAWLS:-4}
+      - RESEARCH_MAX_CONTEXT_CHARS=${RESEARCH_MAX_CONTEXT_CHARS:-12000}

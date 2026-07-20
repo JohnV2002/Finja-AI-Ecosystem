@@ -1,0 +1,25 @@
+# Secrets — NEVER commit!
+.env
+
+# Editor/tool config that shouldn't leak from Production
+# (.vscode/settings.json IS intentionally tracked on GitHub, so it is NOT ignored)
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ---------------------------------------------------------------------------
+# Runtime canvas state — NOT meant to be pushed. GitHub tracks small SEED
+# versions of these on purpose (a fresh 64x64 grid, an empty color layer, one
+# example gallery image). Production's copies are the live, mutated painting.
+#
+# NOTE: because these are already tracked in git with the seed content, listing
+# them here does NOT stop a future commit from overwriting them. When syncing
+# Production -> GitHub, exclude these paths from the copy entirely so GitHub's
+# clean seed state is preserved.
+# ---------------------------------------------------------------------------
+canvas.csv
+color.csv
+gallery/

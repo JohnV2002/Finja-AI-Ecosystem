@@ -6,12 +6,12 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-web-crawler
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 2.1.0
 
 ----------------------------------------------------------------------
 
   Copyright (c) 2026 J. Apps
-  Licensed under the Apache License 2.0
+  Licensed under the MIT License
 
 ----------------------------------------------------------------------
   Description:
