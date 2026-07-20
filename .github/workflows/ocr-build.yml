@@ -4,8 +4,14 @@ name: OCR Build Check
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-ocr/**'
+      - '.github/workflows/ocr-build.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-ocr/**'
+      - '.github/workflows/ocr-build.yml'
 
 jobs:
   build:

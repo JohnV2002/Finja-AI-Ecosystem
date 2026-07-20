@@ -4,8 +4,14 @@ name: Web-Crawler Build Check
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-web-crawler/**'
+      - '.github/workflows/web-crawler-build.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-web-crawler/**'
+      - '.github/workflows/web-crawler-build.yml'
 
 jobs:
   build:

@@ -56,29 +56,28 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 ## 📊 Project Status
 *As of: July 2026*
 
-| Main Component | Version | Status | Remarks | Bug Report (Sonar/Snyk) |
+| Main Component | Version | Status | Description | Stats / Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything. Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. Tests & Docker CI still WIP. | Many Sonar/Snyk issues (expected). |
-| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch Chat and Commands | Sonar + Snyk Later |
-| **finja-music** | | 🟢 Stable | Multiple versions available | |
-| &nbsp;&nbsp;└─ finja-everything-in-once | **v1.1.0** | 🟢 Stable | **Recommended Web-UI Version** | All False Positive |
-| &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.1.0** | 🟢 Stable | Docker version (Spotify only) | All False Positive |
-| &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system | WON'T BE UPDATED, PLEASE USE THE ONES ABOVE |
-| **finja-Open-Web-UI** | | 🔵 Stable | Ecosystem Modules ready | |
-| &nbsp;&nbsp;└─ finja-Memory | **v4.4.5** | 🟢 Stable | Heavily Refactored. Voice cache + MP3 TTS support added | Perfect 100% Pytest CI/CD |
-| &nbsp;&nbsp;└─ finja-web-crawler | **v2.0.0** | 🟢 Stable | Hybrid Tor Search Engine | Perfect 100% Pytest CI/CD |
-| &nbsp;&nbsp;└─ finja-ocr | | 🟢 Stable | Dockerized Tika/Tesseract OCR | Base image outdated |
-| &nbsp;&nbsp;└─ finja-stable-diffusion | | 🟢 Stable | Setup completed, tests missing | |
-| &nbsp;&nbsp;└─ finja-tts | | 🟡 Shifted | TTS now lives inside the Neural Network (ElevenLabs, DeepInfra, XTTS) | |
-| **finja-youtube** | **v1.0.0** | 🔵 Testing | YouTube Shorts Scraper + Vision AI Proxy (Experimental) | Missing Docker and API tests |
-| **finja-instagram** | **v1.0.0** | 🔵 Testing | Instagram Reels scraper + Vision AI Proxy (Experimental) | Missing Docker and API tests |
-| **finja-weather** | **v1.0.0** | 🔵 Testing | Weather microservice (OpenMeteo/Google) + API | has some tests |
-| **finja-canvas** | **v1.0.0** |  🟢 Stable | Canvas microservice draws things | Not Connected to Finja yet |
-| **finja-omni-test** | **v1.0.0** | 🟢 Stable | Local screen observation (OCR/Vision) | Cleaned and Standardized |
-| **finja-agentic-code** | **v1.0.0** | 🟢 Stable | Code Agent Module (Flare) | Has some tests |
-| **OWN / Self made VPet** | | 🟡 Dev | **LIVE on Twitch!** Custom Python Core | |
+| **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything: Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. | Tests & Docker CI still WIP · many Sonar/Snyk (expected). |
+| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch chat overlay + bot panel + Spotify song requests. | 45 tests · CI (3.9–3.11) · Sonar/Snyk later |
+| **finja-music** | | 🟢 Stable | Music engine — pick **one** of the variants below. | |
+| &nbsp;&nbsp;└─ finja-everything-in-once | **v1.2.0** | 🟢 Stable | **Recommended** all-in-one Web-UI music engine. | 44 tests · CI ✓ · Sonar clean |
+| &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.2.0** | 🟢 Stable | Dockerized Spotify-only music API. | 47 tests · CI ✓ · Sonar clean |
+| &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system. | Won't be updated — use the ones above |
+| **finja-Open-Web-UI** | | 🟢 Stable | OpenWebUI backend modules. | |
+| &nbsp;&nbsp;└─ finja-Memory | **v4.4.5** | 🟢 Stable | Adaptive memory + voice cache + MP3 TTS support. | 100% Pytest CI/CD · Apache 2.0 (adapted from gramanoid) |
+| &nbsp;&nbsp;└─ finja-web-crawler | **v2.1.0** | 🟢 Stable | Hybrid Tor search + distributed crawl (spawner/worker/research). | 18 tests · 100% Pytest CI/CD |
+| &nbsp;&nbsp;└─ finja-stable-diffusion | | 🟢 Stable | Local image generation (Docker, adapted). | Setup complete, tests missing |
+| &nbsp;&nbsp;└─ finja-ocr | | 🔴 Old | Dockerized Tika/Tesseract OCR. | Legacy — OCR now lives in the Neural Network |
+| **finja-weather** 🌦️ | **v1.0.0** | 🟢 Stable | Weather microservice (OpenMeteo/Google) + API. | 113 tests · CI (3.12) · Docker build ✓ |
+| **finja-canvas** 🎨 | **v1.0.0** | 🟢 Stable | Autonomous AI pixel-art canvas engine. | Cleaned & standardized · not connected to Finja yet |
+| **finja-omni-test** 👁️ | **v1.0.0** | 🟢 Stable | Local screen observation (OCR/Vision testbed). | Cleaned & standardized |
+| **finja-youtube** 📺 | **v1.1.0** | 🔵 Testing | YouTube Shorts scraper + Vision AI proxy. | 59 tests · CI (3.11) · Docker build ✓ |
+| **finja-instagram** 📸 | **v1.1.0** | 🔵 Testing | Instagram Reels scraper + Vision AI proxy. | 79 tests · CI (3.11) · Docker build ✓ |
+| **finja-agentic-code** 💻 | **v1.0.1** | 🟢 Stable | **Flare** — external code worker (orchestrator + sandbox). | 48 tests · CI (3.11) · Docker build ✓ |
+| **OWN / Self-made VPet** 🐾 | | 🟡 Dev | Custom Python VPet core — **LIVE on Twitch!** | Release TBD |
 
-**Legend:** 🟢 Stable / Ready | 🔵 Update/Testing phase | 🟡 WIP / Shifted | 🔴 Deprecated/Paused
+**Legend:** 🟢 Stable / Ready | 🔵 Update/Testing phase | 🟡 WIP / Dev | 🔴 Deprecated/Old
 
 ---
 
@@ -186,10 +185,11 @@ flowchart TD
 The Finja Ecosystem features a comprehensive test suite to ensure code quality and stability.
 
 ### Test Coverage
-- **Unit Tests**: 150+ Test Cases across all main components
-- **Integration Tests**: API Endpoints, Spotify Integration, Memory System
-- **Security Tests**: Path-Traversal Prevention, Auth-Validation
-- **Code Quality**: Linting (flake8, black, isort), Security-Scanning (Sonar/Snyk)
+- **Unit Tests**: **450+ automated test cases** across 9 modules (chat, youtube, instagram, weather, both music engines, agentic-code, memory, web-crawler)
+- **Integration Tests**: API endpoints, Spotify integration, memory system, distributed crawl pipeline
+- **Security Tests**: path-traversal prevention, SSRF guards, auth validation, AES-GCM transport, XSS-safe DOM
+- **Mocked Externals**: all network/browser/Docker/LLM boundaries are mocked, so suites run fast, offline, and deterministically
+- **Code Quality**: security scanning (Sonar/Snyk)
 
 ### Test Locally
 Since the Finja Ecosystem consists of independent microservices, tests are run within their respective project directories instead of a global setup.
@@ -197,22 +197,23 @@ Since the Finja Ecosystem consists of independent microservices, tests are run w
 ```bash
 # Example 1: Memory Module Tests
 cd finja-Open-Web-UI/finja-Memory
-pip install -r requirements.txt; pip install pytest httpx pytest-asyncio aiohttp numpy scikit-learn rapidfuzz
+pip install -r requirements.txt; pip install pytest httpx httpx2 pytest-asyncio aiohttp numpy scikit-learn rapidfuzz
 pytest test_memory_server.py test_adaptive_memory.py -v
 
-# Example 2: Web Crawler Tests
+# Example 2: Web Crawler Tests (search API + distributed crawl services)
 cd finja-Open-Web-UI/finja-web-crawler
-pip install -r requirements.txt; pip install pytest httpx
-pytest test_web_crawler.py -v
+pip install -r requirements.txt; pip install pytest httpx httpx2
+pytest test_web_crawler.py test_crawl_worker.py test_research_orchestrator.py -v
 
 # Example 3: Weather Module Tests
 cd finja-weather
-pip install -r requirements.txt
-pytest test_weather.py -v
+pip install -r requirements.txt; pip install pytest pyyaml httpx2
+pytest test_weather_api.py test_providers.py test_docker_config.py -v
 
-# Example 4: Agentic Code (Flare) Test Job
+# Example 4: Agentic Code (Flare) Unit Tests
 cd finja-agentic-code
-python test_agentic_job.py
+pip install -r orchestrator/requirements.txt; pip install pytest httpx2
+pytest test_orchestrator.py test_worker.py -v
 ```
 
 📖 **Full Test Documentation**: [TESTING.md](./TESTING.md)
@@ -297,6 +298,10 @@ Now we can set up the primary interface for interaction.
 [![Music Docker Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/music-docker-build.yml)
 [![OCR Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/ocr-build.yml)
 [![Web-Crawler Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-build.yml)
+[![Weather Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-docker-build.yml)
+[![YouTube Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-docker-build.yml)
+[![Instagram Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-docker-build.yml)
+[![Agentic Code Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-docker-build.yml)
 
 #### ✅ Automated Tests
 
@@ -305,6 +310,10 @@ Now we can set up the primary interface for interaction.
 [![Finja Music All-in-One Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-music-everything-in-once.yml)
 [![Memory Unit Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/memory-tests.yml)
 [![Web-Crawler Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/web-crawler-tests.yml)
+[![Weather Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-tests.yml)
+[![YouTube Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-tests.yml)
+[![Instagram Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-tests.yml)
+[![Agentic Code Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-tests.yml)
 
 ---
 

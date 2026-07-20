@@ -29,9 +29,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest httpx
-          
-      - name: Run Pytest Suite
+          # httpx2: fastapi.testclient needs it on recent Starlette releases
+          pip install pytest httpx httpx2
+
+      - name: Run Pytest Suite (search API + distributed crawl services)
         working-directory: ./finja-Open-Web-UI/finja-web-crawler
         run: |
-          pytest test_web_crawler.py -v
+          pytest test_web_crawler.py test_crawl_worker.py test_research_orchestrator.py -v

@@ -4,8 +4,14 @@ name: Memory Build Check
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-Memory/**'
+      - '.github/workflows/memory-build.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'finja-Open-Web-UI/finja-Memory/**'
+      - '.github/workflows/memory-build.yml'
 
 jobs:
   build:
