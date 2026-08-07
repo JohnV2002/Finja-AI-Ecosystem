@@ -188,7 +188,28 @@ pytest --cov=. --cov-branch --cov-report=html
 
 Artifact `coverage.xml` is what Codecov consumes in GitHub Actions. Upload failures do not fail the job (`fail_ci_if_error: false`) so a flaky Codecov outage does not red-board every module.
 
-Quality stack (also documented in the root README): **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Trivy** (fs scan → Security tab), **Dependency Guard**.
+The Codecov **badge** on the root README uses Codecov’s public graph token (not the upload secret).
+
+## Quality & security stack (where things live)
+
+| Tool | What it does | Where |
+| :--- | :--- | :--- |
+| **SonarCloud** | Quality gate, maintainability | Sonar project + README badges |
+| **Snyk** | Dependency / vuln scanning | Snyk (external) |
+| **Codecov** | Coverage from CI XML uploads | Module test workflows → secret `CODECOV_TOKEN` |
+| **CodeQL** | Semantic code scanning | GitHub **Security → Code scanning** |
+| **Trivy** | Monorepo **filesystem** scan (CRITICAL/HIGH) → SARIF | [`.github/workflows/trivy.yml`](./.github/workflows/trivy.yml) (not a root Docker image build) |
+| **Dependency Guard** | Imports vs `requirements*.txt` | `python tools/dependency_guard.py` · CI workflow |
+| **BOM check** | UTF-8 BOM breaks `ast.parse` / import scans | `python tools/fix_bom.py --check` · runs before guard in CI |
+
+Maintainer notes and install tips: [`tools/README.md`](./tools/README.md).
+
+```bash
+# from repo root
+python tools/fix_bom.py --check
+python tools/fix_bom.py --fix          # if check fails
+python tools/dependency_guard.py
+```
 
 ## Writing New Tests
 

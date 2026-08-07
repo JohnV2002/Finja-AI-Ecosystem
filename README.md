@@ -309,9 +309,7 @@ Now we can set up the primary interface for interaction.
 [![Trivy](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml)
 [![Dependency Guard](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml)
 
-> **Codecov:** repo secret `CODECOV_TOKEN` (upload). Badge uses Codecov’s public graph token. Module tests upload via `codecov/codecov-action@v5` (per-module flags).  
-> **CodeQL:** GitHub **Security → Code scanning**.  
-> **Trivy:** [`.github/workflows/trivy.yml`](./.github/workflows/trivy.yml) — monorepo **filesystem** scan (CRITICAL/HIGH) → SARIF on the Security tab. Not a root Docker image build (this repo has many modules).
+How CI coverage, BOM checks, and scanners are wired: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md)**
 
 #### 🔨 Docker Builds
 
