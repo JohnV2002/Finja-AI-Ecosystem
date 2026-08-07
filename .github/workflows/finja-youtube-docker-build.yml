@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # We only build the image. If this succeeds, the Dockerfile syntax,
       # apt packages, and Python dependency resolution are all sound.
