@@ -3,7 +3,7 @@
 flask>=3.0.0
 flask-cors>=4.0.0
 fastapi>=0.110.0
-uvicorn[standard]>=0.27.0
+uvicorn[standard]>=0.52.1
 pydantic>=2.0.0
 spotipy>=2.23.0
 python-dotenv>=1.0.0
