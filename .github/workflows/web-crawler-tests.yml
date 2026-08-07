@@ -30,9 +30,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           # httpx2: fastapi.testclient needs it on recent Starlette releases
-          pip install pytest httpx httpx2
+          pip install pytest pytest-cov httpx httpx2
 
       - name: Run Pytest Suite (search API + distributed crawl services)
         working-directory: ./finja-Open-Web-UI/finja-web-crawler
         run: |
-          pytest test_web_crawler.py test_crawl_worker.py test_research_orchestrator.py -v
+          pytest test_web_crawler.py test_crawl_worker.py test_research_orchestrator.py -v --cov=. --cov-branch --cov-report=term --cov-report=xml
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-finja-web-crawler
+          path: finja-Open-Web-UI/finja-web-crawler/coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: finja-Open-Web-UI/finja-web-crawler/coverage.xml
+          flags: finja-web-crawler
+          name: finja-web-crawler
+          fail_ci_if_error: false

@@ -76,10 +76,19 @@ jobs:
           SPOTIPY_CLIENT_SECRET: "test_client_secret"
           SPOTIPY_REDIRECT_URI: "http://localhost:8888/callback"
         run: |
-          pytest test_*.py --cov=. --cov-report=term --cov-report=xml
+          pytest test_*.py --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-finja-chat-${{ matrix.python-version }}
           path: finja-chat/coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: finja-chat/coverage.xml
+          flags: finja-chat
+          name: finja-chat-py${{ matrix.python-version }}
+          fail_ci_if_error: false

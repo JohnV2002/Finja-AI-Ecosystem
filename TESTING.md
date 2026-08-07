@@ -173,6 +173,23 @@ Every workflow is **path-scoped**: a Pull Request or Push only triggers the chec
 `memory-build.yml` (also live-pings the container), `web-crawler-build.yml`,
 and `ocr-build.yml`.
 
+## Coverage (local + Codecov)
+
+CI test workflows install `pytest-cov`, generate **branch coverage XML**, and upload to **Codecov** (`codecov/codecov-action@v5` + repo secret `CODECOV_TOKEN`). Each module uses a Codecov **flag** (e.g. `finja-weather`, `finja-chat`).
+
+Locally (from a module directory):
+
+```bash
+pip install pytest pytest-cov
+pytest --cov=. --cov-branch --cov-report=term --cov-report=xml
+# optional: open HTML
+pytest --cov=. --cov-branch --cov-report=html
+```
+
+Artifact `coverage.xml` is what Codecov consumes in GitHub Actions. Upload failures do not fail the job (`fail_ci_if_error: false`) so a flaky Codecov outage does not red-board every module.
+
+Quality stack (also documented in the root README): **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Dependency Guard**.
+
 ## Writing New Tests
 
 If you contribute to a module, please observe the following Pytest conventions:

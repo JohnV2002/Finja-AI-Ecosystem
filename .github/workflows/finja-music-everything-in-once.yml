@@ -61,7 +61,7 @@ jobs:
           cd "$TARGET_DIR"
           
           # Run all files starting with 'test_'
-          pytest test_*.py -v --tb=short --cov=. --cov-report=xml
+          pytest test_*.py -v --tb=short --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Syntax Check for Helper Scripts
         run: |
@@ -82,3 +82,13 @@ jobs:
           name: coverage-report-${{ matrix.python-version }}
           # Find coverage.xml anywhere
           path: '**/coverage.xml'
+
+      - name: Upload coverage reports to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: Finja-music/finja-everything-in-once/coverage.xml
+          flags: finja-everything-in-once
+          name: finja-everything-in-once-py${{ matrix.python-version }}
+          fail_ci_if_error: false

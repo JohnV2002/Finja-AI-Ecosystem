@@ -66,10 +66,19 @@ jobs:
       - name: Generate coverage report
         working-directory: ./finja-weather
         run: |
-          pytest test_weather_api.py test_providers.py test_docker_config.py --cov=. --cov-report=term --cov-report=xml
+          pytest test_weather_api.py test_providers.py test_docker_config.py --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-finja-weather-${{ matrix.python-version }}
           path: finja-weather/coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: finja-weather/coverage.xml
+          flags: finja-weather
+          name: finja-weather-py${{ matrix.python-version }}
+          fail_ci_if_error: false

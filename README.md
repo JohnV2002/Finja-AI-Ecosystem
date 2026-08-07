@@ -18,7 +18,7 @@
 >
 > 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
 >
-> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ Sonar & Snyk) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
+> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
 > 2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
 > 3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
 > 4.  🐾 **Own VPet Program:** My own VPet is in full development!
@@ -58,8 +58,8 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 
 | Main Component | Version | Status | Description | Stats / Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything: Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. | Tests & Docker CI still WIP · many Sonar/Snyk (expected). |
-| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch chat overlay + bot panel + Spotify song requests. | 45 tests · CI (3.9–3.11) · Sonar/Snyk later |
+| **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything: Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. | Tests & Docker CI still WIP · Sonar/Snyk/CodeQL noise expected. |
+| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch chat overlay + bot panel + Spotify song requests. | 45 tests · CI (3.9–3.11) · Codecov upload |
 | **finja-music** | | 🟢 Stable | Music engine — pick **one** of the variants below. | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.2.0** | 🟢 Stable | **Recommended** all-in-one Web-UI music engine. | 44 tests · CI ✓ · Sonar clean |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.2.0** | 🟢 Stable | Dockerized Spotify-only music API. | 47 tests · CI ✓ · Sonar clean |
@@ -189,7 +189,7 @@ The Finja Ecosystem features a comprehensive test suite to ensure code quality a
 - **Integration Tests**: API endpoints, Spotify integration, memory system, distributed crawl pipeline
 - **Security Tests**: path-traversal prevention, SSRF guards, auth validation, AES-GCM transport, XSS-safe DOM
 - **Mocked Externals**: all network/browser/Docker/LLM boundaries are mocked, so suites run fast, offline, and deterministically
-- **Code Quality**: security scanning (Sonar/Snyk)
+- **Code Quality & Security**: **SonarCloud** (maintainability), **Snyk** (deps/vulns), **Codecov** (pytest coverage XML from CI), **CodeQL** (GitHub code scanning), plus Dependency Guard
 
 ### Test Locally
 Since the Finja Ecosystem consists of independent microservices, tests are run within their respective project directories instead of a global setup.
@@ -286,11 +286,23 @@ Now we can set up the primary interface for interaction.
 
 ### Build & Test Status
 
-#### 📊 SonarCloud
+#### 📊 Quality, coverage & security
+
+| Tool | Role |
+| :--- | :--- |
+| **SonarCloud** | Quality gate, bugs, smells, maintainability |
+| **Snyk** | Dependency / vulnerability scanning |
+| **Codecov** | Test coverage from CI (`pytest --cov` → XML upload) |
+| **CodeQL** | GitHub code scanning (semantic vulns in our code) |
+| **Dependency Guard** | Undeclared Python imports vs `requirements*.txt` |
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
+[![codecov](https://codecov.io/gh/JohnV2002/Finja-AI-Ecosystem/graph/badge.svg)](https://codecov.io/gh/JohnV2002/Finja-AI-Ecosystem)
+[![CodeQL](https://img.shields.io/badge/CodeQL-security%20scanning-blue?logo=github)](https://github.com/JohnV2002/Finja-AI-Ecosystem/security/code-scanning)
 
+> **Codecov:** set repo secret `CODECOV_TOKEN`. Module test workflows upload `coverage.xml` via `codecov/codecov-action@v5` (flags per module).  
+> **CodeQL:** enable/managed under GitHub **Security → Code scanning** (default CodeQL workflow when turned on in the UI).
 
 #### 🔨 Docker Builds
 
@@ -322,6 +334,8 @@ Now we can set up the primary interface for interaction.
 ### Special Thanks
 * **Snyk** 💻 – Vulnerability scanning and security fixes 🛡️
 * **SonarCloud** 📊 – Code quality analysis and maintainability tracking
+* **Codecov** 📈 – Coverage reports from CI (pytest-cov XML)
+* **GitHub CodeQL** 🔍 – Semantic code scanning on the monorepo
 * **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration for the **Open WebUI Adaptive Memory Project** (Apache 2.0 License preserved)
 * **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration for AI-Companions during streams
 * **Glorpo lineage** 🤪🧬 – Esolang shape inspired by **[s3thi/cutlet](https://github.com/s3thi/cutlet)**; name + meme energy from **[Magic The Noah](https://www.youtube.com/@MagicTheNoah)** — *"Glorpo is pain."*

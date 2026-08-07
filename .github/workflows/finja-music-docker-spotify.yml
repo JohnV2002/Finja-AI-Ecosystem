@@ -62,10 +62,19 @@ jobs:
       - name: Generate coverage report
         working-directory: ./Finja-music/finja-music-docker-spotify
         run: |
-          pytest test_music_app.py --cov=. --cov-report=term --cov-report=xml
+          pytest test_music_app.py --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-finja-music-spotify-${{ matrix.python-version }}
           path: Finja-music/finja-music-docker-spotify/coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: Finja-music/finja-music-docker-spotify/coverage.xml
+          flags: finja-music-docker-spotify
+          name: finja-music-spotify-py${{ matrix.python-version }}
+          fail_ci_if_error: false
