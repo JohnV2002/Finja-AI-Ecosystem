@@ -504,7 +504,7 @@ def extract_imports(py_path: Path) -> Tuple[Set[str], Set[str]]:
     static: Set[str] = set()
     dynamic: Set[str] = set()
     try:
-        src = py_path.read_text(encoding="utf-8", errors="replace")
+        src = py_path.read_text(encoding="utf-8-sig", errors="replace")  # strip BOM
     except OSError:
         return static, dynamic
 
@@ -644,8 +644,9 @@ def analyze_module(module_root: Path, repo: Path) -> ModuleReport:
         else:
             report.missing.append((import_name, dist, files_hit))
 
-    # Declared but never imported (coarse — transitive / CLI-only may false-positive)
-    # Don't nag about common transitive/server packages often pulled as deps of FastAPI.
+    # Declared but never imported (coarse — transitive / CLI-only may false-positive).
+    # Skip common FastAPI/runtime packages and *reverse* IMPLIED_BY_PARENT:
+    # e.g. onnxruntime is declared for rapidocr; python-multipart for UploadFile.
     TRANSITIVE_OK = {
         normalize_dist(x)
         for x in (
@@ -662,11 +663,26 @@ def analyze_module(module_root: Path, repo: Path) -> ModuleReport:
             "typing-extensions",
             "annotated-types",
             "pydantic-core",
+            # FastAPI needs this package installed; apps rarely `import multipart`
+            "python-multipart",
+            # Starlette/FastAPI TestClient needs httpx even without `import httpx`
+            "httpx",
+            # pytest plugins often have no import of the dist name
+            "pytest-asyncio",
+            "pytest-cov",
+            "pytest-mock",
         )
     }
+    # If parent dist is used OR declared, children are not "unused noise"
+    implied_children_covered: Set[str] = set()
+    for parent, children in IMPLIED_BY_PARENT.items():
+        if parent in used_dists or parent in declared:
+            implied_children_covered |= children
+
     for n in sorted(declared):
-        if n not in used_dists and n not in TRANSITIVE_OK:
-            report.unused.append(display.get(n, n))
+        if n in used_dists or n in TRANSITIVE_OK or n in implied_children_covered:
+            continue
+        report.unused.append(display.get(n, n))
 
     return report
 

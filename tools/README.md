@@ -3,6 +3,25 @@
 Local + CI helpers so Snyk / Dependabot / humans stop playing whack-a-mole with
 forgotten imports and floating lower bounds.
 
+## 0. UTF-8 BOM fixer
+
+A leading **UTF-8 BOM** (`ef bb bf`) breaks `ast.parse` and made the import
+guard miss real imports (classic: `pygame` in `body/mouth.py`).
+
+There was **no** older standalone “v1” BOM tool in this monorepo — only
+`utf-8-sig` reads in a few places (Flare worker, dependency_guard).  
+This script is the repo-wide fix + CI check.
+
+```bash
+python tools/fix_bom.py              # list offenders, exit 1 if any
+python tools/fix_bom.py --fix        # strip BOM in place
+python tools/fix_bom.py --check       # CI mode (same as default report)
+python tools/fix_bom.py --ext py,md,yml
+```
+
+Wired into `.github/workflows/dependency-guard.yml` as **`--check`** before
+the import scan.
+
 ## 1. Import guard (the important one)
 
 GitHub Dependency Review watches **manifest** changes. It does **not** reliably

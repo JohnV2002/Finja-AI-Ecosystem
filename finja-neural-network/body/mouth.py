@@ -1,4 +1,4 @@
-﻿"""
+"""
 Body Mouth - Text to Speech (XTTS v2)
 =====================================
 Handles speech synthesis using voice cloning and playback on the system speaker.

@@ -13,6 +13,7 @@ on:
       - "**/requirements*.in"
       - "**/pyproject.toml"
       - "tools/dependency_guard.py"
+      - "tools/fix_bom.py"
       - "tools/compile_all_requirements.py"
       - ".github/workflows/dependency-guard.yml"
 
@@ -31,6 +32,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Find UTF-8 BOMs (breaks ast.parse / import scans)
+        run: |
+          python tools/fix_bom.py --root . --check
 
       - name: Find undeclared imports
         run: |
