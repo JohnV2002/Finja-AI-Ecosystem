@@ -2,5 +2,5 @@
 # Changes (1.1.0): CairoSVG rasterizes Recraft Vector SVG motifs into canvas cells.
 requests==2.33.1
 python-dotenv==1.2.2
-pillow==12.2.0
+pillow==12.3.0
 cairosvg==2.8.2
