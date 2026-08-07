@@ -33,7 +33,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           # Hash based on the module's requirements.txt
