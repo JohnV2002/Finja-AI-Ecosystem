@@ -1,5 +1,5 @@
 # Flare (Finja Agentic Code) / orchestrator - Dependencies - Version: 1.0.1
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-pydantic==2.10.4
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+pydantic==2.13.4
 cryptography==43.0.3
