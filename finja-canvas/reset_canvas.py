@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / reset_canvas
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Resets the canvas and colors to empty, and deletes AI planning files.
+
+ Changes (1.1.0):
+  Clears plans and pixel templates created from Recraft Vector motifs.
 ======================================================================
 """
 

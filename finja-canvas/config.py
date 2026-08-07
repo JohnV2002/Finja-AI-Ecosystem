@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / config
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Shared configuration for the canvas grid sizes and logical scaling.
+
+ Changes (1.1.0):
+  Supports templates rasterized from Recraft Vector SVG motifs.
 ======================================================================
 """
 

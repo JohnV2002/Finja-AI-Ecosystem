@@ -1,0 +1,45 @@
+# Catches: "import foo" without updating requirements*.txt
+# (GitHub Dependency Review alone does not reliably do this.)
+name: Dependency Guard
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+    paths:
+      - "**/*.py"
+      - "**/requirements*.txt"
+      - "**/requirements*.in"
+      - "**/pyproject.toml"
+      - "tools/dependency_guard.py"
+      - "tools/compile_all_requirements.py"
+      - ".github/workflows/dependency-guard.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-guard:
+    name: Import vs requirements
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Find undeclared imports
+        run: |
+          # Phase 1: report + fail on real gaps. Modules still paying debt
+          # can be fixed PR-by-PR; use --warn-only only as a temporary escape hatch.
+          python tools/dependency_guard.py --root .
+
+      - name: Verify generated requirements (opt-in)
+        run: |
+          python -m pip install --upgrade pip pip-tools
+          # No-op until modules adopt requirements.in
+          python tools/compile_all_requirements.py --check

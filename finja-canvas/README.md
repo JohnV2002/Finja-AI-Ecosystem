@@ -1,14 +1,16 @@
-# 🎨 Finja AI Pixel Canvas v1.0.0
+# 🎨 Finja AI Pixel Canvas v1.1.0
 
 An experimental headless AI pixel art project within the **Finja AI Ecosystem**. Multiple free AI models from OpenRouter (like Gemma and Nemotron) collaborate in a continuous loop to design, place, and paint motifs on a shared 64x64 grid—pixel by pixel.
 
 **Note:** This module operates independently and does not yet communicate directly with the main Finja brain, but integration is planned for the future.
 
+**Changes (v1.1.0):** Recraft V4.1 Vector is now the default motif artist. Its transparent SVG motifs are rasterized into canvas pixels and painted over time.
+
 ---
 
 ## ✨ Features
 
-- **Autonomous AI Painting**: The AI chooses a category, designs a motif, decides on a drawing style (geometric primitives vs. organic ASCII silhouettes), picks colors, and then slowly paints it onto the canvas.
+- **Autonomous AI Painting**: The AI chooses a category and motif; Recraft V4.1 Vector designs it as SVG, which is converted to pixels and slowly painted onto the canvas.
 - **Collage Effect**: The AI uses collision detection to place new motifs next to existing ones, resulting in a dense "r/place" style collage instead of just one big drawing.
 - **Round-Robin Multi-Model Engine**: Uses an intelligent model chain (via OpenRouter) with built-in fallbacks. It routes around rate-limits and slow reasoning models automatically.
 - **Live Frontend**: The `index.html` file serves as a live dashboard that polls the painted pixels in real-time, giving a cool glow effect to the canvas.

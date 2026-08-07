@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / painter
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -22,6 +22,9 @@
 ----------------------------------------------------------------------
   Main painting loop that places pixels according to the generated plan
   and template.
+
+ Changes (1.1.0):
+  Now paints pixel templates generated from Recraft Vector SVG motifs.
 ======================================================================
 """
 

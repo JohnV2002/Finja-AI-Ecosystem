@@ -1,0 +1,57 @@
+name: ✨ Feature request
+description: Idea or improvement for a Finja module
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Solo-maintainer pace applies — clear problem statements help a lot.
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module / area
+      multiple: true
+      options:
+        - finja-neural-network
+        - finja-chat
+        - Finja-music
+        - finja-Open-Web-UI
+        - finja-weather
+        - finja-youtube / instagram
+        - finja-canvas / omni
+        - finja-agentic-code (Flare)
+        - docs / DX / CI
+        - ecosystem-wide
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What is painful today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed direction
+      description: Rough idea is fine — no need for a full design doc.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional.
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope notes
+      options:
+        - label: This does not require publishing private prompts, weights, or Finja character IP
+          required: false
+        - label: I would be interested in contributing a PR
+          required: false

@@ -298,7 +298,9 @@ Content-Type: application/json
 ---
 
 ## 📜 License
-MIT License © 2026 J. Apps
+
+**MIT** © J. Apps — full text: repository root [`LICENSE`](../../LICENSE).  
+Ecosystem notes: root [README — License & Usage](../../README.md#license--usage).
 
 ---
 

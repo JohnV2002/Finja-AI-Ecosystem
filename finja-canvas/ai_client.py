@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / ai_client
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -20,12 +20,16 @@
 ----------------------------------------------------------------------
  Description:
 ----------------------------------------------------------------------
-  Client for interacting with OpenRouter API. Includes fallback and 
-  timeout logic for models.
+ Client for interacting with OpenRouter API. Includes fallback and
+  timeout logic for text models and Recraft SVG image generation.
+
+ Changes (1.1.0):
+  Added the Recraft V4.1 Vector image client used for canvas motifs.
 ======================================================================
 """
 
 import concurrent.futures
+import base64
 import os
 import requests
 from dotenv import load_dotenv
@@ -34,6 +38,8 @@ load_dotenv()
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+IMAGE_API_URL = "https://openrouter.ai/api/v1/images"
+VECTOR_MODEL = "recraft/recraft-v4.1-vector"
 
 # Selected on 2026-07-14 via category benchmark (10 categories x Primitives shape generation):
 # gemma-4-26b and nemo-550b consistently provided the most recognizable shapes.
@@ -133,3 +139,40 @@ def ask_ai(prompt, max_tokens=800, wall_clock_timeout=20):
             continue
 
     return None, None
+
+
+def generate_vector_svg(prompt, timeout=90):
+    """Generates one transparent SVG motif with Recraft. Returns its bytes or None.
+
+    Image generation is intentionally separate from ask_ai(): Recraft uses OpenRouter's
+    dedicated Image API and returns base64 image data instead of chat text.
+    """
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": VECTOR_MODEL,
+        "prompt": prompt,
+        "n": 1,
+        "aspect_ratio": "1:1",
+        "output_format": "svg",
+        "background": "transparent",
+    }
+    try:
+        response = requests.post(IMAGE_API_URL, headers=headers, json=payload, timeout=timeout)
+        response.raise_for_status()
+        image = response.json()["data"][0]
+        if image.get("media_type") != "image/svg+xml":
+            print(f"⚠️ {VECTOR_MODEL} returned {image.get('media_type', 'an unknown format')}, not SVG.")
+            return None
+        svg = base64.b64decode(image["b64_json"])
+        if b"<svg" not in svg[:4096].lower():
+            print(f"⚠️ {VECTOR_MODEL} returned invalid SVG data.")
+            return None
+        cost = response.json().get("usage", {}).get("cost")
+        print(f"🎨 {VECTOR_MODEL} generated an SVG" + (f" (${cost:.2f})" if isinstance(cost, (int, float)) else ""))
+        return svg
+    except (KeyError, IndexError, ValueError, requests.RequestException) as e:
+        print(f"⚠️ {VECTOR_MODEL} failed ({e}).")
+        return None

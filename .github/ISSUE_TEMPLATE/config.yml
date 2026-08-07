@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: https://github.com/JohnV2002/Finja-AI-Ecosystem/security/advisories/new
+    about: Do not file public issues for security bugs — use private reporting or contact@jappshome.de (see SECURITY.md).
+  - name: 💬 Community / chat
+    url: https://discord.gg/c55C6ggQ5K
+    about: General Finja / stream chat — not a substitute for actionable repo bugs.
+  - name: 🌐 Website & contact
+    url: https://jappshome.de
+    about: Project site and contact@jappshome.de

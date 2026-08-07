@@ -2,7 +2,7 @@
 *Intelligent Spotify tracking, reaction generation & knowledge base for streamers. 💙*
 
 [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-yellow.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
@@ -330,46 +330,11 @@ We welcome contributions! Here's how:
 
 ## 📄 License
 
-MIT © 2026 J. Apps (JohnV2002 / Sodakiller1)
+**MIT** © J. Apps (JohnV2002 / Sodakiller1) — full text: repository root [`LICENSE`](../../LICENSE).
 
-**You are free to:**
-- ✅ Use this code commercially
-- ✅ Modify and adapt it
-- ✅ Distribute and sell it
-- ✅ Use it in closed-source projects
+Keep copyright notices in source (MIT). Extra UI/log credits are appreciated, not required beyond MIT.
 
-**The only requirement:**
-- ⭐ **Keep the attribution visible** — Credit must remain in the UI/Logs.
-
-**Why attribution matters:**
-Money comes and goes, but **reputation is gold**. This project is free for everyone, but credit keeps the open-source spirit alive and helps others discover the project.
-
-**Links:**
-- 🎮 Twitch: [twitch.tv/sodakiller1](https://twitch.tv/sodakiller1)
-- 💼 Company: J. Apps
-- 👤 GitHub: JohnV2002
-
----
-
-### Full MIT License Text
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-**The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.**
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Ecosystem exceptions (assets, Apache modules): root [README — License & Usage](../../README.md#license--usage).
 
 ---
 

@@ -5,7 +5,9 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-canvas
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
+#
+#   Changes (1.1.0): Runs the Recraft Vector-based motif workflow.
 #
 # ----------------------------------------------------------------------
 #

@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / new_motif
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -22,6 +22,9 @@
 ----------------------------------------------------------------------
   Deletes the current AI plan to force a new motif on the next cycle,
   leaving the already painted canvas intact.
+
+ Changes (1.1.0):
+  Also replaces the active Recraft Vector-derived pixel template.
 ======================================================================
 """
 

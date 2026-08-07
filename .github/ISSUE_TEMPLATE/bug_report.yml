@@ -1,0 +1,77 @@
+name: 🐛 Bug report
+description: Something broken in a Finja module (not a security issue)
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping clean the chaos.  
+        **Security?** → private report / `SECURITY.md` — not this form.
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      description: Where does it break?
+      multiple: true
+      options:
+        - finja-neural-network
+        - finja-chat
+        - Finja-music (everything-in-once)
+        - Finja-music (docker-spotify)
+        - finja-Open-Web-UI / Memory
+        - finja-Open-Web-UI / web-crawler
+        - finja-Open-Web-UI / other
+        - finja-weather
+        - finja-youtube
+        - finja-instagram
+        - finja-canvas
+        - finja-omni-test
+        - finja-agentic-code (Flare)
+        - tools / CI / repo root
+        - unclear / multiple
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Expected vs actual.
+      placeholder: Expected … / Actual …
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: "OS, Python version, Docker yes/no, roughly which commit/branch"
+      placeholder: "Windows 11 · Python 3.12 · Docker · main @ abc123"
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Paste redacted logs. Strip tokens, cookies, .env values.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submit
+      options:
+        - label: I redacted secrets from logs and screenshots
+          required: true
+        - label: This is not a security vulnerability report (those go private)
+          required: true

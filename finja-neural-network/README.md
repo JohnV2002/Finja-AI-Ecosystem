@@ -796,24 +796,11 @@ This project stands on the shoulders of some amazing open-source tools and servi
 
 ## 📄 License
 
-MIT © 2026 J. Apps (JohnV2002 / Sodakiller1)
+**MIT** © J. Apps (JohnV2002 / Sodakiller1) — full text: repository root [`LICENSE`](../LICENSE).
 
-**You are free to:**
-- ✅ Use this code commercially
-- ✅ Modify and adapt it
-- ✅ Distribute and sell it
-- ✅ Use it in closed-source projects
+Keep copyright / author notices in source headers (standard MIT). UI credits are appreciated, not an extra condition on top of MIT.
 
-**The only requirement:**
-- ⭐ **Keep the attribution visible** — The "Made with ❤️ by Sodakiller1" credit must remain in the UI - WIP!!
-
-**Why attribution matters:**
-Money comes and goes, but **reputation is gold**. This project is free for everyone, but credit keeps the open-source spirit alive and helps others discover the project.
-
-**Links:**
-- 🎮 Twitch: [twitch.tv/sodakiller1](https://twitch.tv/sodakiller1)
-- 💼 Company: J. Apps
-- 👤 GitHub: [JohnV2002](https://github.com/JohnV2002)
+Character, brand, and non-MIT submodules: root [README — License & Usage](../README.md#license--usage).
 
 ---
 

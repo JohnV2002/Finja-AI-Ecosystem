@@ -2,7 +2,7 @@
 *OBS Chat Overlay + Bot Panel + Song Requests — cute, fast, Gen-Z approved. 💙*
 
 [![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/yourusername/finja-chat)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
 > **✨ New in v2.3.0:**
@@ -590,46 +590,11 @@ All new features should include tests:
 
 ## 📄 License
 
-MIT © 2026 J. Apps (JohnV2002 / Sodakiller1)
+**MIT** © J. Apps (JohnV2002 / Sodakiller1) — full text: repository root [`LICENSE`](../LICENSE).
 
-**You are free to:**
-- ✅ Use this code commercially
-- ✅ Modify and adapt it
-- ✅ Distribute and sell it
-- ✅ Use it in closed-source projects
+Copyright / author lines in source headers must stay (standard MIT). Keeping the UI “Made with ❤️ …” credit is **appreciated**, not an extra legal requirement.
 
-**The only requirement:**
-- ⭐ **Keep the attribution visible** — The "Made with ❤️ by Sodakiller1" credit must remain in the UI
-
-**Why attribution matters:**
-Money comes and goes, but **reputation is gold**. This project is free for everyone, but credit keeps the open-source spirit alive and helps others discover the project.
-
-**Links:**
-- 🎮 Twitch: [twitch.tv/sodakiller1](https://twitch.tv/sodakiller1)
-- 💼 Company: J. Apps
-- 👤 GitHub: JohnV2002
-
----
-
-### Full MIT License Text
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-**The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.**
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Character / brand rules and non-MIT modules: root [README — License & Usage](../README.md#license--usage).
 
 ---
 

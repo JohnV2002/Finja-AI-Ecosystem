@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / gen_canv
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Generates the initial empty canvas coordinate CSV file.
+
+ Changes (1.1.0):
+  Provides the canvas used by Recraft Vector-derived motifs.
 ======================================================================
 """
 

@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / server
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Simple HTTP Server to serve the canvas frontend without caching.
+
+ Changes (1.1.0):
+  Serves the canvas while Recraft Vector motifs are painted.
 ======================================================================
 """
 

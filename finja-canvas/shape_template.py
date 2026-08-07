@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / shape_template
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -20,22 +20,27 @@
 ----------------------------------------------------------------------
  Description:
 ----------------------------------------------------------------------
-  Generates shape templates for the AI painter, supporting both 
-  geometric primitives and ASCII-style rasterized motifs. Handles 
-  placement collision detection and canvas full state.
+  Generates Recraft SVG motifs, rasterizes them into pixel templates, and
+  handles placement collision detection and canvas full state.
+
+ Changes (1.1.0):
+  Recraft V4.1 Vector is now the default motif artist. Its transparent SVG
+  output is converted into colored cells for the existing r/place painter.
 ======================================================================
 """
 
 import csv
+from io import BytesIO
 import json
 import os
 import random
 import re
 import sys
 
+import cairosvg
 from PIL import Image, ImageDraw
 
-from ai_client import ask_ai, API_KEY
+from ai_client import API_KEY, generate_vector_svg
 from config import LOGICAL_SIZE, cell_to_pixels
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -56,8 +61,6 @@ MOTIF_SIZE_MAX = 28
 # Two alternating drawing styles: "primitives" (clean geometric shapes with color,
 # usually more smooth/blocky) and "ascii" (raster drawing character by character,
 # but more organic/irregular - creates more stylistic variety on the canvas.
-STYLES = ["primitives", "ascii"]
-
 MAX_CONSECUTIVE_DUPLICATE_LINES = 10  # ASCII: from here it's considered a repetition collapse
 MAX_FILL_RATIO = 0.6  # ASCII: more than 60% "X" is no longer a plausible silhouette
 
@@ -246,6 +249,36 @@ def rasterize_ascii(bool_cells, farben):
     return [[x, y, random.choice(palette)] for x, y in bool_cells]
 
 
+def build_vector_prompt(kategorie, was, farben, motif_size):
+    palette = ", ".join(farben) if farben else "a harmonious, high-contrast palette"
+    return (
+        f"Create one charming vector illustration of '{was}' in the category '{kategorie}'. "
+        f"It will be converted into a {motif_size}x{motif_size} pixel-art motif for an r/place-style canvas. "
+        "Use simple, bold, recognizable flat shapes with crisp edges and no text. "
+        f"Prefer this palette: {palette}. The background must be fully transparent: do not draw any background "
+        "rectangle, white fill, or scenery outside the motif. Keep the whole subject compact and centered."
+    )
+
+
+def rasterize_svg(svg, motif_size):
+    """Downsamples transparent SVG artwork to colored logical canvas cells."""
+    try:
+        png = cairosvg.svg2png(bytestring=svg, output_width=motif_size, output_height=motif_size)
+        image = Image.open(BytesIO(png)).convert("RGBA")
+    except Exception as e:
+        print(f"⚠️ Could not rasterize Recraft SVG ({e}).")
+        return []
+
+    cells = []
+    for y in range(motif_size):
+        for x in range(motif_size):
+            red, green, blue, alpha = image.getpixel((x, y))
+            # A threshold avoids faint anti-aliasing halos becoming stray canvas pixels.
+            if alpha >= 128:
+                cells.append([x, y, f"#{red:02X}{green:02X}{blue:02X}"])
+    return cells
+
+
 # ---------- Common flow ----------
 
 def build_shape_template(plan):
@@ -253,35 +286,14 @@ def build_shape_template(plan):
     was = plan.get("was", "?")
     farben = plan.get("farben") or []
     motif_size = random.randint(MOTIF_SIZE_MIN, MOTIF_SIZE_MAX)
-    style = random.choice(STYLES)
-
-    if style == "primitives":
-        content, model = ask_ai(
-            build_primitives_prompt(kategorie, was, motif_size), max_tokens=2200, wall_clock_timeout=40
-        )
-        if content is None:
-            print("⚠️ All models are currently unavailable, no template created.")
-            return None
-        shapes = parse_primitives(content)
-        if not shapes:
-            print(f"⚠️ Could not read shapes from the response: {content[:150]!r}")
-            return None
-        raw_cells = rasterize_primitives(shapes, motif_size)
-        if not raw_cells:
-            print("⚠️ Shapes did not result in any visible pixels.")
-            return None
-    else:
-        content, model = ask_ai(
-            build_ascii_prompt(kategorie, was, motif_size), max_tokens=1500, wall_clock_timeout=35
-        )
-        if content is None:
-            print("⚠️ All models are currently unavailable, no template created.")
-            return None
-        bool_cells = parse_ascii_grid(content, motif_size)
-        if not bool_cells:
-            print(f"⚠️ Could not read shape from the response: {content[:150]!r}")
-            return None
-        raw_cells = rasterize_ascii(bool_cells, farben)
+    svg = generate_vector_svg(build_vector_prompt(kategorie, was, farben, motif_size))
+    if svg is None:
+        print("⚠️ Recraft could not create a motif template.")
+        return None
+    raw_cells = rasterize_svg(svg, motif_size)
+    if not raw_cells:
+        print("⚠️ Recraft SVG did not result in any visible pixels.")
+        return None
 
     occupied = occupied_pixels()
     if occupied:
@@ -300,7 +312,7 @@ def build_shape_template(plan):
     with open(TEMPLATE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f)
 
-    print(f"🎨 {model} drew '{was}' in {style} style with {len(cells)} pixels -> {TEMPLATE_FILE}")
+    print(f"🎨 Recraft drew '{was}' with {len(cells)} pixels -> {TEMPLATE_FILE}")
     return data
 
 

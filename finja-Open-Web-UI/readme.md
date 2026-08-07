@@ -62,7 +62,10 @@ This module was originally intended to give Finja a voice inside OpenWebUI.
 
 ## 📜 Licenses
 
-This project uses various licenses for its components. Most modules are under the **MIT License**, with the exception of the **Finja Cloud Memory**, which is released under the **Apache License 2.0**. Please note the `LICENSE` and `NOTICE` files in the respective subfolders.
+- **Most Finja code here:** **MIT** — repository root [`LICENSE`](../LICENSE)
+- **Finja Cloud Memory** (+ NOTICE): **Apache License 2.0** (upstream-adapted; keep that license)
+- **finja-ocr:** **Apache License 2.0** in its folder
+- Character / brand / full ecosystem table: root [README — License & Usage](../README.md#license--usage)
 
 ---
 

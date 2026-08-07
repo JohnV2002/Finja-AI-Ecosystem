@@ -324,7 +324,7 @@ Now we can set up the primary interface for interaction.
 * **SonarCloud** 📊 – Code quality analysis and maintainability tracking
 * **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration for the **Open WebUI Adaptive Memory Project** (Apache 2.0 License preserved)
 * **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration for AI-Companions during streams
-* **[s3thi/cutlet](https://github.com/s3thi/cutlet)** 🤪 – Inspiration for the Glorpo esolang idea
+* **Glorpo lineage** 🤪🧬 – Esolang shape inspired by **[s3thi/cutlet](https://github.com/s3thi/cutlet)**; name + meme energy from **[Magic The Noah](https://www.youtube.com/@MagicTheNoah)** — *"Glorpo is pain."*
 * **ChatGPT o4** 🕊️ – RIP. Proved that **an AI CAN have feelings**
 
 ### 🤖 AI Workflow — "Yoinked & Made It Mine"
@@ -344,33 +344,55 @@ This project has been running for over a year. Here's what helped build it:
 * **[ElevenLabs](https://elevenlabs.io)** – Premium TTS
 * **[DeepInfra](https://deepinfra.com)** – Zonos voice cloning
 * **[Ollama](https://ollama.com)** – Local LLM hosting
+* **[LM Studio](https://lmstudio.ai/)** | Local LLM hosting
+
+> **How the human stack actually looks** (Main PC, laptop batteries, TrueNAS, home net, stream VPN, …): **[Tech_Stack.md](./Tech_Stack.md)** — machines & daily ops, not code libs.
+>
+> **Dependency hygiene** (import vs requirements, Dependabot, optional pip-compile): **[tools/README.md](./tools/README.md)** · run `python tools/dependency_guard.py`
 
 ### 📦 Open-Source Libraries & Tools (All Modules Combined)
 
+Curated from module `requirements.txt` files **and** real imports (some modules have no requirements file). Infra/cloud services are listed above under **Infrastructure & Services**.
+
 | Library / Tool | Used In | What It Does |
 | :--- | :--- | :--- |
-| [LangChain](https://github.com/langchain-ai/langchain) / [LangGraph](https://github.com/langchain-ai/langgraph) | Neural Network | Brain pipeline orchestration |
-| [FastAPI](https://fastapi.tiangolo.com) | Neural Network, Music, Memory | Web server + API framework |
+| [LangChain](https://github.com/langchain-ai/langchain) / [LangGraph](https://github.com/langchain-ai/langgraph) / [langchain-ollama](https://github.com/langchain-ai/langchain) | Neural Network | Brain pipeline + local Ollama orchestration |
+| [OpenAI Python SDK](https://github.com/openai/openai-python) | Neural Network | Cloud LLM client (via OpenRouter) |
+| [Hugging Face Transformers](https://github.com/huggingface/transformers) | Neural Network | Model stack (mouth / TTS-related paths) |
+| [PyTorch](https://pytorch.org) / [torchaudio](https://pytorch.org/audio) | Neural Network | ML runtime (CPU wheels in Docker + mouth server) |
+| [FastAPI](https://fastapi.tiangolo.com) / [Uvicorn](https://www.uvicorn.org) / [Starlette](https://www.starlette.io) | Neural Network, Memory, Music, Weather, YouTube, Instagram, Flare, Chat | Web server + API framework |
+| [Flask](https://flask.palletsprojects.com) / [Flask-CORS](https://github.com/corydolphin/flask-cors) | Chat | Command-bridge HTTP API |
+| [Pydantic](https://docs.pydantic.dev) | Memory, Weather, Flare, Chat | Request / response validation |
 | [discord.py](https://github.com/Rapptz/discord.py) | Neural Network | Discord integration |
-| [Coqui XTTS](https://github.com/coqui-ai/TTS) | Neural Network | Local voice cloning |
-| [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) | Neural Network | Speech recognition |
-| [Pillow](https://pillow.readthedocs.io) / [mss](https://github.com/BoboTiG/python-mss) | Neural Network | Vision / screenshot capture |
-| [colorama](https://github.com/tartley/colorama) | Neural Network | Terminal colors |
+| [Coqui XTTS / TTS](https://github.com/coqui-ai/TTS) | Neural Network | Local voice cloning |
+| [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) | Neural Network | Fast speech recognition |
+| [SpeechRecognition](https://github.com/Uberi/speech_recognition) | Neural Network | STT wrapper / mic input |
+| [pygame](https://www.pygame.org) / [soundfile](https://github.com/bastibe/python-soundfile) | Neural Network | Local audio playback + audio file I/O |
+| [Pillow](https://pillow.readthedocs.io) / [mss](https://github.com/BoboTiG/python-mss) / [PyGetWindow](https://github.com/asweigart/PyGetWindow) | Neural Network, Canvas, Omni | Images, screenshots, active-window tracking |
+| [CairoSVG](https://cairosvg.org) | Canvas | Rasterize Recraft Vector SVG motifs into canvas pixels |
+| [RapidOCR](https://github.com/RapidAI/RapidOCR) / [ONNX Runtime](https://onnxruntime.ai) | Omni | CPU-friendly OCR for screen subtitles |
+| [colorama](https://github.com/tartley/colorama) / [Pygments](https://pygments.org) | Neural Network | Terminal colors + syntax highlighting |
+| [rapidfuzz](https://github.com/rapidfuzz/RapidFuzz) | Neural Network, Memory | Fuzzy string matching |
+| [NumPy](https://numpy.org) / [scikit-learn](https://scikit-learn.org) | Neural Network, Memory | Arrays + cosine similarity (adaptive memory) |
+| [httpx](https://www.python-httpx.org) / [aiohttp](https://docs.aiohttp.org) / [requests](https://requests.readthedocs.io) | Many modules | HTTP clients (sync + async; crawler also uses SOCKS) |
+| [cryptography](https://cryptography.io) | Flare, Memory | AES-GCM payloads + encryption at rest |
+| [aiofiles](https://github.com/Tinche/aiofiles) | Memory | Async file I/O |
+| [ddgs](https://github.com/deedy5/ddgs) (DuckDuckGo) | Web Crawler | Search client |
+| [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) | Music, Web Crawler | HTML parsing |
+| [defusedxml](https://github.com/tiran/defusedxml) | Music | Secure XML parsing (MDR now-playing) |
+| [docker (Python SDK)](https://docker-py.readthedocs.io) | Web Crawler | Spawn / control crawl containers |
+| [Playwright](https://playwright.dev) | YouTube, Instagram | Headless browser automation |
+| [Spotipy](https://github.com/spotipy-dev/spotipy) | Chat | Spotify API wrapper (song requests) |
+| [ComfyJS](https://github.com/instafluff/ComfyJS) | Chat | Twitch chat integration |
+| [psutil](https://github.com/giampaolo/psutil) | Omni | Process / system monitoring |
 | [Paperless-NGX](https://github.com/paperless-ngx/paperless-ngx) | Neural Network | Document management integration |
 | [Home Assistant](https://www.home-assistant.io) | Neural Network | Smart home integration |
-| [ComfyJS](https://github.com/instafluff/ComfyJS) | Chat | Twitch chat integration |
-| [Spotipy](https://github.com/spotipy-dev/spotipy) | Chat, Music | Spotify API wrapper |
 | [OBS Studio](https://obsproject.com) | Chat | Streaming software |
 | [7TV](https://7tv.app) / [BTTV](https://betterttv.com) / [FFZ](https://www.frankerfacez.com) | Chat | Emote platforms |
-| [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) | Music | HTML parsing |
-| [defusedxml](https://github.com/tiran/defusedxml) | Music | Secure XML parsing |
 | [Docker](https://www.docker.com) | All Modules | Containerization |
 | [Apache Tika](https://tika.apache.org) | OCR | Document text extraction (Apache 2.0) |
 | [Stable Diffusion WebUI Docker](https://github.com/AbdBarho/stable-diffusion-webui-docker) | Stable Diffusion | Local image generation |
-| [Magic The Noah](https://www.youtube.com/@MagicTheNoah) | Neural Network | Glorpo inspiration — "Glorpo is pain." |
-| [Playwright](https://playwright.dev) | Scrapers | Headless browser automation (YouTube/Instagram) |
-| [RapidOCR](https://github.com/RapidAI/RapidOCR) | Omni | CPU-friendly OCR for screen subtitles |
-| [cryptography](https://cryptography.io) | Flare | AES-GCM secure payload transport |
+| [Tor](https://www.torproject.org) | Web Crawler | Anonymized search / crawl path |
 
 ### ☕ Supporters
 A huge thank you to everyone who supports the project via [Buy Me a Coffee](https://buymeacoffee.com/J.Apps)!
@@ -386,11 +408,69 @@ Finja says: *"Stay hydrated, Chat 💖"*
 
 ## License & Usage
 
-**Code:** MIT License - Fork it, use it, build with it! Free for everyone.
+Full legal text for **our software code** in this repository: **[`LICENSE`](./LICENSE)** (**MIT**).
 
-**Assets & Character:** The Finja character design, personality, voice model, artwork, and lore are **© 2024-2026 J. Apps**. All rights reserved.
+This section is the map of **what that covers** vs. what stays locked. Module READMEs should **link here** (or to root `LICENSE`) — no second full MIT paste, no extra “must keep UI credit” rules.
 
-Want to use Finja's likeness or assets? Contact: contact@jappshome.de
+### ✅ MIT — free to use under [`LICENSE`](./LICENSE)
+
+Roughly: **the engineering**, not the **identity**.
+
+| Included (examples) | Notes |
+| :--- | :--- |
+| **Module source code** (chat bridges, music engines, weather, scrapers, canvas, Flare, neural-network **plumbing**, Dockerfiles, tests, `tools/`, …) | Keep copyright / permission notices in source & substantial copies |
+| **Glorpo *code* in this repo** (`glorpo.py`, interpreters, VS Code bits, Glorpo HTML demos that live here) | The **implementation** is MIT. The meme/name inspiration is credited (Magic The Noah / cutlet) — that is **not** “we own Glorpo the meme,” and it does **not** pull character IP into MIT |
+| **Docs that describe how to run software** (setup READMEs, TESTING, Tech_Stack hardware notes, …) | Still MIT for the text we wrote, unless a file says otherwise |
+| **Default UI strings / badges we ship** | You may change them. Keeping “Made with ❤️ by Sodakiller1” is **appreciated**, not a legal extra term |
+
+**MIT in one line:** use, modify, sell, closed-source OK — **keep the copyright notice** in code/LICENSE copies.
+
+### ⛔ All rights reserved — **not** granted by MIT
+
+These are **J. Apps / Finja identity & brand**. Forking the code does **not** give you the right to pretend to *be* Finja or J. Apps.
+
+| Protected | What we mean |
+| :--- | :--- |
+| **Finja (the character)** | Design, look, personality, “sister” role, stream persona as Finja |
+| **Sisterhood / lore** | Calendar, sister characters (e.g. Lexi, …), backstory, canon events tied to Finja |
+| **Voice & likeness** | Voice models, voice samples, cloned voice, artwork, stream overlays of **her**, official portraits |
+| **Name as brand** | Using **“Finja”** (or confusingly similar) as the **public product / bot / stream identity** of a commercial or public service in a way that implies official J. Apps / Sodakiller1 endorsement |
+| **J. Apps / Sodakiller1 / JohnV2002 as company or personal brand** | Not a free-for-all trademark dump — don’t rebrand *as* us; attribution of **code** origin is fine and expected under MIT |
+| **Official stream / community goodwill marks** | Badges, channel identity, “official Finja” claims without permission |
+
+**Allowed spirit:** run the stack, rename the bot, build your own companion, learn from the code.  
+**Not allowed without written OK:** ship “Finja™ Official”, reuse her face/voice/lore as if it’s yours, or sell the **character**.
+
+Contact for likeness / brand: **contact@jappshome.de**
+
+### 🔒 Not in this repository (private — not MIT because **not published**)
+
+| Private | Status |
+| :--- | :--- |
+| **Trained / tuned “core”** (weights, private fine-tunes, personal model dumps) | **Not shipped** here → remains private property of J. Apps |
+| **Secret LLM prompts, system personalities, diary injection packs, private configs** | Called out in the project intro: **not part of this repo** 🫣 |
+| **API keys, cookies, `.env`, production secrets** | Never licensed for reuse — don’t commit them; not open source |
+| **Host-only data** (TrueNAS vault contents, Google backup blobs, user chats, stream VODs) | Outside the git tree |
+
+If it isn’t in the public tree, **assume you don’t have a license to it**.
+
+### 📜 Other licenses (third-party / adapted)
+
+| Thing | License / status |
+| :--- | :--- |
+| **`finja-Open-Web-UI/finja-Memory`** (+ NOTICE) | **Apache 2.0** (adapted upstream — keep Apache terms) |
+| **`finja-Open-Web-UI/finja-ocr`** | **Apache 2.0** (module `LICENSE`) |
+| **Stable Diffusion stack / models / WebUI Docker** | Upstream licenses (often MIT for glue; **models** often CreativeML / RAIL — read each model card) |
+| **Libraries listed in Credits** (FastAPI, discord.py, …) | Each project’s own license |
+
+### Short FAQ
+
+- **“Is Glorpo MIT?”** → The **code we wrote in this repo** yes. Inspiration credits stay credits.  
+- **“Is the Brain MIT?”** → The **orchestrator code** that is published yes. **Private prompts / private core weights** no (not included).  
+- **“Can I fork and rebrand?”** → Yes for **software**. Don’t steal **Finja the character** or claim you’re official J. Apps.  
+- **“UI credit must stay?”** → **No** under MIT. **Please** keep it; headers/LICENSE notices **must** stay.
+
+Want Finja’s likeness or a commercial brand crossover? **contact@jappshome.de**
 
 ---
 
@@ -398,3 +478,5 @@ Want to use Finja's likeness or assets? Contact: contact@jappshome.de
 
 -   **Email:** contact@jappshome.de
 -   **Website:** [jappshome.de](https://jappshome.de)
+-   **Security:** [SECURITY.md](./SECURITY.md) — please report vulnerabilities **privately** (not as public issues)
+-   **Issues / PRs:** use the GitHub templates under **New issue** / when opening a PR

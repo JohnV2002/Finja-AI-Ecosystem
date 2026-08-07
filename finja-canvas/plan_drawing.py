@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / plan_drawing
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Asks the AI to choose a new motif and color palette.
+
+ Changes (1.1.0):
+  Its motif plan is now illustrated by Recraft Vector before painting.
 ======================================================================
 """
 

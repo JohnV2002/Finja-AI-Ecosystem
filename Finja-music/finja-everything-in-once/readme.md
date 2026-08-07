@@ -2,7 +2,7 @@
 *Multi-source NowPlaying system with OBS overlays, radio scrapers & AI reactions. 💜*
 
 [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/yourusername/finja-music)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
 > **✨ New in v1.2.0:**
@@ -430,24 +430,11 @@ We welcome contributions! Here's how:
 
 ## 📄 License
 
-MIT © 2026 J. Apps (JohnV2002 / Sodakiller1)
+**MIT** © J. Apps (JohnV2002 / Sodakiller1) — full text: repository root [`LICENSE`](../../LICENSE).
 
-**You are free to:**
-- ✅ Use this code commercially
-- ✅ Modify and adapt it
-- ✅ Distribute and sell it
-- ✅ Use it in closed-source projects
+Keep copyright notices in source (MIT). Dev-mode footer credit is appreciated, not an extra legal requirement.
 
-**The only requirement:**
-- ⭐ **Keep the attribution visible** — Credit must remain in the UI (dev mode footer)
-
-**Why attribution matters:**
-Money comes and goes, but **reputation is gold**. This project is free for everyone, but credit keeps the open-source spirit alive.
-
-**Links:**
-- 🎮 Twitch: [twitch.tv/sodakiller1](https://twitch.tv/sodakiller1)
-- 💼 Company: J. Apps
-- 👤 GitHub: JohnV2002
+Ecosystem exceptions (assets, Apache modules): root [README — License & Usage](../../README.md#license--usage).
 
 ---
 

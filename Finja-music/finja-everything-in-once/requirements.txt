@@ -1,0 +1,5 @@
+# finja-everything-in-once — mostly stdlib; these are the external imports
+requests>=2.32.0
+beautifulsoup4>=4.12.0
+defusedxml>=0.7.1
+websocket-client>=1.6.0

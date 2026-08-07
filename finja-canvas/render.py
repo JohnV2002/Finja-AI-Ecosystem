@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / render
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -21,6 +21,9 @@
  Description:
 ----------------------------------------------------------------------
   Renders snapshots of the canvas or individual motifs as PNG images.
+
+ Changes (1.1.0):
+  Snapshots now include motifs designed through Recraft Vector templates.
 ======================================================================
 """
 

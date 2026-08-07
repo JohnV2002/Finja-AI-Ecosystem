@@ -1,0 +1,36 @@
+name: ❓ Question
+description: Setup / architecture question about the public repo
+title: "[q] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For stream chat / casual talk, Discord may be faster.  
+        For “how do I run module X?”, this form is good.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - Local setup / Docker
+        - Config / env vars
+        - Architecture / how modules connect
+        - Tests / CI
+        - License / what I may reuse
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you already tried
+      description: Optional — docs you read, errors you hit (redacted).
+    validations:
+      required: false

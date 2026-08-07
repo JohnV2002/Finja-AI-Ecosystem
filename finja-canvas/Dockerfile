@@ -5,7 +5,9 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-canvas
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
+#
+#   Changes (1.1.0): Installs the SVG renderer needed for Recraft motifs.
 #
 # ----------------------------------------------------------------------
 #
@@ -15,6 +17,10 @@
 # ======================================================================
 
 FROM python:3.12-slim
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Do not run as root
 RUN useradd --create-home --uid 1000 --shell /usr/sbin/nologin painter

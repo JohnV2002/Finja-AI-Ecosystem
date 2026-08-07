@@ -141,7 +141,8 @@ finja-music/
 
 ## 📜 License
 
-All modules in this project are licensed under the **MIT License**.
+Music modules are **MIT** (J. Apps) — full text: repository root [`LICENSE`](../LICENSE).  
+Details & exceptions (assets / Apache elsewhere): root [README — License & Usage](../README.md#license--usage).
 
 Made with ❤️ by [Sodakiller1](https://twitch.tv/sodakiller1) (J. Apps / JohnV2002)
 

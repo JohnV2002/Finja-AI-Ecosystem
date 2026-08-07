@@ -29,6 +29,7 @@ python-dotenv
 # ------------------------------------------
 requests
 aiohttp
+httpx
 fastapi
 uvicorn
 uvicorn[standard]
