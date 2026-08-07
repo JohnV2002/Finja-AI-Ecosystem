@@ -38,7 +38,7 @@ jobs:
           pytest test_web_crawler.py test_crawl_worker.py test_research_orchestrator.py -v --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-finja-web-crawler
           path: finja-Open-Web-UI/finja-web-crawler/coverage.xml

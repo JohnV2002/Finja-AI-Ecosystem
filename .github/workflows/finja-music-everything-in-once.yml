@@ -77,7 +77,7 @@ jobs:
 
       - name: Upload Coverage Report
         if: always() # Upload even if tests fail
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report-${{ matrix.python-version }}
           # Find coverage.xml anywhere
