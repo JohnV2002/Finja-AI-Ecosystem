@@ -1,7 +1,7 @@
 # requirements.txt
 fastapi>=0.135.2
 starlette>=1.0.0
-uvicorn>=0.42.0
+uvicorn>=0.52.1
 pydantic>=2.12.5
 python-dotenv>=1.2.2
 aiofiles>=25.1.0
