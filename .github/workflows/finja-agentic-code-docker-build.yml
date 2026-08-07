@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Build BOTH images. This module ships two: the long-running
       # orchestrator API and the short-lived worker sandbox the
