@@ -1,6 +1,6 @@
 # Finja Canvas v1.1.0
 # Changes (1.1.0): CairoSVG rasterizes Recraft Vector SVG motifs into canvas cells.
-requests==2.33.1
+requests==2.34.2
 python-dotenv==1.2.2
-pillow==12.2.0
-cairosvg==2.8.2
+pillow==12.3.0
+cairosvg==2.9.0
