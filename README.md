@@ -18,7 +18,7 @@
 >
 > 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
 >
-> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
+> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Trivy**) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
 > 2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
 > 3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
 > 4.  🐾 **Own VPet Program:** My own VPet is in full development!
@@ -189,7 +189,7 @@ The Finja Ecosystem features a comprehensive test suite to ensure code quality a
 - **Integration Tests**: API endpoints, Spotify integration, memory system, distributed crawl pipeline
 - **Security Tests**: path-traversal prevention, SSRF guards, auth validation, AES-GCM transport, XSS-safe DOM
 - **Mocked Externals**: all network/browser/Docker/LLM boundaries are mocked, so suites run fast, offline, and deterministically
-- **Code Quality & Security**: **SonarCloud** (maintainability), **Snyk** (deps/vulns), **Codecov** (pytest coverage XML from CI), **CodeQL** (GitHub code scanning), plus Dependency Guard
+- **Code Quality & Security**: **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Trivy**, plus **Dependency Guard**
 
 ### Test Locally
 Since the Finja Ecosystem consists of independent microservices, tests are run within their respective project directories instead of a global setup.
@@ -294,15 +294,24 @@ Now we can set up the primary interface for interaction.
 | **Snyk** | Dependency / vulnerability scanning |
 | **Codecov** | Test coverage from CI (`pytest --cov` → XML upload) |
 | **CodeQL** | GitHub code scanning (semantic vulns in our code) |
+| **Trivy** | Filesystem / supply-chain vulns → Security tab (SARIF) |
 | **Dependency Guard** | Undeclared Python imports vs `requirements*.txt` |
+
+**SonarCloud**
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
-[![codecov](https://codecov.io/gh/JohnV2002/Finja-AI-Ecosystem/graph/badge.svg)](https://codecov.io/gh/JohnV2002/Finja-AI-Ecosystem)
-[![CodeQL](https://img.shields.io/badge/CodeQL-security%20scanning-blue?logo=github)](https://github.com/JohnV2002/Finja-AI-Ecosystem/security/code-scanning)
 
-> **Codecov:** set repo secret `CODECOV_TOKEN`. Module test workflows upload `coverage.xml` via `codecov/codecov-action@v5` (flags per module).  
-> **CodeQL:** enable/managed under GitHub **Security → Code scanning** (default CodeQL workflow when turned on in the UI).
+**Coverage & security scans**
+
+[![codecov](https://codecov.io/github/JohnV2002/Finja-AI-Ecosystem/graph/badge.svg?token=JUYQT5N7D6)](https://codecov.io/github/JohnV2002/Finja-AI-Ecosystem)
+[![CodeQL](https://img.shields.io/badge/CodeQL-security%20scanning-blue?logo=github)](https://github.com/JohnV2002/Finja-AI-Ecosystem/security/code-scanning)
+[![Trivy](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml)
+[![Dependency Guard](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml)
+
+> **Codecov:** repo secret `CODECOV_TOKEN` (upload). Badge uses Codecov’s public graph token. Module tests upload via `codecov/codecov-action@v5` (per-module flags).  
+> **CodeQL:** GitHub **Security → Code scanning**.  
+> **Trivy:** [`.github/workflows/trivy.yml`](./.github/workflows/trivy.yml) — monorepo **filesystem** scan (CRITICAL/HIGH) → SARIF on the Security tab. Not a root Docker image build (this repo has many modules).
 
 #### 🔨 Docker Builds
 
@@ -336,6 +345,7 @@ Now we can set up the primary interface for interaction.
 * **SonarCloud** 📊 – Code quality analysis and maintainability tracking
 * **Codecov** 📈 – Coverage reports from CI (pytest-cov XML)
 * **GitHub CodeQL** 🔍 – Semantic code scanning on the monorepo
+* **Trivy** (Aqua) 🛡️ – Filesystem vulnerability scanning → Security tab
 * **gramanoid** (aka **diligent_chooser**) 🧠 – Inspiration for the **Open WebUI Adaptive Memory Project** (Apache 2.0 License preserved)
 * **Vedal1987 + Neuro / Neurosamma + Evil** 💚 – Inspiration for AI-Companions during streams
 * **Glorpo lineage** 🤪🧬 – Esolang shape inspired by **[s3thi/cutlet](https://github.com/s3thi/cutlet)**; name + meme energy from **[Magic The Noah](https://www.youtube.com/@MagicTheNoah)** — *"Glorpo is pain."*

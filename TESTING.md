@@ -188,7 +188,7 @@ pytest --cov=. --cov-branch --cov-report=html
 
 Artifact `coverage.xml` is what Codecov consumes in GitHub Actions. Upload failures do not fail the job (`fail_ci_if_error: false`) so a flaky Codecov outage does not red-board every module.
 
-Quality stack (also documented in the root README): **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Dependency Guard**.
+Quality stack (also documented in the root README): **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Trivy** (fs scan → Security tab), **Dependency Guard**.
 
 ## Writing New Tests
 
