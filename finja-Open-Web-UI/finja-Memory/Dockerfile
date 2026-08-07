@@ -30,15 +30,22 @@
 #     • Fixed: now copies both site-packages AND binaries (uvicorn, etc.)
 #     • Fixed: added chown to solve permission issues inside container
 #
+#   ✨ Multi-stage install path (version-agnostic):
+#     • pip --prefix=/install then COPY /install → /usr/local
+#     • No hard-coded python3.12/site-packages (survives 3.13 / 3.14 bumps)
+#     • Keep builder FROM and runtime FROM on the same Python tag
+#
 # ======================================================================
 
 # --- Stage 1: Build Stage ---
+# Dependabot may bump this tag; runtime stage must use the same tag.
 FROM python:3.12-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache gcc linux-headers musl-dev
 COPY requirements.txt .
+# Install into a neutral prefix — no /usr/local/lib/python3.XX hard-coding
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Final Stage ---
 FROM python:3.12-alpine
@@ -50,9 +57,8 @@ RUN mkdir -p user_memories user_audio tts_cache backups && \
     adduser -S appuser -G appgroup && \
     chown -R appuser:appgroup /app user_memories user_audio tts_cache backups
 
-# Copy installed packages from build stage
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
+# Merge version-specific site-packages + console scripts (uvicorn, …)
+COPY --from=builder /install /usr/local
 
 # Copy application code
 COPY --chown=appuser:appgroup --chmod=555 memory-server.py .

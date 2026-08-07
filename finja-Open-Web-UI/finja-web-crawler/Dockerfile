@@ -22,16 +22,17 @@
 # ======================================================================
 
 # --- Stage 1: Build Stage ---
+# Same Python tag as runtime — Dependabot may bump both; no hard-coded 3.XX paths.
 FROM python:3.12-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies for compiling Python packages if needed
 RUN apk add --no-cache gcc linux-headers musl-dev
 
-# Copy and install Python requirements
+# Copy and install Python requirements into a neutral prefix (3.12 / 3.13 / 3.14 safe)
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Final Stage ---
 FROM python:3.12-alpine
@@ -42,9 +43,8 @@ RUN addgroup -S appgroup && \
     adduser -S appuser -G appgroup && \
     chown -R appuser:appgroup /app
 
-# Copy installed packages and binaries from build stage
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# site-packages + uvicorn (etc.) without hard-coded python3.12 paths
+COPY --from=builder /install /usr/local
 
 # Copy application code
 COPY main.py .
