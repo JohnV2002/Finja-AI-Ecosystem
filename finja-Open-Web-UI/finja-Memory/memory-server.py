@@ -537,9 +537,9 @@ def auth_check(request: Request):
     """Checks if the API key in the header is present and valid."""
     key = request.headers.get("X-API-Key")
     if not key or key != API_KEY:
-        # FIX: Check if key is not None before slicing
-        key_display = f"{key[:5]}..." if key else "None"
-        print(f"WARN:    Unauthorized access attempt. Provided key: {key_display}") # Log masked key or "None"
+        # Never log API key material (even a prefix) — CodeQL: clear-text sensitive info.
+        present = "missing" if not key else "invalid"
+        print(f"WARN:    Unauthorized access attempt (API key {present}).")
         raise HTTPException(status_code=401, detail="Missing or invalid API Key.")
 
 

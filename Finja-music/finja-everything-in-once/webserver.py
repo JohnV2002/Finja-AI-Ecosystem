@@ -663,8 +663,30 @@ def load_config(path: Path) -> dict:
 
 
 def _strip_parens(s: str) -> str:
-    """Remove parentheses and brackets from string."""
-    return re.sub(r"[\(\[][^\)\]]*[\)\]]", "", s)  # NOSONAR
+    """Remove (...) / [...] segments in linear time (no regex / ReDoS).
+
+    CodeQL flagged the previous polynomial-prone ``re.sub`` on user-influenced
+    metadata strings. Behaviour matches the old pattern: drop each opening
+    ``(`` or ``[`` through the next ``)`` or ``]`` (non-nested, O(n)).
+    """
+    if not s:
+        return ""
+    out: list[str] = []
+    i = 0
+    n = len(s)
+    while i < n:
+        if s[i] in "([":
+            j = i + 1
+            while j < n and s[j] not in ")]":
+                j += 1
+            if j < n:
+                # skip the whole "(...)" / "[...]" (or mixed closer) segment
+                i = j + 1
+                continue
+            # unmatched opener — keep it
+        out.append(s[i])
+        i += 1
+    return "".join(out)
 
 
 def _normalize(s: Optional[str]) -> str:

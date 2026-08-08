@@ -282,11 +282,12 @@ async def current_endpoint(
     if cached is not None:
         data, age = cached
         _m_incr("current_cache_hit")
-        logger.info("Current weather CACHE HIT (age=%ds) lat=%.4f lon=%.4f", age, request.latitude, request.longitude)
+        # Do not log precise coordinates (CodeQL: clear-text sensitive location data).
+        logger.info("Current weather CACHE HIT (age=%ds)", age)
         return {**data, "cached": True, "cache_age_s": age}
 
     start = time.time()
-    logger.info("Current weather: lat=%.4f lon=%.4f provider=%s", request.latitude, request.longitude, provider.name)
+    logger.info("Current weather: provider=%s", provider.name)
     try:
         result = provider.current(request.latitude, request.longitude)
     except WeatherProviderError as exc:
@@ -334,13 +335,11 @@ async def forecast_endpoint(
     if cached is not None:
         data, age = cached
         _m_incr("forecast_cache_hit")
-        logger.info("Forecast CACHE HIT (age=%ds) lat=%.4f lon=%.4f days=%d",
-                    age, request.latitude, request.longitude, request.days)
+        logger.info("Forecast CACHE HIT (age=%ds) days=%d", age, request.days)
         return {**data, "cached": True, "cache_age_s": age}
 
     start = time.time()
-    logger.info("Forecast: lat=%.4f lon=%.4f days=%d provider=%s",
-                request.latitude, request.longitude, request.days, provider.name)
+    logger.info("Forecast: days=%d provider=%s", request.days, provider.name)
     try:
         result = provider.forecast(request.latitude, request.longitude, request.days)
     except WeatherProviderError as exc:
@@ -371,11 +370,11 @@ async def pollen_endpoint(
     if cached is not None:
         data, age = cached
         _m_incr("pollen_cache_hit")
-        logger.info("Pollen CACHE HIT (age=%ds) lat=%.4f lon=%.4f", age, request.latitude, request.longitude)
+        logger.info("Pollen CACHE HIT (age=%ds)", age)
         return {**data, "cached": True, "cache_age_s": age}
 
     start = time.time()
-    logger.info("Pollen: lat=%.4f lon=%.4f days=%d", request.latitude, request.longitude, request.days)
+    logger.info("Pollen: days=%d", request.days)
     try:
         result = google_pollen(request.latitude, request.longitude, request.days)
     except WeatherProviderError as exc:
@@ -405,11 +404,11 @@ async def air_quality_endpoint(
     if cached is not None:
         data, age = cached
         _m_incr("air_quality_cache_hit")
-        logger.info("Air quality CACHE HIT (age=%ds) lat=%.4f lon=%.4f", age, request.latitude, request.longitude)
+        logger.info("Air quality CACHE HIT (age=%ds)", age)
         return {**data, "cached": True, "cache_age_s": age}
 
     start = time.time()
-    logger.info("Air quality: lat=%.4f lon=%.4f", request.latitude, request.longitude)
+    logger.info("Air quality: request accepted")
     try:
         result = google_air_quality(request.latitude, request.longitude)
     except WeatherProviderError as exc:
