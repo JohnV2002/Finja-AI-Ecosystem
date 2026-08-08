@@ -53,6 +53,7 @@ import base64
 import asyncio
 from pathlib import Path
 from contextlib import asynccontextmanager
+from urllib.parse import urlparse
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -77,6 +78,22 @@ SAME_SITE_MAP = {
     "lax": "Lax",
     "strict": "Strict",
 }
+
+
+def _is_instagram_url(url: str | None) -> bool:
+    """True only when the URL host is instagram.com (or a subdomain).
+
+    CodeQL flags ``\"instagram.com\" in url`` as incomplete substring
+    sanitization (evil.com/?q=instagram.com would match). Use the parsed
+    hostname instead.
+    """
+    if not url:
+        return False
+    try:
+        host = (urlparse(url).hostname or "").lower()
+    except ValueError:
+        return False
+    return host == "instagram.com" or host.endswith(".instagram.com")
 
 
 # ==========================================
@@ -261,7 +278,7 @@ async def status():
     return {
         "url": _page.url,
         "title": await _page.title(),
-        "awake": "instagram.com" in (_page.url or ""),
+        "awake": _is_instagram_url(_page.url),
     }
 
 
@@ -277,7 +294,7 @@ async def wakeup():
         raise HTTPException(503, "Browser not connected")
 
     # Already awake?
-    if "instagram.com" in _page.url:
+    if _is_instagram_url(_page.url):
         return {"status": "already_awake", "url": _page.url}
 
     print("[API] Wakeup! Navigating to Instagram Reels...")
@@ -307,7 +324,7 @@ async def sleep_endpoint():
         raise HTTPException(503, "Browser not connected")
 
     # Already sleeping?
-    if "instagram.com" not in (_page.url or ""):
+    if not _is_instagram_url(_page.url):
         return {"status": "already_sleeping", "url": _page.url}
 
     print("[API] Sleep! Returning to about:blank...")

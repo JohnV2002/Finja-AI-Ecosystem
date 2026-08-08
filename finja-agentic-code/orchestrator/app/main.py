@@ -92,6 +92,7 @@ FLARE_SYSTEM = (
 )
 
 SAFE_PATH_RE = re.compile(r"^[A-Za-z0-9._/\-]+$")
+JOB_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 CODE_EXTENSIONS = {
     ".py",
     ".js",
@@ -262,12 +263,27 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _resolve_under(base: Path, *parts: str | Path) -> Path:
+    """Resolve path under base; reject escape (CodeQL path injection)."""
+    base_r = base.resolve()
+    candidate = base_r.joinpath(*parts).resolve()
+    try:
+        candidate.relative_to(base_r)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Path escapes sandbox") from exc
+    return candidate
+
+
 def job_dir(job_id: str) -> Path:
-    return JOBS_DIR / job_id
+    """Return JOBS_DIR/<job_id> only for hex uuid4 ids, never outside JOBS_DIR."""
+    # Invalid shape → 404 (same as unknown) so we never join untrusted names.
+    if not JOB_ID_RE.fullmatch(job_id or ""):
+        raise HTTPException(status_code=404, detail="Unknown job_id")
+    return _resolve_under(JOBS_DIR, job_id)
 
 
 def status_path(job_id: str) -> Path:
-    return job_dir(job_id) / "status.json"
+    return _resolve_under(job_dir(job_id), "status.json")
 
 
 def write_status(job_id: str, status: Literal["queued", "running", "done", "failed"], **extra: object) -> None:
@@ -288,13 +304,15 @@ def read_status(job_id: str) -> dict:
 
 
 def validate_relative_path(raw_path: str) -> Path:
-    if "\\" in raw_path or raw_path.startswith("/") or raw_path.startswith("."):
+    """Allow only relative code/text paths; no absolute, drive, or ``..`` segments."""
+    if not raw_path or "\\" in raw_path or raw_path.startswith("/") or raw_path.startswith("."):
         raise HTTPException(status_code=400, detail=f"Unsafe path: {raw_path}")
-    if ".." in Path(raw_path).parts:
-        raise HTTPException(status_code=400, detail=f"Unsafe path: {raw_path}")
-    if not SAFE_PATH_RE.match(raw_path):
+    if not SAFE_PATH_RE.fullmatch(raw_path):
         raise HTTPException(status_code=400, detail=f"Unsupported path characters: {raw_path}")
     rel = Path(raw_path)
+    # Reject traversal via path parts (not substring checks alone — CodeQL).
+    if rel.is_absolute() or any(part in {".", ".."} for part in rel.parts):
+        raise HTTPException(status_code=400, detail=f"Unsafe path: {raw_path}")
     if rel.suffix.lower() not in CODE_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"Only code/text files are allowed in Slice 1: {raw_path}")
     return rel
@@ -303,7 +321,7 @@ def validate_relative_path(raw_path: str) -> Path:
 def stage_job(request: CreateJobRequest) -> str:
     job_id = uuid.uuid4().hex
     root = job_dir(job_id)
-    workspace = root / "workspace"
+    workspace = _resolve_under(root, "workspace")
     root.mkdir(parents=True, exist_ok=False)
     workspace.mkdir()
 
@@ -314,25 +332,28 @@ def stage_job(request: CreateJobRequest) -> str:
         if normalized in seen:
             raise HTTPException(status_code=400, detail=f"Duplicate file path: {item.path}")
         seen.add(normalized)
-        target = workspace / rel
+        # Final sandbox proof: resolved target must stay under workspace
+        target = _resolve_under(workspace, *rel.parts)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(item.content, encoding="utf-8", newline="\n")
 
-    write_text(root / "task.txt", request.task)
-    write_json(root / "request.json", request.model_dump(mode="json"))
+    write_text(_resolve_under(root, "task.txt"), request.task)
+    write_json(_resolve_under(root, "request.json"), request.model_dump(mode="json"))
     write_status(job_id, "queued", created_at=now_iso())
     return job_id
 
 
 def list_workspace_files(job_id: str) -> list[Path]:
-    root = job_dir(job_id) / "workspace"
+    root = _resolve_under(job_dir(job_id), "workspace")
     return sorted(path for path in root.rglob("*") if path.is_file() and not path.name.endswith(".orig"))
 
 
 def collect_context(job_id: str) -> str:
     chunks = []
-    root = job_dir(job_id) / "workspace"
+    root = _resolve_under(job_dir(job_id), "workspace")
     for path in list_workspace_files(job_id):
+        # path comes from rglob under root; re-assert containment
+        path.resolve().relative_to(root.resolve())
         rel = path.relative_to(root).as_posix()
         text = path.read_text(encoding="utf-8", errors="replace")
         chunks.append(f"--- FILE: {rel} ---\n{text}\n")

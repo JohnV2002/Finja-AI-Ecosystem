@@ -134,6 +134,7 @@ from fastapi.responses import FileResponse
 from fastapi import FastAPI, HTTPException, Body, Request, UploadFile, File, Form
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Annotated
+from pathlib import Path
 import uuid, time, json, threading, os, hashlib, shutil, math, re, base64, secrets # Added shutil
 import urllib.request
 from dotenv import load_dotenv
@@ -407,19 +408,43 @@ def decrypt_bytes(data: bytes) -> bytes:
     return AESGCM(key).decrypt(payload[:NONCE_SIZE], payload[NONCE_SIZE:], None)
 
 
+def _safe_path_under(base_dir: str, *parts: str) -> str:
+    """Build a path under base_dir; reject any escape (CodeQL path injection).
+
+    Each part is reduced to a single path segment (basename). The resolved
+    result must stay under the resolved base directory.
+    """
+    base = Path(base_dir).resolve()
+    clean: list[str] = []
+    for part in parts:
+        name = Path(str(part)).name
+        if not name or name in {".", ".."}:
+            raise ValueError("invalid path component")
+        clean.append(name)
+    candidate = base.joinpath(*clean).resolve()
+    try:
+        candidate.relative_to(base)
+    except ValueError as exc:
+        raise ValueError("path escapes base directory") from exc
+    return str(candidate)
+
+
 def read_json_file(filepath: str, default=None):
     if not os.path.exists(filepath):
         return default
-    with open(filepath, "rb") as f:  # NOSONAR
+    # filepath must already be produced by memory_file / _safe_path_under
+    with open(filepath, "rb") as f:
         raw = decrypt_bytes(f.read())
     return json.loads(raw.decode("utf-8"))
 
 
 def write_json_file_atomic(filepath: str, data) -> None:
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    parent = os.path.dirname(filepath)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     raw = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
     tmp_path = filepath + ".tmp"
-    with open(tmp_path, "wb") as f:  # NOSONAR
+    with open(tmp_path, "wb") as f:
         f.write(encrypt_bytes(raw))
     os.replace(tmp_path, filepath)
 
@@ -428,7 +453,7 @@ def memory_file(user_id):
     # Ensure user_id is filename-safe (basic sanitation)
     safe_user_id = "".join(c for c in user_id if c.isalnum() or c in ('-', '_')).rstrip()
     if not safe_user_id: safe_user_id = "invalid_user_id"
-    return os.path.join(USER_MEMORY_DIR, f"{safe_user_id}_memory.json")
+    return _safe_path_under(USER_MEMORY_DIR, f"{safe_user_id}_memory.json")
 
 def save_to_disk(user_id):
     """Saves a user's memories to disk."""
@@ -956,30 +981,27 @@ async def add_voice_memory(request: Request, user_id: Annotated[str, Form(...)],
         print(f"WARN:    Invalid user_id for audio upload: '{uid}'")
         raise HTTPException(status_code=400, detail="Invalid User ID.")
 
-    # 3. Build path securely
-    user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
-
-    # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
-    # Ensure that the target folder is truly inside USER_AUDIO_DIR
+    # 3. Build path securely under USER_AUDIO_DIR (resolve + relative_to)
     try:
-        real_target_path = os.path.realpath(user_audio_subdir)
-        real_base_path = os.path.realpath(USER_AUDIO_DIR)
-        if not real_target_path.startswith(real_base_path):
-             print(f"CRITICAL: Path Traversal attempt in audio upload! {real_target_path}")
-             raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
-    except Exception as e:
-        print(f"ERROR:   Path security check failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal security check error.")
+        user_audio_subdir = _safe_path_under(USER_AUDIO_DIR, safe_uid)
+    except ValueError as e:
+        print(f"CRITICAL: Path Traversal attempt in audio upload: {e}")
+        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED) from e
 
     # From here on everything is safe -> create folder
-    os.makedirs(user_audio_subdir, exist_ok=True) 
+    os.makedirs(user_audio_subdir, exist_ok=True)
 
-    file_extension = os.path.splitext(file.filename or "audio.unk")[1]
+    file_extension = os.path.splitext(file.filename or "audio.unk")[1].lower()
+    if file_extension not in {".wav", ".mp3", ".ogg", ".m4a", ".webm"}:
+        file_extension = ".wav"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    save_path = os.path.join(user_audio_subdir, unique_filename)  # NOSONAR - path validated above via canonicalization, filename is uuid4
+    try:
+        save_path = _safe_path_under(user_audio_subdir, unique_filename)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED) from e
 
     try:
-        async with aiofiles.open(save_path, 'wb') as out_file:  # NOSONAR
+        async with aiofiles.open(save_path, 'wb') as out_file:
             while content := await file.read(1024 * 1024): await out_file.write(content)
         print(f"INFO:    Saved voice memory to {save_path}")
     except Exception as e: 
@@ -1017,7 +1039,11 @@ async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], pr
         ext = ".mp3"
     # Remove old format if switching (e.g. .wav → .mp3 upgrade)
     old_ext = ".wav" if ext == ".mp3" else ".mp3"
-    old_path = os.path.join(TTS_CACHE_DIR, f"{text_hash}{old_ext}")
+    try:
+        old_path = _safe_path_under(TTS_CACHE_DIR, f"{text_hash}{old_ext}")
+        filepath = _safe_path_under(TTS_CACHE_DIR, f"{text_hash}{ext}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED) from e
     if os.path.exists(old_path):
         try:
             os.remove(old_path)
@@ -1025,11 +1051,10 @@ async def upload_tts_cache(request: Request, text: Annotated[str, Form(...)], pr
         except OSError:
             pass
     filename = f"{text_hash}{ext}"
-    filepath = os.path.join(TTS_CACHE_DIR, filename)  # NOSONAR - filename is sha256 hex hash, no path traversal possible
 
     try:
         # Save file
-        async with aiofiles.open(filepath, 'wb') as out_file:  # NOSONAR
+        async with aiofiles.open(filepath, 'wb') as out_file:
             while content := await file.read(1024 * 1024): 
                 await out_file.write(content)
         
@@ -1070,7 +1095,10 @@ def get_tts_audio(request: Request, text: str, provider: str):
     text_hash = hashlib.sha256(cache_key.encode('utf-8')).hexdigest()
     # Check MP3 first (preferred), then WAV (legacy)
     for ext, mime in [(".mp3", "audio/mpeg"), (".wav", "audio/wav")]:
-        filepath = os.path.join(TTS_CACHE_DIR, f"{text_hash}{ext}")  # NOSONAR - filename is sha256 hex hash
+        try:
+            filepath = _safe_path_under(TTS_CACHE_DIR, f"{text_hash}{ext}")
+        except ValueError:
+            continue
         if os.path.exists(filepath):
             print(f"INFO:    TTS Cache HIT: Serve '{text[:20]}...' ({ext})")
             emit_metric(
@@ -1081,7 +1109,7 @@ def get_tts_audio(request: Request, text: str, provider: str):
                 cache_hit=True,
                 details=f"ext={ext}; provider={provider}",
             )
-            return FileResponse(filepath, media_type=mime)  # NOSONAR
+            return FileResponse(filepath, media_type=mime)
 
     print(f"INFO:    TTS Cache MISS: '{text[:20]}...'")
     emit_metric(
@@ -1113,23 +1141,14 @@ def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)
 
     print(f"WARN:    Deletion requested for user '{uid}' (safe: '{safe_uid}')")
 
-    filepath = memory_file(uid) # Internally uses safe_uid logic as well, which is fine here
-    
-    # 3. Build path securely
-    user_audio_subdir = os.path.join(USER_AUDIO_DIR, safe_uid)
+    filepath = memory_file(uid)  # resolve + relative_to USER_MEMORY_DIR
 
-    # 4. PARANOID CHECK (Snyk-Friendly): Path Canonicalization
-    # We fully resolve the path and check if it really still lies within USER_AUDIO_DIR.
-    # This completely prevents theoretical "../" attacks.
+    # 3. Build audio path securely under USER_AUDIO_DIR
     try:
-        real_audio_path = os.path.realpath(user_audio_subdir)
-        real_base_path = os.path.realpath(USER_AUDIO_DIR)
-        if not real_audio_path.startswith(real_base_path):
-             print(f"CRITICAL: Path Traversal attempt detected! {real_audio_path}")
-             raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
-    except Exception as e:
-        print(f"ERROR:    Path security check failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal security check error.")
+        user_audio_subdir = _safe_path_under(USER_AUDIO_DIR, safe_uid)
+    except ValueError as e:
+        print(f"CRITICAL: Path Traversal attempt detected: {e}")
+        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED) from e
 
     # 5. Delete associated audio files first (if dir exists)
     if os.path.isdir(user_audio_subdir):
@@ -1149,16 +1168,10 @@ def delete_user_memories(request: Request, data: Annotated[UserAction, Body(...)
         del cache_last_accessed[uid]
         print(f"INFO:    Evicted RAM cache 'cache_last_accessed' for {uid}.")
 
-    # 7. Delete the JSON file from disk (with path canonicalization check)
-    real_memory_path = os.path.realpath(filepath)
-    real_memory_base = os.path.realpath(USER_MEMORY_DIR)
-    if not real_memory_path.startswith(real_memory_base):
-        print(f"CRITICAL: Path Traversal attempt on memory file! {real_memory_path}")
-        raise HTTPException(status_code=400, detail=SECURITY_CHECK_FAILED)
-
+    # 7. Delete the JSON file from disk (path already sandboxed by memory_file)
     if os.path.exists(filepath):
         try:
-            os.remove(filepath)  # NOSONAR - path validated above via canonicalization
+            os.remove(filepath)
             print(f"INFO:    Deleted memory file: {filepath}")
         except Exception as e:
             print(f"ERROR:   Failed to delete memory file {filepath}: {e}")

@@ -19,6 +19,8 @@ import os
 import sys
 import time
 import uuid as _uuid_mod
+from pathlib import Path
+
 import anyio
 
 from fastapi import HTTPException, UploadFile
@@ -56,6 +58,25 @@ TEMP_MEDIA_TYPES = {
 }
 
 
+def _resolved_temp_path(filename: str) -> Path:
+    """Join filename under TEMP_UPLOADS_DIR and prove it cannot escape.
+
+    CodeQL: uncontrolled data in path expression — regex validation alone is
+    not enough; resolve + relative_to the upload root.
+    """
+    if not is_temp_upload_filename(filename):
+        raise HTTPException(status_code=404, detail="Not found")
+    if "/" in filename or "\\" in filename or filename in {".", ".."}:
+        raise HTTPException(status_code=404, detail="Not found")
+    base = Path(TEMP_UPLOADS_DIR).resolve()
+    candidate = (base / filename).resolve()
+    try:
+        candidate.relative_to(base)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="Not found") from exc
+    return candidate
+
+
 def cleanup_temp_uploads() -> None:
     """
     Deletes temporary uploaded files from disk that exceed UPLOAD_MAX_AGE (1 hour).
@@ -67,12 +88,17 @@ def cleanup_temp_uploads() -> None:
         return
 
     now = time.time()
+    base = Path(TEMP_UPLOADS_DIR).resolve()
     for fname in os.listdir(TEMP_UPLOADS_DIR):
-        fpath = os.path.join(TEMP_UPLOADS_DIR, fname)
         try:
-            if os.path.isfile(fpath) and now - os.path.getmtime(fpath) > UPLOAD_MAX_AGE:
-                os.unlink(fpath)
-        except OSError as e:
+            # Only touch bare names under the upload root (no traversal).
+            if "/" in fname or "\\" in fname or fname in {".", ".."}:
+                continue
+            fpath = (base / fname).resolve()
+            fpath.relative_to(base)
+            if fpath.is_file() and now - fpath.stat().st_mtime > UPLOAD_MAX_AGE:
+                fpath.unlink()
+        except (OSError, ValueError) as e:
             err = YourAIUploadError("cleanup failed", filename=fname, cause=e, module="app_uploads")
             log_exception("APP_UPLOADS", err)
 
@@ -143,9 +169,9 @@ async def save_mobile_upload(file: UploadFile) -> dict:
     cleanup_temp_uploads()
 
     filename = f"{_uuid_mod.uuid4()}.{ext}"
-    filepath = os.path.join(TEMP_UPLOADS_DIR, filename)
+    filepath = _resolved_temp_path(filename)
     try:
-        await anyio.Path(filepath).write_bytes(data)
+        await anyio.Path(str(filepath)).write_bytes(data)
     except OSError as e:
         err = YourAIUploadError("disk write failed", filename=filename, cause=e, module="app_uploads")
         log_exception("APP_UPLOADS", err)
@@ -174,16 +200,13 @@ def serve_temp_upload(filename: str) -> FileResponse:
     Returns:
         FileResponse: The FastAPI file response serving the requested image.
     """
-    if not is_temp_upload_filename(filename):
-        raise HTTPException(status_code=404, detail="Not found")
-
-    filepath = os.path.join(TEMP_UPLOADS_DIR, filename)
-    if not os.path.isfile(filepath):
+    filepath = _resolved_temp_path(filename)
+    if not filepath.is_file():
         raise HTTPException(status_code=404, detail="Image no longer available (expired or never uploaded)")
 
     ext = filename.rsplit(".", 1)[-1]
     return FileResponse(
-        filepath,
+        str(filepath),
         media_type=TEMP_MEDIA_TYPES[ext],
         headers={"Cache-Control": "no-store"},
     )
