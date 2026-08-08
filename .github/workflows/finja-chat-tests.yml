@@ -12,6 +12,9 @@ on:
       - 'finja-chat/**'
       - '.github/workflows/finja-chat-tests.yml'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest

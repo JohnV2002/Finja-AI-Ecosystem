@@ -12,6 +12,9 @@ on:
       - 'finja-agentic-code/**'
       - '.github/workflows/finja-agentic-code-tests.yml'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }}

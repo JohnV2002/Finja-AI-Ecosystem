@@ -13,6 +13,9 @@ on:
       - 'finja-Open-Web-UI/finja-Memory/**'
       - '.github/workflows/memory-build.yml'
 
+
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest

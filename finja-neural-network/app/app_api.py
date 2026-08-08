@@ -348,7 +348,12 @@ async def get_app_me(request: Request, key: Optional[str] = None):
         return block
 
     session_uuid = request.headers.get("X-Session-UUID", "").strip()
-    return build_app_me_payload(key_info, session_uuid)
+    try:
+        return build_app_me_payload(key_info, session_uuid)
+    except Exception as e:
+        err = YourAIWebParseError("Failed to build app profile payload", cause=e, module="app_api_me")
+        log_exception("APP_API", err)
+        raise HTTPException(status_code=500, detail="Failed to load profile") from e
 
 # =========================================================================
 # Mobile Platform Linking - same code system as Discord /link

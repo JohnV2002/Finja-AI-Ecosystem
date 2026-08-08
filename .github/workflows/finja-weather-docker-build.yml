@@ -8,6 +8,9 @@ on:
     paths:
       - 'finja-weather/**'
 
+
+permissions:
+  contents: read
 jobs:
   docker-build-only:
     runs-on: ubuntu-latest

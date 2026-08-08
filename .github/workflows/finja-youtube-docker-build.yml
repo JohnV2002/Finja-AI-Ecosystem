@@ -8,6 +8,9 @@ on:
     paths:
       - 'finja-youtube/**'
 
+
+permissions:
+  contents: read
 jobs:
   docker-build-only:
     runs-on: ubuntu-latest

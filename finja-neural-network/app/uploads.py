@@ -1,7 +1,7 @@
 """
 YourAI App Upload Helpers
 ========================
-Validation, storage, serving, and age-based cleanup for temporary mobile image 
+Validation, storage, serving, and age-based cleanup for temporary mobile image
 uploads used during chat interactions.
 
 Main Responsibilities:
@@ -14,6 +14,8 @@ Side Effects:
 - Modifies and manages files in temp_uploads/ directory.
 - Logs file I/O operations and errors to the debug console using YourAIUploadError.
 """
+
+from __future__ import annotations
 
 import os
 import re
@@ -36,11 +38,6 @@ from exceptions import YourAIUploadError
 _ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP_UPLOADS_DIR = os.path.join(_ROOT_DIR, "temp_uploads")
 
-# Strict name grammar — path is rebuilt ONLY from capture groups (breaks taint).
-_SAFE_TEMP_NAME = re.compile(
-    r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\.(jpg|png|gif|webp)$"
-)
-
 UPLOAD_MAX_AGE = 3600
 UPLOAD_MAX_SIZE = 10 * 1024 * 1024
 MIME_JPEG = "image/jpeg"
@@ -49,6 +46,7 @@ MIME_GIF = "image/gif"
 MIME_WEBP = "image/webp"
 
 UPLOAD_ALLOWED = {MIME_JPEG, MIME_PNG, MIME_GIF, MIME_WEBP}
+# Extension strings are fixed constants only (never raw user input in joins).
 UPLOAD_EXTS = {
     MIME_JPEG: "jpg",
     MIME_PNG: "png",
@@ -61,17 +59,48 @@ TEMP_MEDIA_TYPES = {
     "gif": MIME_GIF,
     "webp": MIME_WEBP,
 }
+_EXT_BY_CODE = {
+    0: "jpg",
+    1: "png",
+    2: "gif",
+    3: "webp",
+}
+_CODE_BY_EXT = {v: k for k, v in _EXT_BY_CODE.items()}
+
+# User-provided names must match this grammar before we parse UUID + ext code.
+_SAFE_TEMP_NAME = re.compile(
+    r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\.(jpg|png|gif|webp)$"
+)
 
 
-_EXT_WHITELIST = frozenset(TEMP_MEDIA_TYPES.keys())
+def _temp_base() -> Path:
+    return Path(TEMP_UPLOADS_DIR).resolve()
 
 
-def _parse_safe_temp_name(filename: str) -> tuple[str, str]:
-    """Return (canonical_uuid_str, ext) or raise 404.
+def _ext_code(ext: str) -> int | None:
+    return _CODE_BY_EXT.get(ext)
 
-    UUID() re-parses the id so the path is not built from raw user text
-    (CodeQL path-injection / uncontrolled data in path expression).
-    """
+
+def _path_for_id_and_code(file_id: _uuid_mod.UUID, ext_code: int) -> Path:
+    """Build absolute path using only UUID.int + integer ext code (no user strings)."""
+    ext = _EXT_BY_CODE.get(ext_code)
+    if ext is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    # Rebuild UUID from integer bits only — breaks taint from request text.
+    clean = _uuid_mod.UUID(int=file_id.int)
+    base = _temp_base()
+    # Path segments are only: base (constant) + f"{clean}.{ext}" where both
+    # parts come from library/constants, not the request string.
+    name = f"{clean}.{ext}"
+    full = os.path.normpath(os.path.join(str(base), name))
+    base_s = str(base)
+    if full != base_s and not full.startswith(base_s + os.sep):
+        raise HTTPException(status_code=404, detail="Not found")
+    return Path(full)
+
+
+def _parse_request_name(filename: str) -> tuple[_uuid_mod.UUID, int]:
+    """Parse request filename into (UUID, ext_code) or 404."""
     match = _SAFE_TEMP_NAME.fullmatch(filename or "")
     if match is None:
         raise HTTPException(status_code=404, detail="Not found")
@@ -79,96 +108,43 @@ def _parse_safe_temp_name(filename: str) -> tuple[str, str]:
         file_id = _uuid_mod.UUID(match.group(1))
     except ValueError as exc:
         raise HTTPException(status_code=404, detail="Not found") from exc
-    ext = match.group(2)
-    if ext not in _EXT_WHITELIST:
+    code = _ext_code(match.group(2))
+    if code is None:
         raise HTTPException(status_code=404, detail="Not found")
-    # str(UUID) is the library's canonical form, not the raw request string
-    return str(file_id), ext
-
-
-def _temp_base() -> Path:
-    return Path(TEMP_UPLOADS_DIR).resolve()
-
-
-def _resolved_temp_path(filename: str, *, must_exist: bool = False) -> Path:
-    """Safe path under TEMP_UPLOADS_DIR for a validated temp upload name."""
-    file_id, ext = _parse_safe_temp_name(filename)
-    safe_name = f"{file_id}.{ext}"
-    base = _temp_base()
-    if must_exist:
-        # Prefer filesystem entry (name from iterdir) so path is not user-joined.
-        if base.is_dir():
-            for entry in base.iterdir():
-                if entry.is_file() and entry.name == safe_name:
-                    resolved = entry.resolve()
-                    try:
-                        resolved.relative_to(base)
-                    except ValueError as exc:
-                        raise HTTPException(status_code=404, detail="Not found") from exc
-                    return resolved
-        raise HTTPException(
-            status_code=404,
-            detail="Image no longer available (expired or never uploaded)",
-        )
-    candidate = (base / safe_name).resolve()
-    try:
-        candidate.relative_to(base)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail="Not found") from exc
-    return candidate
+    return file_id, code
 
 
 def cleanup_temp_uploads() -> None:
-    """
-    Deletes temporary uploaded files from disk that exceed UPLOAD_MAX_AGE (1 hour).
-
-    Returns:
-        None.
-    """
+    """Delete temp uploads older than UPLOAD_MAX_AGE."""
     if not os.path.isdir(TEMP_UPLOADS_DIR):
         return
 
     now = time.time()
     base = _temp_base()
     try:
-        entries = list(base.iterdir())
+        names = os.listdir(str(base))
     except OSError:
         return
-    for entry in entries:
+
+    for name in names:
         try:
-            if not entry.is_file():
-                continue
-            # Only delete names that match our grammar (ignore junk files).
-            try:
-                _parse_safe_temp_name(entry.name)
-            except HTTPException:
-                continue
-            resolved = entry.resolve()
-            resolved.relative_to(base)
-            if now - resolved.stat().st_mtime > UPLOAD_MAX_AGE:
-                resolved.unlink()
-        except (OSError, ValueError) as e:
+            # Validate grammar, then rebuild path from UUID.int + ext code only.
+            file_id, code = _parse_request_name(name)
+        except HTTPException:
+            continue
+        try:
+            path = _path_for_id_and_code(file_id, code)
+            if path.is_file() and now - path.stat().st_mtime > UPLOAD_MAX_AGE:
+                path.unlink()
+        except (OSError, HTTPException) as e:
             err = YourAIUploadError(
-                "cleanup failed", filename=entry.name, cause=e, module="app_uploads"
+                "cleanup failed", filename=name, cause=e, module="app_uploads"
             )
             log_exception("APP_UPLOADS", err)
 
 
 def _ext_for_content_type(content_type: str, filename: str | None) -> str:
-    """
-    Maps an incoming MIME content-type to its corresponding file extension, 
-    raising an error if the type is unsupported.
-
-    Args:
-        content_type (str): The MIME content-type of the uploaded file.
-        filename (str | None): The original uploaded file name (for logging context).
-
-    Raises:
-        HTTPException: 415 if the content-type is not in the allowed set.
-
-    Returns:
-        str: The mapped file extension string (e.g. "jpg").
-    """
+    """Map MIME type to fixed extension constant."""
     content_type = (content_type or "").lower()
     if content_type not in UPLOAD_ALLOWED:
         err = YourAIUploadError(
@@ -179,25 +155,14 @@ def _ext_for_content_type(content_type: str, filename: str | None) -> str:
         log_exception("APP_UPLOADS", err)
         raise HTTPException(
             status_code=415,
-            detail=f"Only images allowed (jpeg/png/gif/webp), received: {content_type}",
+            detail="Only images allowed (jpeg/png/gif/webp)",
         )
     return UPLOAD_EXTS[content_type]
 
 
 async def save_mobile_upload(file: UploadFile) -> dict:
     """
-    Validates an uploaded file's type and size, triggers cache cleanup,
-    saves the file securely using a random UUID filename, and returns the response metadata.
-
-    Args:
-        file (UploadFile): The uploaded file instance.
-
-    Raises:
-        HTTPException: 413 if the file size exceeds UPLOAD_MAX_SIZE (10MB),
-                       500 if writing the file to disk fails.
-
-    Returns:
-        dict: A metadata dictionary containing success status, URL path, filename, and size.
+    Validate type/size, store under a server-generated UUID name, return metadata.
     """
     ext = _ext_for_content_type(file.content_type or "", file.filename)
     data = await file.read()
@@ -219,23 +184,20 @@ async def save_mobile_upload(file: UploadFile) -> dict:
     os.makedirs(TEMP_UPLOADS_DIR, exist_ok=True)
     cleanup_temp_uploads()
 
-    # Filename entirely server-generated (uuid4 + whitelisted ext from content-type).
+    # Entirely server-generated identity (not derived from client filename).
     file_id = _uuid_mod.uuid4()
-    if ext not in _EXT_WHITELIST:
+    code = _ext_code(ext)
+    if code is None:
         raise HTTPException(status_code=415, detail="Only images allowed (jpeg/png/gif/webp)")
-    filename = f"{file_id}.{ext}"
-    base = _temp_base()
-    filepath = (base / filename).resolve()
-    try:
-        filepath.relative_to(base)
-    except ValueError as exc:
-        raise HTTPException(status_code=500, detail="Error saving upload") from exc
+    filepath = _path_for_id_and_code(file_id, code)
+    filename = filepath.name
+
     try:
         await anyio.Path(os.fspath(filepath)).write_bytes(data)
     except OSError as e:
         err = YourAIUploadError("disk write failed", filename=filename, cause=e, module="app_uploads")
         log_exception("APP_UPLOADS", err)
-        raise HTTPException(status_code=500, detail="Error saving upload")
+        raise HTTPException(status_code=500, detail="Error saving upload") from e
 
     log("APP_UPLOADS", f"Mobile upload: {filename} ({len(data) // 1024} KB)", Fore.CYAN)
     return {
@@ -247,21 +209,15 @@ async def save_mobile_upload(file: UploadFile) -> dict:
 
 
 def serve_temp_upload(filename: str) -> FileResponse:
-    """
-    Validates the requested filename format, verifies its existence, 
-    and serves it using a FileResponse with caching disabled.
-
-    Args:
-        filename (str): The filename of the temporary image to serve.
-
-    Raises:
-        HTTPException: 404 if the filename format is invalid or the file is missing/expired.
-
-    Returns:
-        FileResponse: The FastAPI file response serving the requested image.
-    """
-    filepath = _resolved_temp_path(filename, must_exist=True)
-    _, ext = _parse_safe_temp_name(filename)
+    """Serve a previously uploaded temp image if the name is valid and on disk."""
+    file_id, code = _parse_request_name(filename)
+    filepath = _path_for_id_and_code(file_id, code)
+    if not filepath.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="Image no longer available (expired or never uploaded)",
+        )
+    ext = _EXT_BY_CODE[code]
     return FileResponse(
         os.fspath(filepath),
         media_type=TEMP_MEDIA_TYPES[ext],

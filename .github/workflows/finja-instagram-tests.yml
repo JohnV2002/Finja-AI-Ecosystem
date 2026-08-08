@@ -12,6 +12,9 @@ on:
       - 'finja-instagram/**'
       - '.github/workflows/finja-instagram-tests.yml'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }}

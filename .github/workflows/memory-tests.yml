@@ -11,6 +11,9 @@ on:
     paths:
       - 'finja-Open-Web-UI/finja-Memory/**'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest

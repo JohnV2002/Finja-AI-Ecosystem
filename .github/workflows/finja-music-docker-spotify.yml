@@ -14,6 +14,9 @@ on:
       - 'Finja-music/finja-music-docker-spotify/**'
       - '.github/workflows/finja-music-docker-spotify.yml'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }}

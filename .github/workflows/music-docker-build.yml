@@ -8,6 +8,9 @@ on:
     paths:
       - 'Finja-music/finja-music-docker-spotify/**'
 
+
+permissions:
+  contents: read
 jobs:
   docker-build-only:
     runs-on: ubuntu-latest

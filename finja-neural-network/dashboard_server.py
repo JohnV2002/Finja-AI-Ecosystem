@@ -1998,7 +1998,11 @@ async def run_command_api(request: Request, key: Optional[str] = None):
             try:
                 from tools.expert_pool import refresh_from_llm_stats
                 refresh = refresh_from_llm_stats()
-                result_msg = "Expert Pool aktualisiert" if refresh.get("ok") else f"Expert Pool Fallback: {refresh.get('reason')}"
+                if refresh.get("ok"):
+                    result_msg = "Expert Pool aktualisiert"
+                else:
+                    # Do not echo raw reason strings that may contain exception text.
+                    result_msg = "Expert Pool Fallback (see server logs)"
             except Exception as e:
                 log("DASHBOARD", f"expert_pool_refresh failed: {e}", Fore.RED)
                 result_msg = "Expert Pool Refresh failed"

@@ -12,6 +12,9 @@ on:
     paths:
       - 'finja-Open-Web-UI/finja-web-crawler/**'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest

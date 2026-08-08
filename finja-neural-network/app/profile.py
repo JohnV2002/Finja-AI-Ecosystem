@@ -271,7 +271,7 @@ def _style_usage(user_key: str, user_id: str, session_uuid: str) -> dict:
     except Exception as e:
         err = YourAIUnexpectedError(cause=e, module="app_profile_style")
         log_exception("APP_PROFILE", err)
-        return {"available": False, "error": str(e)}
+        return {"available": False, "error": "unavailable"}
 
 
 def _image_usage(user_id: str, role: str) -> dict:

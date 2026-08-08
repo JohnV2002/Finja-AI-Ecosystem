@@ -13,6 +13,9 @@ on:
       - 'finja-Open-Web-UI/finja-web-crawler/**'
       - '.github/workflows/web-crawler-build.yml'
 
+
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -12,6 +12,9 @@ on:
       - 'finja-weather/**'
       - '.github/workflows/finja-weather-tests.yml'
 
+
+permissions:
+  contents: read
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }}

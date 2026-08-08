@@ -8,6 +8,9 @@ on:
     paths:
       - 'finja-instagram/**'
 
+
+permissions:
+  contents: read
 jobs:
   docker-build-only:
     runs-on: ubuntu-latest
