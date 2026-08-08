@@ -233,8 +233,33 @@ const Chat = (() => {
   /**
    * Called when an image_ready event arrives — shows generated image in chat.
    */
+  /**
+   * Allow only same-origin http(s) image URLs (blocks javascript: XSS & open redirects).
+   * Also allows local attachment previews as data:image/*;base64 only.
+   */
+  function _safeSameOriginUrl(url) {
+    if (!url || typeof url !== 'string') return null;
+    if (url.startsWith('data:image/')) {
+      return /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i.test(url) ? url : null;
+    }
+    try {
+      const u = new URL(url, window.location.origin);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      if (u.origin !== window.location.origin) return null;
+      return u.href;
+    } catch {
+      return null;
+    }
+  }
+
   function _appendImageBubble(imageUrl, prompt, skipSave = false) {
     chatEmptyEl.hidden = true;
+
+    const safeUrl = _safeSameOriginUrl(imageUrl);
+    if (!safeUrl) {
+      console.error('🎨 [Chat] Rejected unsafe image URL');
+      return;
+    }
 
     const _cls = App.getBotClass();
     const wrap = document.createElement('div');
@@ -248,20 +273,21 @@ const Chat = (() => {
     bubble.className = `chat-bubble ${_cls}`;
 
     const img = document.createElement('img');
-    img.src = imageUrl;
+    img.src = safeUrl;
     img.alt = prompt || 'Generated image';
     img.className = 'chat-generated-image';
     img.loading = 'lazy';
-    img.onerror = () => console.error('🎨 [Chat] Image could not be loaded:', imageUrl);
-    img.onload  = () => console.log('🎨 [Chat] Image loaded successfully:', imageUrl);
-    img.onclick = () => window.open(imageUrl, '_blank');
+    img.onerror = () => console.error('🎨 [Chat] Image could not be loaded');
+    img.onload  = () => console.log('🎨 [Chat] Image loaded successfully');
+    img.onclick = () => window.open(safeUrl, '_blank', 'noopener,noreferrer');
     img.title = '🔍 Click to open full size';
 
     bubble.appendChild(img);
     if (prompt) {
       const caption = document.createElement('div');
       caption.className = 'chat-image-caption';
-      caption.textContent = `🎨 "${prompt.substring(0, 120)}${prompt.length > 120 ? '…' : ''}"`;
+      const snippet = String(prompt).substring(0, 120);
+      caption.textContent = `🎨 "${snippet}${String(prompt).length > 120 ? '…' : ''}"`;
       bubble.appendChild(caption);
     }
 
@@ -617,11 +643,13 @@ const Chat = (() => {
         const preview = document.createElement('div');
         preview.className = 'bubble-attachments';
         imgs.forEach(a => {
+          const safe = _safeSameOriginUrl(a.data);
+          if (!safe) return;
           const img = document.createElement('img');
-          img.src = a.data;
+          img.src = safe;
           img.className = 'attach-thumb';
-          img.title = a.name;
-          img.onclick = () => window.open(a.data, '_blank');
+          img.title = String(a.name || '');
+          img.onclick = () => window.open(safe, '_blank', 'noopener,noreferrer');
           preview.appendChild(img);
         });
         txts.forEach(a => {
@@ -940,18 +968,28 @@ const Chat = (() => {
     const icon = action === 'MADE' ? '🤝' : '💔';
     const label = action === 'MADE' ? 'Promise erkannt' : 'Promise gebrochen';
 
-    bubble.innerHTML = `
-      <div class="promise-confirm-header">${icon} ${label}</div>
-      <div class="promise-confirm-name">${name.replace(/_/g, ' ')}</div>
-      <div class="promise-confirm-detail">${reasoning}</div>
-      <div class="promise-confirm-buttons">
-        <button class="promise-btn promise-yes" title="Ja, stimmt">Ja</button>
-        <button class="promise-btn promise-no" title="Nein, kein Promise">Nein</button>
-      </div>
-    `;
-
-    const yesBtn = bubble.querySelector('.promise-yes');
-    const noBtn = bubble.querySelector('.promise-no');
+    // DOM-only (no innerHTML) — CodeQL client-side XSS
+    const header = document.createElement('div');
+    header.className = 'promise-confirm-header';
+    header.textContent = `${icon} ${label}`;
+    const nameEl = document.createElement('div');
+    nameEl.className = 'promise-confirm-name';
+    nameEl.textContent = String(name || '').replace(/_/g, ' ');
+    const detail = document.createElement('div');
+    detail.className = 'promise-confirm-detail';
+    detail.textContent = String(reasoning || '');
+    const buttons = document.createElement('div');
+    buttons.className = 'promise-confirm-buttons';
+    const yesBtn = document.createElement('button');
+    yesBtn.className = 'promise-btn promise-yes';
+    yesBtn.title = 'Ja, stimmt';
+    yesBtn.textContent = 'Ja';
+    const noBtn = document.createElement('button');
+    noBtn.className = 'promise-btn promise-no';
+    noBtn.title = 'Nein, kein Promise';
+    noBtn.textContent = 'Nein';
+    buttons.append(yesBtn, noBtn);
+    bubble.append(header, nameEl, detail, buttons);
 
     function _respond(userAction) {
       yesBtn.disabled = true;

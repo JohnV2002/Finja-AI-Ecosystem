@@ -243,7 +243,7 @@ def _resolve_provider(name: str | None):
     try:
         return get_provider(name)
     except WeatherProviderError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail="Unknown weather provider") from exc
 
 
 @app.get("/health")
@@ -294,7 +294,8 @@ async def current_endpoint(
         _m_incr("current_fail")
         _m_error(f"current: {exc}")
         logger.warning("Current weather failed: %s", exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        # Generic client message — do not leak exception text (CodeQL info exposure).
+        raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("current_ok")
     _m_observe("current", duration_ms)
@@ -311,7 +312,11 @@ async def current_endpoint(
                             provider.name, other_name,
                             result["consensus"]["agreement"], result["consensus"]["rain_now"])
             except WeatherProviderError as exc:
-                result.setdefault("consensus", {"agreement": None, "note": f"{other_name} unavailable: {exc}"})
+                logger.warning("Consensus provider %s unavailable: %s", other_name, exc)
+                result.setdefault(
+                    "consensus",
+                    {"agreement": None, "note": f"{other_name} unavailable"},
+                )
                 _m_incr("consensus_skip")
 
     logger.info("Current weather ok: %s %s°C (%dms)", result.get("condition"), result.get("temperature_c"), duration_ms)
@@ -346,7 +351,7 @@ async def forecast_endpoint(
         _m_incr("forecast_fail")
         _m_error(f"forecast: {exc}")
         logger.warning("Forecast failed: %s", exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("forecast_ok")
     _m_observe("forecast", duration_ms)
@@ -381,7 +386,7 @@ async def pollen_endpoint(
         _m_incr("pollen_fail")
         _m_error(f"pollen: {exc}")
         logger.warning("Pollen failed: %s", exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("pollen_ok")
     _m_observe("pollen", duration_ms)
@@ -415,7 +420,7 @@ async def air_quality_endpoint(
         _m_incr("air_quality_fail")
         _m_error(f"air_quality: {exc}")
         logger.warning("Air quality failed: %s", exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("air_quality_ok")
     _m_observe("air_quality", duration_ms)

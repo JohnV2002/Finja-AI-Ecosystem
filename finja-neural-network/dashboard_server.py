@@ -858,7 +858,8 @@ async def clear_debug_log(key: Optional[str] = None):
         log("DASHBOARD", "[DEBUG-LOG] Log cleared by admin request", Fore.YELLOW)
         return {"ok": True, "message": "Debug log geleert"}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        log("DASHBOARD", f"[DEBUG-LOG] clear failed: {e}", Fore.RED)
+        return {"ok": False, "error": "Failed to clear debug log"}
 
 
 @app.get("/api/debug/download-log")
@@ -952,7 +953,7 @@ async def switch_user_api(user_key: str, key: Optional[str] = None):
         except Exception as e:
             import traceback
             await state.broadcast_error(f"Error switching to user '{user_key}'", str(e), traceback.format_exc())
-            return {"status": "error", "message": str(e)}
+            return {"status": "error", "message": "Failed to switch user"}
     return {"status": "error", "message": "Session manager not available"}
 
 @app.post("/switch_mode/{mode}")
@@ -1011,14 +1012,15 @@ async def create_user_api(request: Request, key: Optional[str] = None):
                 try:
                     save_access_keys(keys)
                 except Exception as e:
-                    return {"status": "warning", "message": f"{result} - ABER access_keys.json speichern fehlgeschlagen: {e}"}
+                    log("DASHBOARD", f"access_keys save failed: {e}", Fore.RED)
+                    return {"status": "warning", "message": f"{result} - access keys could not be saved"}
 
             return {"status": "ok", "message": result}
         return {"status": "error", "message": "Session manager not available"}
     except Exception as e:
         import traceback
         await state.broadcast_error(f"Error creating user '{user_key}'", str(e), traceback.format_exc())
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": "Failed to create user"}
 
 
 @app.post("/api/update_user")
@@ -1079,7 +1081,8 @@ async def update_user_api(request: Request, key: Optional[str] = None):
         return {"status": "ok", "message": msg}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        log("DASHBOARD", f"update_user failed: {e}", Fore.RED)
+        return {"status": "error", "message": "Failed to update user"}
 
 
 # ==========================================
@@ -1178,7 +1181,7 @@ async def get_user_me(request: Request, key: Optional[str] = None):
     except Exception as e:
         err = YourAIUnexpectedError(cause=e, module="dashboard_style_usage", user_key=user_key)
         log_exception("DASHBOARD", err)
-        style_usage = {"available": False, "error": str(e)}
+        style_usage = {"available": False, "error": "unavailable"}
 
     # Image usage
     try:
@@ -1323,7 +1326,8 @@ async def tts_api(request: Request, key: Optional[str] = None):
             )
         except Exception as e:
             log("TTS", f"❌ YourAI TTS failed: {type(e).__name__}: {e}", Fore.RED)
-            raise HTTPException(status_code=503, detail=f"YourAI TTS: {type(e).__name__}: {str(e)[:250]}")
+            log("DASHBOARD", f"YourAI TTS failed: {type(e).__name__}: {e}", Fore.RED)
+            raise HTTPException(status_code=503, detail="YourAI TTS unavailable") from e
 
     if tier == "elevenlabs":
         from config import ELEVENLABS_API_KEY
@@ -1375,7 +1379,7 @@ async def tts_api(request: Request, key: Optional[str] = None):
             err_msg = str(e)
             log("DASHBOARD", f"[TTS] ElevenLabs Error: {err_msg}", Fore.RED)
             await state.broadcast_error("TTS ElevenLabs Error", err_msg, traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"TTS error: {err_msg}")
+            raise HTTPException(status_code=500, detail="TTS generation failed") from e
 
     raise HTTPException(status_code=400, detail=f"Unbekannter Tier: {tier}")
 
@@ -1431,7 +1435,7 @@ async def stt_api(request: Request, key: Optional[str] = None):
         if resp.status_code != 200:
             detail = resp.text[:300] if resp.text else f"HTTP {resp.status_code}"
             log("STT", f"❌ DeepInfra Whisper Error: {resp.status_code} — {detail}", Fore.RED)
-            raise HTTPException(status_code=502, detail=f"Whisper API Error: {detail}")
+            raise HTTPException(status_code=502, detail="Speech recognition service error")
 
         result = resp.json()
         text = result.get("text", "").strip()
@@ -1447,7 +1451,8 @@ async def stt_api(request: Request, key: Optional[str] = None):
         raise
     except Exception as e:
         log("STT", f"❌ STT Error: {type(e).__name__}: {e}", Fore.RED)
-        raise HTTPException(status_code=500, detail=f"STT error: {type(e).__name__}: {str(e)[:250]}")
+        log("DASHBOARD", f"STT failed: {type(e).__name__}: {e}", Fore.RED)
+        raise HTTPException(status_code=500, detail="Speech-to-text failed") from e
 
 
 # ==========================================
@@ -1497,7 +1502,7 @@ async def set_volume_api(request: Request, key: Optional[str] = None):
         err = YourAIUnexpectedError(cause=e, module="dashboard_server_volume_set")
         log_exception("DASHBOARD", err)
         await state.broadcast_error("Volume API Error", str(e), traceback.format_exc())
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Failed to set volume"}
 
 
 process_manager = ProcessManager()
@@ -1527,7 +1532,7 @@ async def analytics_summary_api(
         err = YourAIUnexpectedError(cause=e, module="dashboard_analytics_summary")
         log_exception("DASHBOARD", err)
         await state.broadcast_error("Analytics API Error", str(e), traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Analytics summary failed") from e
 
 
 @app.get("/api/analytics/timeseries")
@@ -1556,7 +1561,7 @@ async def analytics_timeseries_api(
         err = YourAIUnexpectedError(cause=e, module="dashboard_analytics_timeseries")
         log_exception("DASHBOARD", err)
         await state.broadcast_error("Analytics API Error", str(e), traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Analytics timeseries failed") from e
 
 
 @app.delete("/api/analytics/clear")
@@ -1623,7 +1628,14 @@ def _probe_json_url(name: str, url: str, headers: Optional[dict] = None, timeout
             )
     except Exception as e:
         latency = int((time.time() - started) * 1000)
-        return _health_item(name, False, type(e).__name__, latency_ms=latency, detail=str(e)[:180], url=url)
+        return _health_item(
+            name,
+            False,
+            type(e).__name__,
+            latency_ms=latency,
+            detail="probe_failed",
+            url=url,
+        )
 
 
 async def _probe_json_url_async(name: str, url: str, headers: Optional[dict] = None, timeout: float = 1.5) -> dict:
@@ -1644,7 +1656,8 @@ def _subconscious_health() -> dict:
         detail = f"last_tick={last_tick}" if last_tick else str(data.get("error") or "")
         return _health_item("Subconscious", running, "running" if running else "stopped", detail=detail, extra={"raw": data})
     except Exception as e:
-        return _health_item("Subconscious", False, type(e).__name__, detail=str(e)[:180])
+        log("DASHBOARD", f"subconscious health probe failed: {e}", Fore.YELLOW)
+        return _health_item("Subconscious", False, type(e).__name__, detail="probe_failed")
 
 
 def _public_health_item(
@@ -1898,7 +1911,8 @@ async def subconscious_status_api(key: Optional[str] = None):
                 return json.loads(f.read())
         return {"running": False, "error": "Status file not found (brain not started?)"}
     except Exception as e:
-        return {"running": False, "error": str(e)}
+        log("DASHBOARD", f"subconscious status read failed: {e}", Fore.RED)
+        return {"running": False, "error": "status_unavailable"}
 
 
 # ==========================================
@@ -1940,7 +1954,8 @@ async def run_command_api(request: Request, key: Optional[str] = None):
                 maybe_trigger_website_update(DashboardClient(), force=True)
                 result_msg = "🎨 Autonomes Website-Redesign gestartet — Fortschritt im Dashboard sichtbar!"
             except Exception as e:
-                return {"ok": False, "error": f"website_update failed: {e}"}
+                log("DASHBOARD", f"website_update failed: {e}", Fore.RED)
+                return {"ok": False, "error": "website_update failed"}
 
         elif cmd == "/lab_update":
             try:
@@ -1948,21 +1963,24 @@ async def run_command_api(request: Request, key: Optional[str] = None):
                 maybe_trigger_lab_update(DashboardClient(), force=True)
                 result_msg = "🎪 Lab-Update gestartet — Fortschritt im Dashboard sichtbar!"
             except Exception as e:
-                return {"ok": False, "error": f"lab_update failed: {e}"}
+                log("DASHBOARD", f"lab_update failed: {e}", Fore.RED)
+                return {"ok": False, "error": "lab_update failed"}
 
         elif cmd == "/diary":
             try:
                 from memory.episodic import journal
                 result_msg = f"📔 Diary: {journal.get_status() if hasattr(journal, 'get_status') else 'Status unavailable'}"
             except Exception as e:
-                result_msg = f"📔 Diary: module unavailable ({e})"
+                log("DASHBOARD", f"diary status failed: {e}", Fore.YELLOW)
+                result_msg = "📔 Diary: module unavailable"
 
         elif cmd == "/memory":
             try:
                 import config as _cfg
                 result_msg = f"🧠 Memory: USE_MEMORY={getattr(_cfg, 'USE_MEMORY', '?')}, USE_EPISODIC={getattr(_cfg, 'USE_EPISODIC', '?')}"
             except Exception as e:
-                result_msg = f"🧠 Memory: error ({e})"
+                log("DASHBOARD", f"memory status failed: {e}", Fore.YELLOW)
+                result_msg = "🧠 Memory: error"
 
         elif cmd == "/reset_mode":
             try:
@@ -1973,7 +1991,8 @@ async def run_command_api(request: Request, key: Optional[str] = None):
                 else:
                     result_msg = "⚠️ Session manager not available"
             except Exception as e:
-                result_msg = f"❌ Reset fehlgeschlagen: {e}"
+                log("DASHBOARD", f"reset_mode failed: {e}", Fore.RED)
+                result_msg = "❌ Reset failed"
 
         elif cmd == "/expert_pool_refresh":
             try:
@@ -1981,7 +2000,8 @@ async def run_command_api(request: Request, key: Optional[str] = None):
                 refresh = refresh_from_llm_stats()
                 result_msg = "Expert Pool aktualisiert" if refresh.get("ok") else f"Expert Pool Fallback: {refresh.get('reason')}"
             except Exception as e:
-                result_msg = f"Expert Pool Refresh fehlgeschlagen: {e}"
+                log("DASHBOARD", f"expert_pool_refresh failed: {e}", Fore.RED)
+                result_msg = "Expert Pool Refresh failed"
 
         # Broadcast as dashboard event so it shows up in the debug feed
         cmd_event = DebugEvent(
@@ -2000,7 +2020,7 @@ async def run_command_api(request: Request, key: Optional[str] = None):
         import traceback
         err = YourAIUnexpectedError(cause=e, module="dashboard_command_api")
         log_exception("DASHBOARD", err)
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": "Command failed"}
 
 
 # ==========================================
@@ -2176,7 +2196,7 @@ async def get_expert_pool_api(key: Optional[str] = None):
     except Exception as e:
         err = YourAIUnexpectedError(cause=e, module="expert_pool_api")
         log_exception("DASHBOARD", err)
-        pool_status = {"error": str(e), "domains": {}}
+        pool_status = {"error": "expert_pool_unavailable", "domains": {}}
 
     # Merge non-managed domains from config so dashboard shows ALL experts
     try:
@@ -2277,7 +2297,8 @@ async def set_config_api(request: Request, key: Optional[str] = None):
         })
         return {"ok": True, "key": key_name, "value": value}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        log("DASHBOARD", f"set_config failed: {e}", Fore.RED)
+        return {"ok": False, "error": "Failed to update config"}
 
 @app.get("/api/image_models")
 async def get_image_models_api():

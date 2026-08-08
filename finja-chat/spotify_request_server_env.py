@@ -514,13 +514,15 @@ def add_to_queue(uri: str) -> Tuple[bool, Optional[str]]:
 
     except SpotifyException as e:
         error_msg = str(e)
+        print(f"[add_to_queue] Spotify error: {error_msg}")
         if "NO_ACTIVE_DEVICE" in error_msg or "No active device found" in error_msg:
             return False, "NO_ACTIVE_DEVICE"
-        return False, error_msg
+        # Generic client-facing code — do not leak raw Spotify/HTTP exception text.
+        return False, "SPOTIFY_QUEUE_FAILED"
 
     except Exception as e:
         print(f"[add_to_queue] Unexpected error: {e}")
-        return False, str(e)
+        return False, "SPOTIFY_QUEUE_FAILED"
 
 
 def force_play_now(uri: str) -> Tuple[bool, Optional[str]]:
@@ -533,13 +535,14 @@ def force_play_now(uri: str) -> Tuple[bool, Optional[str]]:
 
     except SpotifyException as e:
         error_msg = str(e)
+        print(f"[force_play_now] Spotify error: {error_msg}")
         if "NO_ACTIVE_DEVICE" in error_msg or "No active device found" in error_msg:
             return False, "NO_ACTIVE_DEVICE"
-        return False, error_msg
+        return False, "SPOTIFY_PLAY_FAILED"
 
     except Exception as e:
         print(f"[force_play_now] Unexpected error: {e}")
-        return False, str(e)
+        return False, "SPOTIFY_PLAY_FAILED"
 
 
 # ==============================================================================
