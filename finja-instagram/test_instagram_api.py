@@ -335,7 +335,10 @@ class TestStatusEndpoint:
 
         data = response.json()
         assert data["awake"] is True
-        assert "instagram.com" in data["url"]
+        # Host-based check (not substring — CodeQL incomplete URL sanitization)
+        from urllib.parse import urlparse
+        host = (urlparse(data["url"]).hostname or "").lower()
+        assert host == "instagram.com" or host.endswith(".instagram.com")
 
 
 # ==============================================================================
@@ -351,7 +354,9 @@ class TestWakeupEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "awake"
-        assert "instagram.com" in data["url"]
+        from urllib.parse import urlparse
+        host = (urlparse(data["url"]).hostname or "").lower()
+        assert host == "instagram.com" or host.endswith(".instagram.com")
         mock_playwright_env.goto.assert_called_once()
         mock_playwright_env.mouse.click.assert_called_once()
 

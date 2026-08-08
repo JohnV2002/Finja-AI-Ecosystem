@@ -231,13 +231,13 @@ const App = (() => {
   }
 
   function _applyUserInfo(data) {
-    // Fill user dropdown
+    // Fill user dropdown (no innerHTML — CodeQL DOM XSS)
     if (data.available_users) {
-      userSelect.innerHTML = '';
+      userSelect.replaceChildren();
       data.available_users.forEach(u => {
         const opt = document.createElement('option');
-        opt.value = u.key;
-        opt.textContent = u.name;
+        opt.value = String(u.key ?? '');
+        opt.textContent = String(u.name ?? '');
         if (u.key === data.current_user_key) opt.selected = true;
         userSelect.appendChild(opt);
       });
@@ -372,15 +372,23 @@ const App = (() => {
   }
 
   function _showAuthError(message) {
+    // Build DOM without innerHTML / string interpolation (CodeQL XSS).
     const overlay = document.createElement('div');
     overlay.className = 'auth-overlay';
-    overlay.innerHTML = `
-      <div class="auth-card">
-        <h1>🛑 Access Denied</h1>
-        <p>${message}</p>
-        <p>Bitte öffne den Link erneut mit deinem <code>?key=...</code> Parameter.</p>
-      </div>
-    `;
+    const card = document.createElement('div');
+    card.className = 'auth-card';
+    const h1 = document.createElement('h1');
+    h1.textContent = '🛑 Access Denied';
+    const p1 = document.createElement('p');
+    p1.textContent = String(message ?? '');
+    const p2 = document.createElement('p');
+    p2.append('Bitte öffne den Link erneut mit deinem ');
+    const code = document.createElement('code');
+    code.textContent = '?key=...';
+    p2.append(code);
+    p2.append(' Parameter.');
+    card.append(h1, p1, p2);
+    overlay.append(card);
     document.body.appendChild(overlay);
   }
 
@@ -631,13 +639,14 @@ const App = (() => {
       const res = await fetch('/api/image_models', { headers: _authHeaders() });
       if (!res.ok) return;
       const data = await res.json();
-      sel.innerHTML = '';
+      sel.replaceChildren(); // no innerHTML (CodeQL DOM XSS)
       (data.models || []).forEach(m => {
         const opt = document.createElement('option');
-        opt.value = m;
-        const short = m.split('/').pop();
+        const modelId = String(m ?? '');
+        opt.value = modelId;
+        const short = modelId.split('/').pop() || modelId;
         opt.textContent = short;
-        if (m === data.active) opt.selected = true;
+        if (modelId === data.active) opt.selected = true;
         sel.appendChild(opt);
       });
       if (priceEl) priceEl.textContent = _IMAGE_MODEL_PRICES[data.active] || '';

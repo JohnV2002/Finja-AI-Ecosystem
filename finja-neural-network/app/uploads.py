@@ -16,6 +16,7 @@ Side Effects:
 """
 
 import os
+import re
 import sys
 import time
 import uuid as _uuid_mod
@@ -31,10 +32,14 @@ import _paths  # noqa: F401
 
 from display import log, log_exception, Fore
 from exceptions import YourAIUploadError
-from helpers.text_parser import is_temp_upload_filename
 
 _ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP_UPLOADS_DIR = os.path.join(_ROOT_DIR, "temp_uploads")
+
+# Strict name grammar — path is rebuilt ONLY from capture groups (breaks taint).
+_SAFE_TEMP_NAME = re.compile(
+    r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\.(jpg|png|gif|webp)$"
+)
 
 UPLOAD_MAX_AGE = 3600
 UPLOAD_MAX_SIZE = 10 * 1024 * 1024
@@ -59,17 +64,18 @@ TEMP_MEDIA_TYPES = {
 
 
 def _resolved_temp_path(filename: str) -> Path:
-    """Join filename under TEMP_UPLOADS_DIR and prove it cannot escape.
+    """Build path under TEMP_UPLOADS_DIR from validated UUID + ext only.
 
-    CodeQL: uncontrolled data in path expression — regex validation alone is
-    not enough; resolve + relative_to the upload root.
+    CodeQL: uncontrolled data in path expression — never join the raw
+    user string; rebuild from regex capture groups, then resolve under base.
     """
-    if not is_temp_upload_filename(filename):
+    match = _SAFE_TEMP_NAME.fullmatch(filename or "")
+    if not match:
         raise HTTPException(status_code=404, detail="Not found")
-    if "/" in filename or "\\" in filename or filename in {".", ".."}:
-        raise HTTPException(status_code=404, detail="Not found")
+    uuid_part, ext = match.group(1), match.group(2)
     base = Path(TEMP_UPLOADS_DIR).resolve()
-    candidate = (base / filename).resolve()
+    # Path built only from trusted constants + validated groups (not raw filename)
+    candidate = (base / f"{uuid_part}.{ext}").resolve()
     try:
         candidate.relative_to(base)
     except ValueError as exc:
@@ -91,10 +97,10 @@ def cleanup_temp_uploads() -> None:
     base = Path(TEMP_UPLOADS_DIR).resolve()
     for fname in os.listdir(TEMP_UPLOADS_DIR):
         try:
-            # Only touch bare names under the upload root (no traversal).
-            if "/" in fname or "\\" in fname or fname in {".", ".."}:
+            match = _SAFE_TEMP_NAME.fullmatch(fname)
+            if not match:
                 continue
-            fpath = (base / fname).resolve()
+            fpath = (base / f"{match.group(1)}.{match.group(2)}").resolve()
             fpath.relative_to(base)
             if fpath.is_file() and now - fpath.stat().st_mtime > UPLOAD_MAX_AGE:
                 fpath.unlink()

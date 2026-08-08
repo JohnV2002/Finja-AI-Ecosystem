@@ -458,33 +458,38 @@ const userChatHistories = new Map();
 function loadLlmSettings() {
     LLM_CONFIG.enabled = localStorage.getItem("finja_llm_enabled") === 'true';
     LLM_CONFIG.apiUrl = localStorage.getItem("finja_llm_apiUrl") || "";
-    LLM_CONFIG.apiKey = localStorage.getItem("finja_llm_apiKey") || "";
+    // API key is never persisted (CodeQL: clear-text storage of sensitive info).
+    // Drop any legacy localStorage key from older builds.
+    try { localStorage.removeItem("finja_llm_apiKey"); } catch (_) {}
+    LLM_CONFIG.apiKey = "";
     LLM_CONFIG.modelId = localStorage.getItem("finja_llm_modelId") || "";
     LLM_CONFIG.systemPrompt = localStorage.getItem("finja_llm_systemPrompt") || "Du bist Lexi, eine fröhliche und hilfsbereite Katze und die Streamerin eines Twitch-Kanals. Antworte kurz, freundlich und direkt auf die Nachrichten der User im Chat. Sprich die User immer mit ihrem Namen an.";
 
     // UI-Elemente mit den geladenen Werten füllen
     $('llm_enabled').checked = LLM_CONFIG.enabled;
     $('llm_url').value = LLM_CONFIG.apiUrl;
-    $('llm_key').value = LLM_CONFIG.apiKey;
+    $('llm_key').value = ""; // re-enter each session — not stored in browser storage
+    $('llm_key').placeholder = "API-Key (nur für diese Session, wird nicht gespeichert)";
     $('llm_model').value = LLM_CONFIG.modelId;
     $('llm_system_prompt').value = LLM_CONFIG.systemPrompt;
-    log("LLM-Einstellungen geladen.", "ok");
+    log("LLM-Einstellungen geladen (API-Key nicht aus Storage — Security).", "ok");
 }
 
 // Funktion zum Speichern der LLM-Einstellungen
 function saveLlmSettings() {
     LLM_CONFIG.enabled = $('llm_enabled').checked;
     LLM_CONFIG.apiUrl = $('llm_url').value.trim();
+    // Keep key in memory only for this page session — never write to localStorage.
     LLM_CONFIG.apiKey = $('llm_key').value.trim();
     LLM_CONFIG.modelId = $('llm_model').value.trim();
     LLM_CONFIG.systemPrompt = $('llm_system_prompt').value.trim();
 
     localStorage.setItem("finja_llm_enabled", LLM_CONFIG.enabled);
     localStorage.setItem("finja_llm_apiUrl", LLM_CONFIG.apiUrl);
-    localStorage.setItem("finja_llm_apiKey", LLM_CONFIG.apiKey);
+    try { localStorage.removeItem("finja_llm_apiKey"); } catch (_) {}
     localStorage.setItem("finja_llm_modelId", LLM_CONFIG.modelId);
     localStorage.setItem("finja_llm_systemPrompt", LLM_CONFIG.systemPrompt);
-    log("LLM-Einstellungen gespeichert.", "ok");
+    log("LLM-Einstellungen gespeichert (API-Key nur im RAM dieser Seite).", "ok");
 }
 
 // Event-Listener für die UI-Buttons
