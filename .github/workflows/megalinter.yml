@@ -1,0 +1,60 @@
+# MegaLinter v10 — lint/format/consistency across the monorepo.
+# Soft-fail via DISABLE_ERRORS in .mega-linter.yml (phase 1).
+# Complements CodeQL (security), Sonar (quality), Trivy (supply chain), Pytest (behavior).
+
+name: MegaLinter
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+  pull-requests: write
+  security-events: write
+
+concurrency:
+  group: megalinter-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history helps changed-files mode and PR context
+          fetch-depth: 0
+
+      - name: MegaLinter
+        id: ml
+        # Pin exact release (v10.0.0 confirmed on oxsecurity/megalinter)
+        uses: oxsecurity/megalinter@v10.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Config lives in repo root .mega-linter.yml
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || 'true' }}
+
+      - name: Upload MegaLinter reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: megalinter-reports
+          path: |
+            megalinter-reports/**
+          retention-days: 14
+
+      - name: Upload MegaLinter SARIF (if present)
+        if: always() && hashFiles('megalinter-reports/*.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: megalinter-reports
+          category: megalinter

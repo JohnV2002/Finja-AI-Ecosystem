@@ -3,6 +3,23 @@
 Local + CI helpers so Snyk / Dependabot / humans stop playing whack-a-mole with
 forgotten imports and floating lower bounds.
 
+## Quality control plane (why so many tools?)
+
+Finja is a large, vibe-coded monorepo. The stack is intentional overkill so
+shipping does not depend on rereading every line by hand:
+
+| Layer | Tool |
+|-------|------|
+| Security / dataflow | CodeQL |
+| Bugs / quality | SonarCloud |
+| Supply chain | Trivy (+ Dependabot PRs) |
+| IDE radar | Snyk (local) |
+| Lint / multi-lang consistency | **MegaLinter v10** (`.mega-linter.yml`) |
+| Behavior | Pytest + Codecov |
+| Import / BOM hygiene | `dependency_guard.py` · `fix_bom.py` |
+
+MegaLinter config: [`.mega-linter.yml`](../.mega-linter.yml) · workflow: [`.github/workflows/megalinter.yml`](../.github/workflows/megalinter.yml).
+
 ## 0. UTF-8 BOM fixer
 
 A leading **UTF-8 BOM** (`ef bb bf`) breaks `ast.parse` and made the import

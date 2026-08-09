@@ -194,13 +194,23 @@ The Codecov **badge** on the root README uses Codecov’s public graph token (no
 
 | Tool | What it does | Where |
 | :--- | :--- | :--- |
-| **SonarCloud** | Quality gate, maintainability | Sonar project + README badges |
-| **Snyk** | Dependency / vuln scanning | Snyk (external) |
+| **CodeQL** | Security / dataflow (Python, JS/TS, C/C++, Actions) | GitHub **Security → Code scanning** |
+| **SonarCloud** | Bugs, quality, maintainability | Sonar project + README badges |
+| **Trivy** | Deps / FS / supply chain (CRITICAL/HIGH) → SARIF | [`.github/workflows/trivy.yml`](./.github/workflows/trivy.yml) |
+| **Dependabot** | Version update PRs | [`.github/dependabot.yml`](./.github/dependabot.yml) |
+| **Snyk** | Local IDE security radar | Your machine (not required in CI) |
+| **MegaLinter v10** | HTML/CSS/YAML/JSON/MD/Dockerfile/JS/Python lint & format noise | [`.mega-linter.yml`](./.mega-linter.yml) · [`.github/workflows/megalinter.yml`](./.github/workflows/megalinter.yml) |
 | **Codecov** | Coverage from CI XML uploads | Module test workflows → secret `CODECOV_TOKEN` |
-| **CodeQL** | Semantic code scanning | GitHub **Security → Code scanning** |
-| **Trivy** | Monorepo **filesystem** scan (CRITICAL/HIGH) → SARIF | [`.github/workflows/trivy.yml`](./.github/workflows/trivy.yml) (not a root Docker image build) |
-| **Dependency Guard** | Imports vs `requirements*.txt` | `python tools/dependency_guard.py` · CI workflow |
-| **BOM check** | UTF-8 BOM breaks `ast.parse` / import scans | `python tools/fix_bom.py --check` · runs before guard in CI |
+| **Pytest** | “Does the thing actually work?” | Per-module suites + path-scoped workflows |
+| **Dependency Guard** | Imports vs `requirements*.txt` | `python tools/dependency_guard.py` · CI |
+| **BOM check** | UTF-8 BOM breaks `ast.parse` / import scans | `python tools/fix_bom.py --check` · before guard in CI |
+
+### MegaLinter notes
+
+- **Phase 1:** `DISABLE_ERRORS: true` — reports + artifacts, does **not** fail the job.
+- Excludes: `Not Maintained/`, galleries, `test_frames/`, caches, agent job workspaces, …
+- Trivy is **disabled inside MegaLinter** (own workflow already runs it).
+- First run can take a while (large Docker image pull). Watch **Actions → MegaLinter** and download the `megalinter-reports` artifact.
 
 Maintainer notes and install tips: [`tools/README.md`](./tools/README.md).
 

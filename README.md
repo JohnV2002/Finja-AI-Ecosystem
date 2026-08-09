@@ -18,7 +18,7 @@
 >
 > 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
 >
-> 1.  🛠️ **Quality First:** Extensive manual refactoring (+ **SonarCloud**, **Snyk**, **Codecov**, **CodeQL**, **Trivy**) to deliver authentic quality code. The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
+> 1.  🛠️ **Quality First:** Extensive manual refactoring + automated control plane (**CodeQL**, **SonarCloud**, **Trivy**, **Dependabot**, **Snyk**, **MegaLinter**, **Codecov**, Pytest). The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
 > 2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
 > 3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
 > 4.  🐾 **Own VPet Program:** My own VPet is in full development!
@@ -288,28 +288,34 @@ Now we can set up the primary interface for interaction.
 
 #### 📊 Quality, coverage & security
 
-| Tool | Role |
-| :--- | :--- |
-| **SonarCloud** | Quality gate, bugs, smells, maintainability |
-| **Snyk** | Dependency / vulnerability scanning |
-| **Codecov** | Test coverage from CI (`pytest --cov` → XML upload) |
-| **CodeQL** | GitHub code scanning (semantic vulns in our code) |
-| **Trivy** | Filesystem / supply-chain vulns → Security tab (SARIF) |
-| **Dependency Guard** | Undeclared Python imports vs `requirements*.txt` |
+**Defense in depth** for a vibe-coded monorepo: machines watch the code so humans can ship.
+
+| Layer | Tool | Job |
+| :--- | :--- | :--- |
+| **Security / dataflow** | **CodeQL** | Semantic vulns (Python, JS/TS, C/C++, Actions) |
+| **Bugs / quality / maintainability** | **SonarCloud** | Quality gate, smells, hotspots |
+| **Deps / container / IaC / supply chain** | **Trivy** (+ optional Checkov in MegaLinter) | FS scan → Security tab (SARIF) |
+| **Updates** | **Dependabot** | PR bumps for pip / Actions / Docker |
+| **IDE security radar** | **Snyk** (local) | What you see while coding |
+| **Lint / format / multi-lang consistency** | **MegaLinter v10** | HTML, CSS, YAML, JSON, MD, Dockerfile, JS, Python (Ruff), Actions, … |
+| **Does it actually work?** | **Pytest + Codecov** | Behavior + coverage XML |
+| **Import hygiene** | **Dependency Guard** + **BOM check** | `tools/dependency_guard.py` · `tools/fix_bom.py` |
 
 **SonarCloud**
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=JohnV2002_Finja-AI-Ecosystem&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=JohnV2002_Finja-AI-Ecosystem)
 
-**Coverage & security scans**
+**Coverage, security & lint scans**
 
 [![codecov](https://codecov.io/github/JohnV2002/Finja-AI-Ecosystem/graph/badge.svg?token=JUYQT5N7D6)](https://codecov.io/github/JohnV2002/Finja-AI-Ecosystem)
 [![CodeQL](https://img.shields.io/badge/CodeQL-security%20scanning-blue?logo=github)](https://github.com/JohnV2002/Finja-AI-Ecosystem/security/code-scanning)
 [![Trivy](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/trivy.yml)
+[![MegaLinter](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/megalinter.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/megalinter.yml)
 [![Dependency Guard](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml)
 
-How CI coverage, BOM checks, and scanners are wired: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md)**
+Config: [`.mega-linter.yml`](./.mega-linter.yml) (phase 1: **report-only**, `DISABLE_ERRORS: true`).  
+Details: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md)**
 
 #### 🔨 Docker Builds
 

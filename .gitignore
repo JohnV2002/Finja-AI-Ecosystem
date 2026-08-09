@@ -1,2 +1,5 @@
 .vscode
 .claude
+megalinter-reports/
+.megalinter-setup.bak
+

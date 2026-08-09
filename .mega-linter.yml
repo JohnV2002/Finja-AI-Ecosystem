@@ -1,0 +1,88 @@
+# ======================================================================
+# MegaLinter — Finja AI Ecosystem
+# ======================================================================
+# Complements (does not replace):
+#   CodeQL · SonarCloud · Trivy · Dependabot · Snyk (local IDE) · Pytest
+#
+# Philosophy: vibe-coded monorepo + automated control plane.
+# Phase 1: DISABLE_ERRORS=true (report only). Tighten later.
+# ======================================================================
+
+MEGALINTER_VERSION: v10.0.0
+MEGALINTER_FLAVOR: all
+
+# Soft gate — CI stays green while we digest findings
+DISABLE_ERRORS: true
+
+VALIDATE_ALL_CODEBASE: true
+APPLY_FIXES: none
+
+EXCLUDED_DIRECTORIES:
+  - Not Maintained
+  - node_modules
+  - __pycache__
+  - .pytest_cache
+  - .venv
+  - venv
+  - gallery
+  - test_frames
+  - agent_jobs
+  - docker_data
+  - megalinter-reports
+  - .git
+  - dist
+  - build
+  - cache
+  - backups
+  - exports
+  - logs
+  - SongsDB
+  - Memory
+
+FILTER_REGEX_EXCLUDE:
+  - "(^|/)(\\.git|megalinter-reports)/"
+  - "Not Maintained/"
+  - "test_frames/"
+  - "gallery/"
+  - "agent_jobs/"
+  - "docker_data/"
+  - "\\.min\\.(js|css)$"
+  - "package-lock\\.json$"
+  - ".*\\.pyc$"
+  - "songs_kb\\.json$"
+
+# Curated set — expand when the noise floor is known
+ENABLE_LINTERS:
+  - PYTHON_RUFF
+  - JAVASCRIPT_ES
+  - JSON_PRETTIER
+  - YAML_YAMLLINT
+  - MARKDOWN_MARKDOWNLINT
+  - DOCKERFILE_HADOLINT
+  - HTML_HTMLHINT
+  - CSS_STYLELINT
+  - BASH_SHELLCHECK
+  - ACTION_ACTIONLINT
+  - COPYPASTE_JSCPD
+  - REPOSITORY_CHECKOV
+
+# Already covered elsewhere / too noisy for phase 1
+DISABLE_LINTERS:
+  - REPOSITORY_TRIVY
+  - REPOSITORY_TRIVY_SBOM
+  - PYTHON_PYLINT
+  - PYTHON_BLACK
+  - PYTHON_ISORT
+  - PYTHON_MYPY
+  - PYTHON_FLAKE8
+  - PYTHON_BANDIT
+
+LINTER_TIMEOUT_SECONDS: 300
+SHOW_ELAPSED_TIME: true
+PRINT_ALPACA: false
+
+GITHUB_STATUS_REPORTER: true
+GITHUB_COMMENT_REPORTER: true
+SARIF_REPORTER: true
+TEXT_REPORTER: true
+JSON_REPORTER: true
