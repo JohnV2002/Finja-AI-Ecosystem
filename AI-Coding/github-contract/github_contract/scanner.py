@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / scanner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
   Description: Scan for missing headers, version drift, secret leaks, README gaps.
 
   New in v1.1.0:

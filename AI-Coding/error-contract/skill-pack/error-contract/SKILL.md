@@ -46,6 +46,7 @@ python -m error_contract resolve "PROJECT_PATH"
 | status | action |
 |--------|--------|
 | `known` | Use `effective_prefix`. Read root `error_contract.json`; read `ERROR_CONTRACT.md` only if the repo intentionally has one. |
+| `exempt` | Contract tooling opted out in `pyproject.toml`; do not onboard, scaffold or invent a prefix. |
 | `needs_onboard` | **Ask the human** the questions from the CLI output. Do not scaffold yet. |
 
 ### Onboard questions (ask human — Omni example)

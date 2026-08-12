@@ -2,11 +2,11 @@
  * Project: Finja - Twitch Interactivity Suite
  * Module: finja-chat / twitch_auth.js
  * Author: J. Apps (JohnV2002 / Sodakiller1)
- * Version: 2.4.0
+ * Version: 2.4.1
  * Description: Twitch Device Code OAuth, validation, and token rotation.
- * New in v2.4.0:
- *   - Adds refreshable public-client OAuth with rotating refresh tokens.
- *   - Validates sessions at startup and supports hourly health checks.
+ * New in v2.4.1:
+ *   - Keeps OAuth access and refresh tokens in page memory only.
+ *   - Removes clear-text OAuth data left by older browser sessions.
  * Copyright (c) 2026 J. Apps
  * Licensed under the MIT License.
  * ====================================================================== */
@@ -18,8 +18,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function createTwitchAuthApi() {
   "use strict";
 
-  const VERSION = "2.4.0";
-  const STORAGE_KEY = "finja_twitch_auth_v1";
+  const VERSION = "2.4.1";
+  const LEGACY_TOKEN_KEYS = ["finja_twitch_auth_v1", "finja_bot_oauth"];
   const CLIENT_ID_KEY = "finja_twitch_client_id";
   const SCOPES = ["chat:read", "chat:edit"];
   const DEVICE_ENDPOINT = "https://id.twitch.tv/oauth2/device";
@@ -64,11 +64,13 @@
       const runtime = typeof globalThis !== "undefined" ? globalThis : {};
       this.fetchImpl = options.fetchImpl || (runtime.fetch && runtime.fetch.bind(runtime));
       this.storage = options.storage || runtime.localStorage;
+      this.session = null;
       this.now = options.now || (() => Date.now());
       this.sleep = options.sleep || defaultSleep;
       if (!this.fetchImpl || !this.storage) {
         throw new TwitchAuthError(ERROR_CODES.AUTH, "Twitch OAuth requires fetch and local storage.");
       }
+      LEGACY_TOKEN_KEYS.forEach((key) => this.storage.removeItem(key));
     }
 
     getClientId() {
@@ -83,18 +85,7 @@
     }
 
     loadSession() {
-      const raw = this.storage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      try {
-        const session = JSON.parse(raw);
-        if (!session || !accessToken(session.accessToken) || !session.refreshToken || !session.clientId) {
-          throw new Error("OAuth session is incomplete");
-        }
-        return session;
-      } catch (cause) {
-        this.storage.removeItem(STORAGE_KEY);
-        throw new TwitchAuthError(ERROR_CODES.AUTH, "Stored Twitch OAuth data is invalid; authorization is required again.", cause);
-      }
+      return this.session;
     }
 
     saveSession(session) {
@@ -109,13 +100,14 @@
       if (!normalized.accessToken || !normalized.refreshToken || !normalized.clientId) {
         throw new TwitchAuthError(ERROR_CODES.AUTH, "Twitch OAuth response did not contain a complete session.");
       }
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      this.session = normalized;
       this.setClientId(normalized.clientId);
       return normalized;
     }
 
     clearSession() {
-      this.storage.removeItem(STORAGE_KEY);
+      this.session = null;
+      LEGACY_TOKEN_KEYS.forEach((key) => this.storage.removeItem(key));
     }
 
     async postForm(url, parameters, failureCode) {

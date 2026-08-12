@@ -63,8 +63,10 @@ Reading the legend does not require the Error Contract plugin.
 | Main Component | Version | Status | Description | Stats / Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything: Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. | Tests & Docker CI still WIP · Sonar/Snyk/CodeQL noise expected. |
-| **finja-chat** | **v2.4.0** | 🔵 Update/Testing | Twitch chat overlay, bot panel, Spotify requests and refreshable Twitch authentication. | 45 Python + 4 auth tests · dedicated FINJA error codes |
-| **AI-Coding** | **Error 1.3.1 / GitHub 1.1.0** | 🟢 Stable | Cross-project coding contracts for Codex, Grok and Claude. | Public error legend · lifecycle hooks · leak/version/header gates |
+| **finja-chat** | **v2.4.1** | 🔵 Update/Testing | Twitch chat overlay, bot panel, Spotify requests and refreshable Twitch authentication. | 45 Python + 4 auth tests · dedicated FINJA error codes |
+| **AI-Coding** 🛡️ | | 🟢 Stable | Cross-project coding contracts for Codex, Grok and Claude. | [Folder README](./AI-Coding/README.md) |
+| &nbsp;&nbsp;├─ error-contract | **v1.3.2** | 🟢 Stable | Structured error namespaces, public code legend and coding gates. | 11 tests · dynamic categories · atomic code creation |
+| &nbsp;&nbsp;└─ github-contract | **v1.1.1** | 🟢 Stable | Headers, module versions, README rules and leak prevention. | 8 tests · lifecycle hooks |
 | **finja-music** | | 🟢 Stable | Music engine — pick **one** of the variants below. | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.2.0** | 🟢 Stable | **Recommended** all-in-one Web-UI music engine. | 44 tests · CI ✓ · Sonar clean |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.2.0** | 🟢 Stable | Dockerized Spotify-only music API. | 47 tests · CI ✓ · Sonar clean |
@@ -181,7 +183,9 @@ flowchart TD
 -   `/finja-canvas` 🎨 → Canvas drawing engine for overlays and VPet interactions.
 -   `/finja-omni-test` 👁️ → Screen observation pipeline (local OCR + Vision model testing).
 -   `/finja-agentic-code` 💻 → **Flare.** The external code worker system (Orchestrator + Sandbox) for automated coding tasks.
--   `/AI-Coding` 🛡️ → Error Contract and GitHub Contract tooling for the J. Apps AI-assisted development workflow. [➡️ **Folder README**](./AI-Coding/README.md)
+-   `/AI-Coding` 🛡️ → Coding-contract tooling for the J. Apps AI-assisted development workflow. [➡️ **Folder README**](./AI-Coding/README.md)
+    -   `/error-contract` → Structured error namespaces, the public error legend, lifecycle hooks and coding gates.
+    -   `/github-contract` → Repository headers, module versions, README conventions and leak prevention.
 -   `/error_contract.json` → Public repository-wide error-code legend; readable without installing the AI-Coding tools.
 -   `/Own-VPet` (Coming Soon) → The new standalone VPet core.
 
@@ -194,8 +198,8 @@ Codex, Grok and Claude in the J. Apps workflow. The folder follows the same
 nested documentation style as the rest of the ecosystem: folder README first,
 then one detailed README inside each contract.
 
--   [**Error Contract v1.3.1**](./AI-Coding/error-contract/README.md) → Maintains structured error namespaces, module-local implementations, dynamic numeric categories and baseline-aware coding gates.
--   [**GitHub Contract v1.1.0**](./AI-Coding/github-contract/README.md) → Enforces project-native headers, unified module versions, complete READMEs and protection against secret or private-path leaks.
+-   [**Error Contract v1.3.2**](./AI-Coding/error-contract/README.md) → Maintains structured error namespaces, module-local implementations, dynamic numeric categories and baseline-aware coding gates.
+-   [**GitHub Contract v1.1.1**](./AI-Coding/github-contract/README.md) → Enforces project-native headers, unified module versions, complete READMEs and protection against secret or private-path leaks.
 -   [**Public Error Code Legend**](./error_contract.json) → Repository-wide source of truth for error meanings and ownership; readable without installing either plugin.
 
 The contracts are development tooling, not part of Finja's Twitch runtime.

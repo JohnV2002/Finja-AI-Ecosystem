@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/docsgen.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Maintain the public root legend and module-local machine-readable manifest.
 

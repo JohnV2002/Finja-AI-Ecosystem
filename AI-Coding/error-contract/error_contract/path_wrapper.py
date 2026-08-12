@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/path_wrapper.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Install global error-contract PATH shim (Windows .cmd / Unix shell).
 

@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/ambient.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Preflight, baseline gate, session dirty tracking for ambient enforcement.
 
@@ -227,6 +227,28 @@ def preflight(root: str | Path, *, session_id: str = "", quiet: bool = False) ->
         return result
 
     resolved = resolve_project(root_p)
+    if resolved["status"] == "exempt":
+        brief = (
+            "ERROR CONTRACT PREFLIGHT\n"
+            f"project: {root_p.name}\n"
+            "status: exempt\n"
+            f"reason: {resolved['reason']}\n"
+            "ACTION: onboarding and automatic gate skipped"
+        )
+        state = load_session_state(session_id)
+        state["preflight"] = {
+            "path": str(root_p),
+            "status": "exempt",
+            "prefix": "",
+            "resolved": resolved,
+            "exceptions_path": "",
+            "active_md": "",
+        }
+        state["workspace_root"] = str(root_p)
+        save_session_state(state, session_id)
+        result.update(status="exempt", brief=brief, resolved=resolved)
+        return result
+
     profile = detect_project(
         root_p,
         prefix=resolved.get("effective_prefix") or "",
@@ -397,6 +419,10 @@ def gate(
 
     pref = ""
     resolved = resolve_project(root_p)
+    if resolved["status"] == "exempt":
+        out["skipped"] = True
+        out["reason"] = "error_contract_exempt"
+        return out
     if resolved["status"] == "known":
         pref = resolved["effective_prefix"]
     else:

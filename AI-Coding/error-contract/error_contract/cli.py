@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/cli.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Command-line interface: resolve, scan, ledger, reserve, install-skills, gate.
 
@@ -456,7 +456,7 @@ def cmd_resolve(args: argparse.Namespace) -> int:
         _print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
         _print(format_resolve(result))
-    return 0 if result["status"] == "known" else 2
+    return 0 if result["status"] in {"known", "exempt"} else 2
 
 
 def cmd_register(args: argparse.Namespace) -> int:
@@ -565,7 +565,7 @@ def cmd_preflight(args: argparse.Namespace) -> int:
         _print(format_preflight(result))
     if not result.get("is_code_project"):
         return 0
-    return 0 if result.get("status") in {"known", "needs_onboard", "skip"} else 0
+    return 0 if result.get("status") in {"known", "needs_onboard", "exempt", "skip"} else 0
 
 
 def cmd_gate(args: argparse.Namespace) -> int:

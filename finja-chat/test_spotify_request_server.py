@@ -6,10 +6,13 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.0
+  Version: 2.4.1
   Description: Unit tests for Spotify song request server.
 
-  ✨ New in 2.4.0:
+  ✨ New in 2.4.1:
+    • Adds a regression proving OAuth tokens never enter persistent storage.
+
+  📜 Changelog 2.4.0:
     • Initializes the server with a mocked SpotifyOAuth provider so the
       suite never requires real credentials during module import.
 

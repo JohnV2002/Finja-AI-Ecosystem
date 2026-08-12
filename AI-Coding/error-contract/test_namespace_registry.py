@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  test_namespace_registry.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Regression tests for canonical namespaces and minimal local scaffolds.
 
@@ -35,9 +35,31 @@ from error_contract.scaffold import scaffold_project
 from error_contract.taxonomy import parse_exceptions_py
 from error_contract.cli import main
 from error_contract.docsgen import ensure_project_docs
+from error_contract.ambient import preflight
+from error_contract.registry import format_resolve, resolve_project
 
 
 class NamespaceRegistryTests(unittest.TestCase):
+    def test_contract_tooling_can_explicitly_skip_its_own_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "pyproject.toml").write_text(
+                "[project]\nname = \"contract-tool\"\n"
+                "\n[tool.error-contract]\n"
+                "exempt = true\n"
+                "reason = \"Contract tooling must not contract itself.\"\n",
+                encoding="utf-8",
+            )
+
+            result = resolve_project(root)
+            self.assertEqual(result["status"], "exempt")
+            self.assertIn("must not contract itself", result["reason"])
+            self.assertIn("Project Resolve: EXEMPT", format_resolve(result))
+
+            preflight_result = preflight(root, session_id="self-tooling-test")
+            self.assertEqual(preflight_result["status"], "exempt")
+            self.assertFalse((root / ".error_contract").exists())
+
     def test_finja_registry_owns_chat_codes_globally(self) -> None:
         ledger = load_namespace_ledger("FINJA", Path(__file__).resolve())
         self.assertEqual(ledger.get("FINJA", 406).owner_id, "finja-chat")

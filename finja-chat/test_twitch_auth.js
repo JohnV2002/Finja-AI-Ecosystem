@@ -2,10 +2,10 @@
  * Project: Finja - Twitch Interactivity Suite
  * Module: finja-chat / test_twitch_auth.js
  * Author: J. Apps (JohnV2002 / Sodakiller1)
- * Version: 2.4.0
+ * Version: 2.4.1
  * Description: Unit tests for Twitch Device Code OAuth and token rotation.
- * New in v2.4.0:
- *   - Covers device authorization, validation, and refresh-token rotation.
+ * New in v2.4.1:
+ *   - Proves OAuth token material never reaches persistent browser storage.
  * Copyright (c) 2026 J. Apps
  * Licensed under the MIT License.
  * ====================================================================== */
@@ -22,6 +22,7 @@ function memoryStorage() {
     getItem: (key) => values.get(key) ?? null,
     setItem: (key, value) => values.set(key, String(value)),
     removeItem: (key) => values.delete(key),
+    dump: () => JSON.stringify(Object.fromEntries(values)),
   };
 }
 
@@ -134,4 +135,31 @@ test("failed refresh uses the dedicated FINJA error code", async () => {
   });
 
   await assert.rejects(() => manager.refreshSession(), (error) => error.code === ERROR_CODES.REFRESH);
+});
+
+test("OAuth token material is never written to persistent browser storage", () => {
+  const storage = memoryStorage();
+  storage.setItem("finja_twitch_auth_v1", fixtureToken("legacy-session"));
+  storage.setItem("finja_bot_oauth", fixtureToken("legacy-oauth"));
+  const manager = new TwitchAuthManager({
+    fetchImpl: async () => jsonResponse(200, {}),
+    storage,
+  });
+
+  assert.equal(storage.getItem("finja_twitch_auth_v1"), null);
+  assert.equal(storage.getItem("finja_bot_oauth"), null);
+
+  manager.saveSession({
+    accessToken: fixtureToken("sensitive-access"),
+    refreshToken: fixtureToken("sensitive-refresh"),
+    clientId: "public-client-id",
+    expiresAt: 20_000,
+    scopes: ["chat:read", "chat:edit"],
+  });
+
+  const persisted = storage.dump();
+  assert.doesNotMatch(persisted, /sensitive-access/);
+  assert.doesNotMatch(persisted, /sensitive-refresh/);
+  assert.equal(storage.getItem("finja_twitch_client_id"), "public-client-id");
+  assert.equal(manager.loadSession().accessToken, fixtureToken("sensitive-access"));
 });

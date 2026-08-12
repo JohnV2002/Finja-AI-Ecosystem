@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / detect
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
   Description: Detect git / GitHub / public-production context for a tree.
 
   New in v1.1.0:
@@ -33,6 +33,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from .headers import extract_version
 from .models import ModuleProfile
@@ -56,6 +57,25 @@ SKIP = {
 }
 
 
+def _remote_host(remote: str) -> str:
+    """Extract the exact host from a URL or Git's SCP-style remote syntax."""
+    remote = remote.strip()
+    if "://" in remote:
+        try:
+            return (urlsplit(remote).hostname or "").rstrip(".").lower()
+        except ValueError:
+            return ""
+
+    match = re.fullmatch(r"(?:[^@\s/:]+@)?([^:/\s]+):.+", remote)
+    return match.group(1).rstrip(".").lower() if match else ""
+
+
+def _has_github_remote(config_text: str) -> bool:
+    """Check Git remote URL authorities without trusting URL substrings."""
+    remotes = re.finditer(r"(?im)^\s*url\s*=\s*(.+?)\s*$", config_text)
+    return any(_remote_host(match.group(1)) == "github.com" for match in remotes)
+
+
 def detect_module(root: str | Path) -> ModuleProfile:
     root_p = Path(root).expanduser().resolve()
     prof = ModuleProfile(root=str(root_p), module_name=root_p.name)
@@ -69,7 +89,7 @@ def detect_module(root: str | Path) -> ModuleProfile:
     if cfg.is_file():
         try:
             text = cfg.read_text(encoding="utf-8", errors="ignore")
-            if "github.com" in text.lower():
+            if _has_github_remote(text):
                 prof.is_githubish = True
                 prof.signals.append("github_remote")
         except OSError:
@@ -93,7 +113,8 @@ def detect_module(root: str | Path) -> ModuleProfile:
             pcfg = parent / ".git" / "config"
             if pcfg.is_file():
                 try:
-                    if "github.com" in pcfg.read_text(encoding="utf-8", errors="ignore").lower():
+                    config_text = pcfg.read_text(encoding="utf-8", errors="ignore")
+                    if _has_github_remote(config_text):
                         prof.is_githubish = True
                         prof.signals.append("parent_github_remote")
                 except OSError:

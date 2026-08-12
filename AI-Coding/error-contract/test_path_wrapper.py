@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error-contract / test_path_wrapper.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description: Regression tests for safe PATH-wrapper installation.
 
   New in v1.0.0:

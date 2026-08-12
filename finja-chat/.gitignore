@@ -1,9 +1,9 @@
 # Project: Finja - Twitch Interactivity Suite
 # Module: finja-chat / .gitignore
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 2.4.0
+# Version: 2.4.1
 # Description: Public-repository exclusions for local and generated state.
-# New in v2.4.0: Ignores regenerated contract preflight state.
+# New in v2.4.1: Version aligned with OAuth storage security remediation.
 # Copyright (c) 2026 J. Apps — Licensed under the MIT License.
 
 # Secrets — NEVER commit!

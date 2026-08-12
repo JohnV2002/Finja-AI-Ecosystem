@@ -3,9 +3,9 @@
 <!-- Project: Finja - Twitch Interactivity Suite                            -->
 <!-- Module: finja-chat / quickstart.svg                                    -->
 <!-- Author: J. Apps (JohnV2002 / Sodakiller1)                              -->
-<!-- Version: 2.4.0                                                         -->
+<!-- Version: 2.4.1                                                         -->
 <!-- Description: Visual quick-start map for the Finja Chat module.         -->
-<!-- New in v2.4.0: Module version aligned with OAuth reliability release.  -->
+<!-- New in v2.4.1: Version aligned with OAuth storage security fix.        -->
 <!-- Copyright (c) 2026 J. Apps — Licensed under the MIT License.           -->
 <!-- ====================================================================== -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="740" viewBox="0 0 1200 740">

@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  examples/unknown-ambient/main.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Minimal file used only to test needs_onboard / non-registered projects.
 

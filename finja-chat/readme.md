@@ -1,11 +1,18 @@
-# 💬 Finja Chat System — v2.4.0
+# 💬 Finja Chat System — v2.4.1
 *OBS Chat Overlay + Bot Panel + Song Requests — cute, fast, Gen-Z approved. 💙*
 
-[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-chat)
+[![Version](https://img.shields.io/badge/version-2.4.1-blue.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-chat)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v2.4.0:**
+> **✨ New in v2.4.1:**
+> - **Security:** Twitch access and refresh tokens remain only in page memory;
+>   older clear-text browser-storage entries are removed automatically
+> - The public Twitch Client ID remains stored because it is not a secret
+> - After a page, browser, or PC restart, authorize once again with the Twitch
+>   device code; rotation remains automatic while the panel stays open
+>
+> **Changelog v2.4.0:**
 > - **24/7 Twitch OAuth:** public Device Code authorization with rotating access
 >   and refresh tokens; no client secret is stored in the browser or repository
 > - **Chat recovery:** hourly token validation, pre-expiry rotation, and controlled
@@ -219,9 +226,11 @@ without embedding a client secret.
 5. Click **Twitch dauerhaft autorisieren**, open the displayed activation link,
    and approve `chat:read` and `chat:edit` with the Lexi bot account.
 
-The panel validates the token on startup and hourly, rotates the one-time refresh
-token before the access token expires, and reconnects the existing chat client.
-Tokens remain local to that browser origin and are never written to logs.
+The panel validates the token hourly, rotates the one-time refresh token before
+the access token expires, and reconnects the existing chat client. Access and
+refresh tokens remain only in page memory and are never written to browser
+storage or logs. Reloading or closing the page therefore requires a new device
+authorization.
 
 The legacy `oauth:...` input remains available for emergency migration, but those
 tokens are not refreshable. A public-client refresh token may require the Device

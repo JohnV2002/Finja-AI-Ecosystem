@@ -1,8 +1,8 @@
-# Error Contract v1.3.1
+# Error Contract v1.3.2
 
 *If it can fail, it gets a real name.*
 
-[![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)](../../README.md)
+[![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)](../../README.md)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 
@@ -163,9 +163,19 @@ debt blocks completion. The folder is not a registry and must remain ignored.
 The user-level `~/.error_contract/` contains project registration and legacy
 fallback ledgers; neither location belongs in a public commit.
 
+Contract tooling can explicitly opt out of recursive Error Contract onboarding
+with `[tool.error-contract] exempt = true` in `pyproject.toml`. Exempt projects
+do not receive an error namespace, local state folder or automatic stop gate.
+
 ---
 
 ## 📋 Version History
+
+### v1.3.2
+
+- Added an explicit, project-local exemption for contract tooling.
+- Made resolve, preflight and the automatic gate skip exempt projects cleanly.
+- Prevented Error Contract and GitHub Contract from recursively onboarding one another.
 
 ### v1.3.1
 

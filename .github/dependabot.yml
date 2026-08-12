@@ -25,16 +25,19 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     versioning-strategy: increase
-    # Group the same library across modules into fewer PRs where possible.
+    # One scheduled Python PR across all configured modules, including majors.
+    # Security fixes stay independently mergeable, but are grouped together.
     groups:
-      python-patch-minor:
+      python-version-updates:
+        applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-          - "minor"
+      python-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "python"
@@ -50,6 +53,15 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
+    groups:
+      github-actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      github-actions-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "github-actions"
@@ -71,7 +83,17 @@ updates:
       - "/finja-Open-Web-UI/finja-web-crawler"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+      day: "monday"
+    open-pull-requests-limit: 3
+    groups:
+      docker-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      docker-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "docker"

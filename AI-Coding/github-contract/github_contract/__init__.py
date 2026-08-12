@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / github_contract
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
 
 ----------------------------------------------------------------------
 
@@ -37,5 +37,5 @@
 ======================================================================
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __all__ = ["__version__"]

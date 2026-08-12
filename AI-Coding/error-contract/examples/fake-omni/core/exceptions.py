@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  examples/fake-omni/core/exceptions.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Demo: module_under_parent style FINJA-branded exceptions.
 

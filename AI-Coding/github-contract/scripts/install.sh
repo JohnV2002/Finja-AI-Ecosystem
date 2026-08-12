@@ -6,7 +6,7 @@
 #   Project: J. Apps - AI-Coding Tooling
 #   Module:  github-contract / scripts
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.1.1
 #   Description: Install skills/hooks/PATH (Linux/macOS).
 #
 #   New in 1.1.0:

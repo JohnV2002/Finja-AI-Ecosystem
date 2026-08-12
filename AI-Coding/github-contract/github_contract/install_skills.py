@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / install_skills
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
   Description: Install skill + ALWAYS ACTIVE rules + hooks for Grok/Codex/Claude.
 
   New in v1.1.0:
@@ -265,7 +265,7 @@ def install_skills(
         "engine_root": engine_root,
         "skills": {},
         "globals": {},
-        "version": "1.1.0",
+        "version": "1.1.1",
     }
 
     for name, dst in target_dirs().items():

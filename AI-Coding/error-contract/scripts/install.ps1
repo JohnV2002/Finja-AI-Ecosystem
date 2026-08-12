@@ -2,7 +2,7 @@
 # Project: J. Apps - AI-Coding Tooling
 # Module: AI-Coding/error-contract / scripts/install.ps1
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 1.3.1
+# Version: 1.3.2
 # Description: Installs Error Contract skills, hooks and the PATH wrapper.
 # New in v1.0.0: Initial Windows installer for Codex and Grok.
 # Copyright (c) 2026 J. Apps - Licensed under the MIT License.

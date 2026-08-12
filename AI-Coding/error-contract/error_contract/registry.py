@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/registry.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Dynamic project registry (paths, prefix, parent/module modes).
 
@@ -247,8 +247,12 @@ def save_registry(reg: Registry, path: Optional[Path] = None) -> Path:
 
 def resolve_project(path: str | Path, reg: Optional[Registry] = None) -> dict[str, Any]:
     """Resolve path -> registry entry + effective prefix, or needs_onboard payload."""
-    reg = reg or load_registry()
     root = Path(path).expanduser().resolve()
+    exemption = _project_exemption(root)
+    if exemption:
+        return exemption
+
+    reg = reg or load_registry()
     hit = reg.match_path(root)
     if hit:
         return {
@@ -309,6 +313,47 @@ def resolve_project(path: str | Path, reg: Optional[Registry] = None) -> dict[st
             "Then: python -m error_contract ensure <path>"
         ),
         "registry_sources": reg.sources,
+    }
+
+
+def _project_exemption(root: Path) -> dict[str, Any] | None:
+    """Return an explicit project-local exemption from Error Contract onboarding.
+
+    Contract tooling can opt out in ``pyproject.toml``. This avoids hard-coding
+    machine paths or project names while keeping the exception visible and
+    reviewable in the public repository.
+    """
+    pyproject = root / "pyproject.toml"
+    if not pyproject.is_file():
+        return None
+    try:
+        text = pyproject.read_text(encoding="utf-8-sig", errors="ignore")
+    except OSError:
+        return None
+
+    section = re.search(
+        r"(?ms)^\s*\[tool\.error-contract\]\s*$\n(.*?)(?=^\s*\[|\Z)",
+        text,
+    )
+    if not section or not re.search(
+        r"(?im)^\s*exempt\s*=\s*true\s*(?:#.*)?$", section.group(1)
+    ):
+        return None
+
+    reason_match = re.search(
+        r'(?im)^\s*reason\s*=\s*["\']([^"\']+)["\']\s*(?:#.*)?$',
+        section.group(1),
+    )
+    reason = (
+        reason_match.group(1).strip()
+        if reason_match
+        else "Project explicitly opts out of Error Contract onboarding."
+    )
+    return {
+        "status": "exempt",
+        "path": str(root),
+        "reason": reason,
+        "source": "pyproject.toml:[tool.error-contract]",
     }
 
 
@@ -451,6 +496,17 @@ def register_project(
 
 
 def format_resolve(result: dict[str, Any]) -> str:
+    if result["status"] == "exempt":
+        return "\n".join(
+            [
+                "=== Project Resolve: EXEMPT ===",
+                f"Path    : {result['path']}",
+                f"Reason  : {result['reason']}",
+                f"Source  : {result['source']}",
+                "Action  : Error Contract onboarding and automatic gate skipped.",
+                "",
+            ]
+        )
     if result["status"] == "known":
         p = result["project"]
         lines = [

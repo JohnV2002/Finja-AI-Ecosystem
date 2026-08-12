@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / test_scanner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
   Description: Regression tests for headers and private-path detection.
 
   New in v1.1.0:
@@ -36,6 +36,7 @@ from github_contract.headers import (
     has_ecosystem_header,
 )
 from github_contract.scanner import scan_module
+from github_contract.detect import _has_github_remote
 
 
 FINJA_HTML_HEADER = """<!--
@@ -119,6 +120,26 @@ class PrivatePathRegressionTests(unittest.TestCase):
                 root, expected_version="1.0.1", require_headers=True
             )
             self.assertFalse(any(item.rule == "private_path" for item in findings))
+
+
+class GitHubRemoteRegressionTests(unittest.TestCase):
+    def test_real_github_remote_forms_are_recognized(self) -> None:
+        for remote in (
+            "https://github.com/J-Apps/demo.git",
+            "ssh://git@github.com/J-Apps/demo.git",
+            "git@github.com:J-Apps/demo.git",
+        ):
+            with self.subTest(remote=remote):
+                self.assertTrue(_has_github_remote(f"[remote \"origin\"]\nurl = {remote}\n"))
+
+    def test_github_substrings_outside_exact_host_are_rejected(self) -> None:
+        for remote in (
+            "https://github.com.evil.example/J-Apps/demo.git",
+            "https://evil.example/github.com/J-Apps/demo.git",
+            "https://evil.example/?next=github.com",
+        ):
+            with self.subTest(remote=remote):
+                self.assertFalse(_has_github_remote(f"[remote \"origin\"]\nurl = {remote}\n"))
 
 
 if __name__ == "__main__":

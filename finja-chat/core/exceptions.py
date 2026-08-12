@@ -6,12 +6,12 @@
   Project: Finja AI Ecosystem
   Module:  finja-chat / core/exceptions.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.0
+  Version: 2.4.1
   Description:
     Structured runtime errors owned and used by the Finja Chat module.
 
-  New in v2.4.0:
-    - Adds dedicated Twitch authorization, refresh, and reconnect errors
+  New in v2.4.1:
+    - Version aligned; existing Twitch security error codes are unchanged
 
 ----------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 # Project: J. Apps - AI-Coding Tooling
 # Module: AI-Coding/github-contract / skill-pack/agents/openai.yaml
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 1.1.0
+# Version: 1.1.1
 # Description: Agent-facing display metadata for the GitHub Contract skill.
 # New in v1.1.0: Separated plugin identity from target-project identity.
 # Copyright (c) 2026 J. Apps - Licensed under the MIT License.

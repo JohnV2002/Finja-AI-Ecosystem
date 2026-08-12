@@ -1,8 +1,8 @@
-# 🛡️ GitHub Contract v1.1.0
+# 🛡️ GitHub Contract v1.1.1
 
 *Your code goes public without taking your PC with it.*
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](../../README.md)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](../../README.md)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 
@@ -92,14 +92,14 @@ The complete setup and update flow lives in [`INSTALL.md`](INSTALL.md).
 ```text
 github-contract detect .
 github-contract preflight .
-github-contract scan . --version 1.1.0
-github-contract check-version . --version 1.1.0
+github-contract scan . --version 1.1.1
+github-contract check-version . --version 1.1.1
 ```
 
 Generate a header when a new file joins a module:
 
 ```text
-github-contract header --kind html --version 1.1.0 \
+github-contract header --kind html --version 1.1.1 \
   --project "Finja - Twitch Interactivity Suite" \
   --title "Finja Overlay" --module "finja-chat / overlay.html" \
   --description "OBS browser source"
@@ -125,6 +125,12 @@ the public repository.
 ---
 
 ## 📋 Version History
+
+### v1.1.1
+
+- Validate the exact Git remote host instead of matching `github.com` substrings.
+- Reject deceptive hosts, paths and query strings while retaining HTTPS, SSH and SCP-style remotes.
+- Opted contract tooling out of recursive Error Contract onboarding.
 
 ### v1.1.0
 

@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/__init__.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Package root for the error-contract engine (CLI, ledger, ambient hooks).
 
@@ -23,5 +23,5 @@
 ======================================================================
 """
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 __all__ = ["__version__"]

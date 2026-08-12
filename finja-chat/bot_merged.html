@@ -4,12 +4,16 @@
 <!--                                                                        -->
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
 <!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
-<!--   Version: 2.4.0                                                       -->
+<!--   Version: 2.4.1                                                       -->
 <!--   Description: Bot control panel (Twitch connection, commands, LLM,    -->
 <!--                OBS sync, song requests) -- see index_merged.html for   -->
 <!--                the actual OBS overlay.                                -->
 <!--                                                                        -->
-<!--   ✨ New in 2.4.0:                                                     -->
+<!--   ✨ New in 2.4.1:                                                     -->
+<!--     • Security: OAuth access/refresh tokens stay in page memory only  -->
+<!--     • Removes clear-text token data persisted by earlier builds       -->
+<!--                                                                        -->
+<!--   📜 Changelog 2.4.0:                                                -->
 <!--     • Refreshable Twitch Device Code OAuth for unattended operation  -->
 <!--     • Hourly token validation and automatic access/refresh rotation   -->
 <!--     • Chat disconnect recovery reuses and reconnects the TMI client    -->
@@ -264,7 +268,9 @@ function toLogText(m){ try{ if(m instanceof Error) return `${m.name}: ${m.messag
 function log(m,cls=""){ const host=$("log"); if(!host) return; const row=document.createElement("div"); if(cls) row.className=cls; row.textContent=`[${nowHHMMSS()}] ${toLogText(m)}`; host.prepend(row); }
 
 /* ========== Local storage defaults ========== */
-$("oauth").value = localStorage.getItem("finja_bot_oauth") || "";
+// OAuth credentials are session-only. TwitchAuthManager also removes keys
+// persisted by older builds so CodeQL #102 cannot survive an upgrade.
+$("oauth").value = "";
 const twitchAuth = new FinjaTwitchAuth.TwitchAuthManager();
 $("twitch_client_id").value = twitchAuth.getClientId();
 $("obs_addr").value = localStorage.getItem("finja_obs_addr") || "ws://127.0.0.1:4455";
@@ -945,7 +951,6 @@ async function connectTwitchChat(isAutomatic=false) {
     log("Legacy OAuth wird verwendet; Auto-Refresh ist dafür nicht möglich.", "warn");
   }
 
-  localStorage.setItem("finja_bot_oauth", oauth);
   manualDisconnect = false;
 
   try{
@@ -976,7 +981,6 @@ $("authorizeBtn").onclick = async () => {
     const validation = await twitchAuth.validateSession(session);
     twitchAuthSession = validation.valid ? validation.session : session;
     if (twitchAuthSession.login) $("botuser").value = twitchAuthSession.login;
-    localStorage.removeItem("finja_bot_oauth");
     $("oauth").value = "";
     box.hidden = true;
     setTwitchAuthStatus(`OAuth aktiv als @${twitchAuthSession.login || $("botuser").value.trim()} · Auto-Refresh läuft`, "ok");
@@ -1014,7 +1018,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     twitchAuthSession = session;
-    setTwitchAuthStatus("Gespeicherte Twitch-Session gefunden; Verbindung wird geprüft …", "warn");
+    setTwitchAuthStatus("Aktive Twitch-Session gefunden; Verbindung wird geprüft …", "warn");
     setTimeout(() => void connectTwitchChat(true), 250);
   } catch (error) {
     setTwitchAuthStatus(toLogText(error), "err");

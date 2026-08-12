@@ -1,7 +1,7 @@
-# Error Contract v1.3.1 — Standing Rules
+# Error Contract v1.3.2 — Standing Rules
 
-**Project:** J. Apps - AI-Coding Tooling  
-**Version:** 1.3.1  
+**Project:** J. Apps - AI-Coding Tooling
+**Version:** 1.3.2
 
 > Goal: projects do not end in `print(e)` / bare catch-alls.  
 > Same engine; project-specific prefixes; **global unique numbers per prefix**.
@@ -9,7 +9,8 @@
 ## For AI agents (always-on policy)
 
 1. `error-contract resolve PROJECT` first  
-   - `known` → use effective prefix  
+   - `known` → use effective prefix
+   - `exempt` → skip onboarding and automatic Error Contract gates
    - `needs_onboard` → **ask the human**, then `register`
 2. No `print(e)` / `console.log` / bare `except: pass` as the product error path  
 3. Do not invent a second exception system  

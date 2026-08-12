@@ -2,15 +2,15 @@
 # Project: J. Apps - AI-Coding Tooling
 # Module: AI-Coding/error-contract / pyproject.toml
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 1.3.1
+# Version: 1.3.2
 # Description: Python package and CLI metadata for Error Contract.
-# New in v1.3.1: Root-only public legend; no repetitive module Markdown.
+# New in v1.3.2: Explicit self-tooling exemption prevents recursive onboarding.
 # Copyright (c) 2026 J. Apps - Licensed under the MIT License.
 # ============================================================================
 
 [project]
 name = "error-contract"
-version = "1.3.1"
+version = "1.3.2"
 description = "Cross-project error contract with canonical namespaces and ambient agent hooks (J. Apps)"
 requires-python = ">=3.10"
 readme = "README.md"
@@ -46,3 +46,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["error_contract*"]
+
+[tool.error-contract]
+exempt = true
+reason = "Error Contract tooling does not require its own error namespace."

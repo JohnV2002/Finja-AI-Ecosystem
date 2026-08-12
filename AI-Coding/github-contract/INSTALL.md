@@ -1,9 +1,9 @@
-# 🛡️ GitHub Contract v1.1.0 — Install Guide
+# 🛡️ GitHub Contract v1.1.1 — Install Guide
 
 **Project:** J. Apps - AI-Coding Tooling  
 **Module:** AI-Coding / github-contract  
 **Author:** J. Apps (JohnV2002 / Sodakiller1)  
-**Version:** 1.1.0  
+**Version:** 1.1.1
 
 Install on any machine using the same local agent pattern as Error Contract.
 No developer-specific path is required or stored in this repository.
@@ -34,7 +34,7 @@ Open a new terminal:
 
 ```powershell
 github-contract --version
-# github_contract 1.1.0
+# github_contract 1.1.1
 ```
 
 ## Codex
@@ -62,7 +62,7 @@ Re-review `/hooks` if Codex reports that the hook definition changed.
 
 ```text
 github-contract detect .
-github-contract scan . --version 1.1.0
+github-contract scan . --version 1.1.1
 ```
 
 License and support information live in the module [`README.md`](README.md).

@@ -18,6 +18,7 @@ If you have not resolved this repo yet this session:
 Know: **prefix**, **mode**, **parent/ecosystem**, **exceptions path**, **KNOWN vs needs_onboard**.
 
 If `needs_onboard`: **ask the human** (own prefix vs parent vs module). Do not invent a prefix.
+If `exempt`: do not onboard, scaffold, or run the automatic Error Contract gate.
 
 ## While coding
 

@@ -17,8 +17,8 @@ README, installation guide, engine and tests one level below it.
 
 | Contract | Version | Purpose | Documentation |
 |----------|---------|---------|---------------|
-| Error Contract | 1.3.1 | Structured error namespaces, public code legends, local implementations and baseline-aware gates | [Open README](error-contract/README.md) |
-| GitHub Contract | 1.1.0 | Project-native headers, module-wide versions, README completeness and leak prevention | [Open README](github-contract/README.md) |
+| Error Contract | 1.3.2 | Structured error namespaces, public code legends, local implementations and baseline-aware gates | [Open README](error-contract/README.md) |
+| GitHub Contract | 1.1.1 | Project-native headers, module-wide versions, README completeness and leak prevention | [Open README](github-contract/README.md) |
 
 ## Repository Model
 
@@ -83,11 +83,11 @@ Run each contract's checks from its own folder:
 ```powershell
 cd AI-Coding\error-contract
 python -m unittest discover -v
-github-contract scan . --version 1.3.1
+github-contract scan . --version 1.3.2
 
 cd ..\github-contract
 python -m unittest discover -v
-github-contract scan . --version 1.1.0
+github-contract scan . --version 1.1.1
 ```
 
 ## License

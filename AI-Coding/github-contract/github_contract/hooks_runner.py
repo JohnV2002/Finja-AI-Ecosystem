@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / hooks_runner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.1.1
   Description: SessionStart preflight context + Stop gate for GitHub Contract.
 
   New in v1.1.0:

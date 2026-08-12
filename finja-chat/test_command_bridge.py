@@ -6,10 +6,13 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.0
+  Version: 2.4.1
   Description: Unit tests for command bridge server.
 
-  ✨ New in 2.4.0:
+  ✨ New in 2.4.1:
+    • Module version aligned; command-bridge coverage is unchanged.
+
+  📜 Changelog 2.4.0:
     • Module version aligned; command-bridge coverage is unchanged.
 
   📜 Changelog 2.3.0:

@@ -33,6 +33,7 @@ regenerated scanner state, not the namespace registry.
 Know: project id, **prefix**, mode, parent/ecosystem, SoT path, KNOWN vs needs_onboard.
 
 If `needs_onboard` → **ask the human** (own / inherit / module). Never invent a prefix.
+If `exempt` → the project intentionally skips Error Contract onboarding and gates.
 
 ## Automatic post-change verification
 

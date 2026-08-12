@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  examples/obs_errors.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Demo: module-local OBS errors reserved in the global FINJA ledger.
 

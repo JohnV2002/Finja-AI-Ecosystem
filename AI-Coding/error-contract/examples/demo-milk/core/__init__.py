@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  examples/demo-milk/core/__init__.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.1
+  Version: 1.3.2
   Description:
     Demo package init for Milky Wars style prefix demo.
 

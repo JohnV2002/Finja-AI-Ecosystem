@@ -4,10 +4,13 @@
 @REM
 @REM   Project: Finja - Twitch Interactivity Suite
 @REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-@REM   Version: 2.4.0
+@REM   Version: 2.4.1
 @REM   Description: Batch script to start Spotify song request server.
 @REM
-@REM   ✨ New in 2.4.0:
+@REM   ✨ New in 2.4.1:
+@REM     • Module version aligned; launcher behavior is unchanged
+@REM
+@REM   📜 Changelog 2.4.0:
 @REM     • Module version aligned; launcher behavior is unchanged
 @REM
 @REM   📜 Changelog 2.3.0:
@@ -44,7 +47,7 @@ set FINJA_BRIDGE=1
 
 echo.
 echo ======================================================================
-echo   Finja Song Request Server Launcher v2.4.0
+echo   Finja Song Request Server Launcher v2.4.1
 echo ======================================================================
 echo.
 
