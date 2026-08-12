@@ -33,7 +33,7 @@
 #       cookies into the image layers via COPY . . -- now excluded
 # ======================================================================
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # ---- System Dependencies: Chromium + Libs ----
 RUN apt-get update && apt-get install -y --no-install-recommends \
