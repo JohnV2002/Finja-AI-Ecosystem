@@ -1,0 +1,13 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: AI-Coding/error-contract / skill-pack/agents/openai.yaml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.3.1
+# Description: Agent-facing display metadata for the Error Contract skill.
+# New in v1.0.0: Initial cross-project plugin metadata.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+display_name: "Error Contract"
+short_description: "Dynamic project error prefixes + no print/console.log"
+default_prompt: "Resolve this project in the error-contract registry, onboard if needed, ensure docs, then slap-scan for raw logs."

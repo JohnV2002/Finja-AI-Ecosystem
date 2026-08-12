@@ -1,4 +1,12 @@
-# finja-chat — Python bridges (HTML/JS is vanilla; no frontend package manager)
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-chat / requirements.txt
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 2.4.0
+# Description: Python bridge and Spotify request dependencies.
+# New in v2.4.0: OAuth refresh remains browser-native; no dependency added.
+# Copyright (c) 2026 J. Apps — Licensed under the MIT License.
+#
+# HTML/JS is vanilla; no frontend package manager.
 # Install: pip install -r requirements.txt
 flask>=3.0.0
 flask-cors>=4.0.0

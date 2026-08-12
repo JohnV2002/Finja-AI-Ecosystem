@@ -1,0 +1,241 @@
+{
+  "prefix": "MILK",
+  "source": "examples/demo-milk/core/exceptions.py",
+  "style": "finja_app_error",
+  "has_app_error": true,
+  "has_set_code_prefix": true,
+  "bands": {
+    "config": {
+      "lo": 100,
+      "hi": 199,
+      "label": "Config / env / packages"
+    },
+    "llm": {
+      "lo": 200,
+      "hi": 299,
+      "label": "LLM / providers"
+    },
+    "memory": {
+      "lo": 300,
+      "hi": 399,
+      "label": "Memory / store / diary"
+    },
+    "session": {
+      "lo": 400,
+      "hi": 499,
+      "label": "Session / auth / privileges"
+    },
+    "tool": {
+      "lo": 500,
+      "hi": 599,
+      "label": "Tools / plugins"
+    },
+    "pipeline": {
+      "lo": 600,
+      "hi": 699,
+      "label": "Pipeline / guard / safety / input"
+    },
+    "host": {
+      "lo": 800,
+      "hi": 899,
+      "label": "Host / system / maintenance"
+    },
+    "unexpected": {
+      "lo": 900,
+      "hi": 999,
+      "label": "Generic / unexpected (prefer dedicated codes)"
+    },
+    "privacy": {
+      "lo": 1000,
+      "hi": 1099,
+      "label": "Privacy / output firewall (usually no inbox)"
+    },
+    "injection": {
+      "lo": 1100,
+      "hi": 1199,
+      "label": "Prompt injection / input firewall (usually no inbox)"
+    }
+  },
+  "codes": [
+    {
+      "code_num": 100,
+      "class_name": "ConfigError",
+      "base_class": "AppError",
+      "band": "config",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-100"
+    },
+    {
+      "code_num": 101,
+      "class_name": "EnvError",
+      "base_class": "ConfigError",
+      "band": "config",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-101"
+    },
+    {
+      "code_num": 200,
+      "class_name": "LLMError",
+      "base_class": "AppError",
+      "band": "llm",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-200"
+    },
+    {
+      "code_num": 201,
+      "class_name": "LLMTimeoutError",
+      "base_class": "LLMError",
+      "band": "llm",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-201"
+    },
+    {
+      "code_num": 400,
+      "class_name": "SessionError",
+      "base_class": "AppError",
+      "band": "session",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-400"
+    },
+    {
+      "code_num": 401,
+      "class_name": "AuthError",
+      "base_class": "SessionError",
+      "band": "session",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-401"
+    },
+    {
+      "code_num": 500,
+      "class_name": "ToolError",
+      "base_class": "AppError",
+      "band": "tool",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-500"
+    },
+    {
+      "code_num": 502,
+      "class_name": "ToolExecutionError",
+      "base_class": "ToolError",
+      "band": "tool",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-502"
+    },
+    {
+      "code_num": 600,
+      "class_name": "PipelineError",
+      "base_class": "AppError",
+      "band": "pipeline",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-600"
+    },
+    {
+      "code_num": 601,
+      "class_name": "GuardError",
+      "base_class": "PipelineError",
+      "band": "pipeline",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-601"
+    },
+    {
+      "code_num": 800,
+      "class_name": "HostError",
+      "base_class": "AppError",
+      "band": "host",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-800"
+    },
+    {
+      "code_num": 900,
+      "class_name": "AppError",
+      "base_class": "Exception",
+      "band": "unexpected",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-900"
+    },
+    {
+      "code_num": 999,
+      "class_name": "UnexpectedError",
+      "base_class": "AppError",
+      "band": "unexpected",
+      "message_hint": "",
+      "to_inbox": true,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-999"
+    },
+    {
+      "code_num": 1000,
+      "class_name": "PrivacyError",
+      "base_class": "AppError",
+      "band": "privacy",
+      "message_hint": "",
+      "to_inbox": false,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-1000"
+    },
+    {
+      "code_num": 1100,
+      "class_name": "PromptInjectionError",
+      "base_class": "AppError",
+      "band": "injection",
+      "message_hint": "",
+      "to_inbox": false,
+      "module_default": "",
+      "source_file": "",
+      "source_line": 0,
+      "code": "MILK-1100"
+    }
+  ]
+}

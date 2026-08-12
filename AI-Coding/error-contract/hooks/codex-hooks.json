@@ -1,0 +1,47 @@
+{
+  "description": "Error Contract ambient: preflight on SessionStart, dirty on file edits, gate on Stop (Codex-native).",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner session_start",
+            "commandWindows": "py -3 -m error_contract.hooks_runner session_start",
+            "statusMessage": "Error Contract preflight",
+            "timeout": 45,
+            "additionalContextLimit": 4000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner post_tool_use",
+            "commandWindows": "py -3 -m error_contract.hooks_runner post_tool_use",
+            "statusMessage": "Error Contract mark edit",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner stop",
+            "commandWindows": "py -3 -m error_contract.hooks_runner stop",
+            "statusMessage": "Error Contract gate",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

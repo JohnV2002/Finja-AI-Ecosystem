@@ -4,12 +4,18 @@
 <!--                                                                        -->
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
 <!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
-<!--   Version: 2.3.0                                                       -->
+<!--   Version: 2.4.0                                                       -->
 <!--   Description: Bot control panel (Twitch connection, commands, LLM,    -->
 <!--                OBS sync, song requests) -- see index_merged.html for   -->
 <!--                the actual OBS overlay.                                -->
 <!--                                                                        -->
-<!--   ✨ New in 2.3.0:                                                     -->
+<!--   ✨ New in 2.4.0:                                                     -->
+<!--     • Refreshable Twitch Device Code OAuth for unattended operation  -->
+<!--     • Hourly token validation and automatic access/refresh rotation   -->
+<!--     • Chat disconnect recovery reuses and reconnects the TMI client    -->
+<!--     • Dedicated FINJA-404/405/406 auth and reconnect diagnostics       -->
+<!--                                                                        -->
+<!--   📜 Changelog 2.3.0:                                                -->
 <!--     • Song request toggle: 24/7 auto-filter vs. manual moderation,     -->
 <!--       switchable live via a button in the bot panel (calls /mode on    -->
 <!--       the SR server)                                                   -->
@@ -40,6 +46,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/comfy.js@1.1.1/dist/comfy.min.js" integrity="sha384-Ca4mSLnTSeeh/ffnmBU2qdlZGKNY4nqq/35isLTRhBa9AHD+Ie/LSSG0mdlKKpyd" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-ws.min.js" integrity="sha384-Vce9u7FN5Pbapc8dhpMdg2EjTels5H1cGOVLAe7THp3fEtfb89nD6YOIaf8781ay" crossorigin="anonymous"></script>
+  <script src="twitch_auth.js"></script>
 
   <style>
     :root{ --accent:#7aa2ff }
@@ -57,6 +64,13 @@
     textarea{ min-height: 80px; resize: vertical; }
     .btn{ display:inline-block; margin-top:10px; padding:10px 12px; border-radius:10px; background:#2a6cff; color:#fff; border:0; cursor:pointer }
     .btn.alt{ background:#444 }
+    .btn:disabled{ cursor:wait; opacity:.55 }
+    .status{ margin-top:10px; padding:8px 10px; border:1px solid #2b3447; border-radius:10px; background:#0b0f1a }
+    .status.ok{ color:#7df97d } .status.warn{ color:#ffd166 } .status.err{ color:#ff6b6b }
+    .auth-setup{ margin-top:10px; padding:10px; border:1px solid #7aa2ff; border-radius:10px; background:#111a31 }
+    .auth-setup[hidden]{ display:none }
+    .auth-setup a{ color:#8fb0ff }
+    details{ margin-top:10px; opacity:.9 }
     #log{ font-size:14px; line-height:1.4; padding:10px; max-height:320px; overflow:auto; white-space:pre-wrap; background:#0b0f1a; border:1px solid #2b3447; border-radius:10px }
     #log .ok{ color:#7df97d } #log .warn{ color:#ffd166 } #log .err{ color:#ff6b6b }
     code{ background:#0b0f1a; padding:2px 6px; border-radius:6px; border:1px solid #2b3447 }
@@ -107,8 +121,19 @@
         <input id="botuser" placeholder="lexi_chat_bot" value="lexi_chat_bot">
       </div>
     </div>
-    <label>OAuth (Format: <code>oauth:xxxxxxxxxxxxxxxx</code>)</label>
-    <input id="oauth" placeholder="oauth:..." type="password" />
+    <label>Twitch Client-ID (öffentliche Twitch-App)</label>
+    <input id="twitch_client_id" placeholder="Twitch Client-ID" autocomplete="off" />
+    <button class="btn" id="authorizeBtn">Twitch dauerhaft autorisieren</button>
+    <div id="twitch_auth_status" class="status">Noch nicht geprüft.</div>
+    <div id="twitch_device_box" class="auth-setup" hidden>
+      Öffne <a id="twitch_device_link" href="#" target="_blank" rel="noopener noreferrer">Twitch aktivieren</a>
+      und bestätige den Code <code id="twitch_device_code"></code>. Das Panel wartet automatisch auf die Freigabe.
+    </div>
+    <details>
+      <summary>Legacy OAuth (kein Auto-Refresh)</summary>
+      <label>OAuth (Format: <code>oauth:xxxxxxxxxxxxxxxx</code>)</label>
+      <input id="oauth" placeholder="oauth:..." type="password" />
+    </details>
     <button class="btn" id="connectBtn">Verbinden</button>
     <button class="btn alt" id="disconnectBtn">Trennen</button>
   </div>
@@ -240,6 +265,8 @@ function log(m,cls=""){ const host=$("log"); if(!host) return; const row=documen
 
 /* ========== Local storage defaults ========== */
 $("oauth").value = localStorage.getItem("finja_bot_oauth") || "";
+const twitchAuth = new FinjaTwitchAuth.TwitchAuthManager();
+$("twitch_client_id").value = twitchAuth.getClientId();
 $("obs_addr").value = localStorage.getItem("finja_obs_addr") || "ws://127.0.0.1:4455";
 $("obs_pass").value = localStorage.getItem("finja_obs_pass") || "";
 $("obs_input").value = localStorage.getItem("finja_obs_input") || "";
@@ -583,6 +610,12 @@ let sodaTimer = null;
 /* ========== Cooldowns & Router ========== */
 let connected = false;
 let connectTime = null; // <-- NEU: Speichert den Zeitpunkt der Verbindung
+let manualDisconnect = false;
+let controlledReconnect = false;
+let twitchAuthSession = null;
+let authRefreshTimer = null;
+let authValidationTimer = null;
+let authRecoveryPromise = null;
 const COOLDOWN_MS = 60_000; // 60s
 const cdGlobal = Object.create(null);
 const cdUser   = Object.create(null);
@@ -739,19 +772,132 @@ function handleCommand(user, cmd, arg, flags, extra){
 }
 
 /* ========== ComfyJS Lifecycle ========== */
+const AUTH_FAILURE_RE = /login (authentication failed|unsuccessful)|improperly formatted auth|invalid oauth|invalid password/i;
+
+function setTwitchAuthStatus(message, cls="") {
+  const status = $("twitch_auth_status");
+  status.textContent = message;
+  status.className = `status ${cls}`.trim();
+}
+
+function clearAuthMaintenance() {
+  if (authRefreshTimer) clearTimeout(authRefreshTimer);
+  if (authValidationTimer) clearInterval(authValidationTimer);
+  authRefreshTimer = null;
+  authValidationTimer = null;
+}
+
+function isAuthFailure(reason) {
+  return AUTH_FAILURE_RE.test(toLogText(reason));
+}
+
+function bindTmiLifecycle() {
+  const client = ComfyJS.GetClient?.();
+  if (!client || client.__finjaLifecycleBound) return client;
+  client.__finjaLifecycleBound = true;
+  client.on("disconnected", (reason) => {
+    connected = false;
+    if (manualDisconnect || controlledReconnect) return;
+    log(`Chat-Verbindung getrennt: ${reason || "unbekannt"}`, "warn");
+    if (isAuthFailure(reason)) void recoverTwitchAuth("IRC-Authentifizierung");
+  });
+  client.on("maxreconnect", () => {
+    connected = false;
+    log(`[${FinjaTwitchAuth.ERROR_CODES.RECONNECT}] Automatische Chat-Reconnects sind ausgeschöpft.`, "err");
+    void recoverTwitchAuth("Reconnect-Limit");
+  });
+  return client;
+}
+
+async function reconnectWithRotatedToken(session, trigger) {
+  const client = bindTmiLifecycle();
+  if (!client) throw new FinjaTwitchAuth.TwitchAuthError(FinjaTwitchAuth.ERROR_CODES.RECONNECT, "TMI client is unavailable.");
+  client.opts.identity = client.opts.identity || {};
+  client.opts.identity.password = `oauth:${session.accessToken}`;
+  client.reconnect = true;
+  client.reconnections = 0;
+  controlledReconnect = true;
+  try {
+    if (client.readyState?.() === "OPEN") await client.disconnect();
+    await client.connect();
+    log(`Twitch-Token rotiert und Chat neu verbunden (${trigger}).`, "ok");
+  } catch (cause) {
+    throw new FinjaTwitchAuth.TwitchAuthError(FinjaTwitchAuth.ERROR_CODES.RECONNECT, "Chat reconnect after token rotation failed.", cause);
+  } finally {
+    controlledReconnect = false;
+  }
+}
+
+function scheduleAuthMaintenance(session) {
+  clearAuthMaintenance();
+  if (!session?.refreshToken) return;
+  const refreshDelay = Math.max(30_000, Number(session.expiresAt || 0) - Date.now() - 5 * 60_000);
+  authRefreshTimer = setTimeout(() => void recoverTwitchAuth("planmäßige Rotation"), refreshDelay);
+  authValidationTimer = setInterval(async () => {
+    try {
+      const validation = await twitchAuth.validateSession(twitchAuthSession);
+      if (!validation.valid) {
+        await recoverTwitchAuth("stündliche Validierung");
+        return;
+      }
+      twitchAuthSession = validation.session;
+      setTwitchAuthStatus(`OAuth aktiv als @${twitchAuthSession.login || $("botuser").value.trim()} · stündlich geprüft`, "ok");
+    } catch (error) {
+      log(error, "err");
+    }
+  }, 60 * 60_000);
+}
+
+async function recoverTwitchAuth(trigger) {
+  if (manualDisconnect) return null;
+  if (authRecoveryPromise) return authRecoveryPromise;
+  authRecoveryPromise = (async () => {
+    const session = twitchAuthSession || twitchAuth.loadSession();
+    if (!session?.refreshToken) {
+      throw new FinjaTwitchAuth.TwitchAuthError(FinjaTwitchAuth.ERROR_CODES.AUTH, "No refresh token is available; authorize Twitch again.");
+    }
+    setTwitchAuthStatus(`Token wird erneuert (${trigger}) …`, "warn");
+    const refreshed = await twitchAuth.refreshSession(session);
+    twitchAuthSession = refreshed;
+    if (manualDisconnect) return null;
+    await reconnectWithRotatedToken(refreshed, trigger);
+    scheduleAuthMaintenance(refreshed);
+    setTwitchAuthStatus(`OAuth aktiv als @${refreshed.login || $("botuser").value.trim()} · Auto-Refresh läuft`, "ok");
+    return refreshed;
+  })().catch((error) => {
+    connected = false;
+    clearAuthMaintenance();
+    setTwitchAuthStatus(`${toLogText(error)} Bitte Twitch erneut autorisieren.`, "err");
+    log(error, "err");
+    return null;
+  }).finally(() => {
+    authRecoveryPromise = null;
+  });
+  return authRecoveryPromise;
+}
+
 ComfyJS.onConnected = (addr,port,isSSL)=>{
   connected = true;
-  connectTime = Date.now();
+  if (!connectTime) connectTime = Date.now();
   log(`Verbunden: ${addr}:${port} (SSL:${isSSL})`,"ok");
+  bindTmiLifecycle();
+  if (twitchAuthSession) scheduleAuthMaintenance(twitchAuthSession);
   try{ ComfyJS.Say('Lexi ist online ✨ & Layout zurückgesetzt!'); }catch{}
   // Soda Sponsor Timer: alle 90 Minuten
   if (sodaTimer) clearInterval(sodaTimer);
   sodaTimer = setInterval(()=>{ try{ say(SODA_MESSAGE); log("Soda-Timer: Sponsor-Nachricht gesendet","ok"); }catch{} }, 90 * 60 * 1000);
 };
-ComfyJS.onReconnect = (n)=> log(`Reconnecting (#${n})`,"warn");
+ComfyJS.onReconnect = (n)=> {
+  connected = false;
+  log(`Chat reconnect (#${n})`,"warn");
+};
 ComfyJS.onError = (err)=> {
   const msg = (err && err.message) ? err.message : String(err||"");
-  if (msg.includes("channel:read:redemptions") || msg.includes("user:read:email")){
+  if (isAuthFailure(msg)) {
+    connected = false;
+    log(`[${FinjaTwitchAuth.ERROR_CODES.AUTH}] Twitch-Authentifizierung abgelehnt.`, "err");
+    void recoverTwitchAuth("ComfyJS-Authentifizierung");
+  } else if (msg.includes("channel:read:redemptions") || msg.includes("user:read:email")){
     log("Hinweis: Redemptions/Email-Scopes fehlen – ignorierbar.", "warn");
   } else {
     log(`Fehler: ${msg}`, "err");
@@ -773,20 +919,38 @@ ComfyJS.onCommand = (user, command, message, flags, extra)=>{
 $("obs_connect").onclick = connectOBS;
 $("obs_disconnect").onclick = disconnectOBS;
 
-$("connectBtn").onclick = ()=>{
+async function connectTwitchChat(isAutomatic=false) {
   if (connected) return;
   const channel = $("channel").value.trim().toLowerCase();
-  const botuser = $("botuser").value.trim().toLowerCase();
+  let botuser = $("botuser").value.trim().toLowerCase();
   let oauth = $("oauth").value.trim();
 
-  if (!channel || !botuser || !oauth){ log("Bitte Channel, Bot-User und OAuth ausfüllen.","warn"); return; }
-  if (!/^oauth:[a-z0-9]+$/i.test(oauth)){ log("OAuth muss mit 'oauth:' beginnen.","warn"); return; }
+  if (!channel || !botuser){ log("Bitte Channel und Bot-User ausfüllen.","warn"); return; }
+
+  try {
+    twitchAuthSession = await twitchAuth.ensureSession();
+    oauth = `oauth:${twitchAuthSession.accessToken}`;
+    if (twitchAuthSession.login) {
+      botuser = twitchAuthSession.login.toLowerCase();
+      $("botuser").value = botuser;
+    }
+    setTwitchAuthStatus(`OAuth aktiv als @${botuser} · Auto-Refresh läuft`, "ok");
+  } catch (error) {
+    twitchAuthSession = null;
+    if (!/^oauth:[a-z0-9]+$/i.test(oauth)) {
+      if (!isAutomatic) log(`${toLogText(error)} Nutze „Twitch dauerhaft autorisieren“.`, "warn");
+      setTwitchAuthStatus("Keine refreshbare Twitch-Session. Einmalige Autorisierung erforderlich.", "warn");
+      return;
+    }
+    log("Legacy OAuth wird verwendet; Auto-Refresh ist dafür nicht möglich.", "warn");
+  }
 
   localStorage.setItem("finja_bot_oauth", oauth);
+  manualDisconnect = false;
 
   try{
-    // Comfy verbinden + Channel merken
     ComfyJS.Init(botuser, oauth, channel);
+    bindTmiLifecycle();
     localStorage.setItem("finja_last_channel", channel);
     OVERLAY.channel = channel;
 
@@ -794,12 +958,68 @@ $("connectBtn").onclick = ()=>{
     refreshBrowserSource();
     log(`Verbinde als @${botuser} in #${channel} ...`, "ok");
   }catch(e){
-    log(`Init Fehler: ${e}`,"err");
+    log(`[${FinjaTwitchAuth.ERROR_CODES.RECONNECT}] Init Fehler: ${toLogText(e)}`,"err");
+  }
+}
+
+$("authorizeBtn").onclick = async () => {
+  const box = $("twitch_device_box");
+  const button = $("authorizeBtn");
+  button.disabled = true;
+  try {
+    const request = await twitchAuth.startDeviceAuthorization($("twitch_client_id").value);
+    $("twitch_device_link").href = request.verificationUri;
+    $("twitch_device_code").textContent = request.userCode;
+    box.hidden = false;
+    setTwitchAuthStatus("Warte auf deine Freigabe bei Twitch …", "warn");
+    const session = await twitchAuth.pollDeviceAuthorization(request);
+    const validation = await twitchAuth.validateSession(session);
+    twitchAuthSession = validation.valid ? validation.session : session;
+    if (twitchAuthSession.login) $("botuser").value = twitchAuthSession.login;
+    localStorage.removeItem("finja_bot_oauth");
+    $("oauth").value = "";
+    box.hidden = true;
+    setTwitchAuthStatus(`OAuth aktiv als @${twitchAuthSession.login || $("botuser").value.trim()} · Auto-Refresh läuft`, "ok");
+    await connectTwitchChat();
+  } catch (error) {
+    box.hidden = true;
+    setTwitchAuthStatus(`${toLogText(error)} Autorisierung bitte erneut starten.`, "err");
+    log(error, "err");
+  } finally {
+    button.disabled = false;
   }
 };
-$("disconnectBtn").onclick = ()=>{
-  try{ ComfyJS.Disconnect?.(); connected=false; if(sodaTimer){clearInterval(sodaTimer);sodaTimer=null;} log("Getrennt.","warn"); }catch{}
+
+$("connectBtn").onclick = () => void connectTwitchChat();
+$("disconnectBtn").onclick = async () => {
+  manualDisconnect = true;
+  clearAuthMaintenance();
+  try {
+    const client = ComfyJS.GetClient?.();
+    if (client?.readyState?.() === "OPEN") await client.disconnect();
+    connected = false;
+    connectTime = null;
+    if(sodaTimer){clearInterval(sodaTimer);sodaTimer=null;}
+    log("Getrennt.","warn");
+  } catch (error) {
+    log(`[${FinjaTwitchAuth.ERROR_CODES.RECONNECT}] Trennen fehlgeschlagen: ${toLogText(error)}`, "err");
+  }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const session = twitchAuth.loadSession();
+    if (!session) {
+      setTwitchAuthStatus("Keine refreshbare Twitch-Session. Einmalige Autorisierung erforderlich.", "warn");
+      return;
+    }
+    twitchAuthSession = session;
+    setTwitchAuthStatus("Gespeicherte Twitch-Session gefunden; Verbindung wird geprüft …", "warn");
+    setTimeout(() => void connectTwitchChat(true), 250);
+  } catch (error) {
+    setTwitchAuthStatus(toLogText(error), "err");
+  }
+});
 
 /* ========== Neue Einstellungen speichern ========== */
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,0 +1,48 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: AI-Coding/error-contract / pyproject.toml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.3.1
+# Description: Python package and CLI metadata for Error Contract.
+# New in v1.3.1: Root-only public legend; no repetitive module Markdown.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+[project]
+name = "error-contract"
+version = "1.3.1"
+description = "Cross-project error contract with canonical namespaces and ambient agent hooks (J. Apps)"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "J. Apps", email = "contact@jappshome.de" },
+]
+keywords = ["errors", "exceptions", "finja", "codex", "grok", "agent", "j-apps"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.urls]
+Homepage = "https://jappshome.de"
+Documentation = "https://github.com/Sodakiller1/error-contract/blob/main/INSTALL.md"
+# set remote when you push from your real git folder
+
+[project.scripts]
+error-contract = "error_contract.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["error_contract*"]

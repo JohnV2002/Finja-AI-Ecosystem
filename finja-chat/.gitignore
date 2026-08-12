@@ -1,11 +1,22 @@
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-chat / .gitignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 2.4.0
+# Description: Public-repository exclusions for local and generated state.
+# New in v2.4.0: Ignores regenerated contract preflight state.
+# Copyright (c) 2026 J. Apps — Licensed under the MIT License.
+
 # Secrets — NEVER commit!
 .env
 
-# Local-only files — synced manually from Production (Z:\Bilder\Streaming\Chat),
-# never meant to reach this repo. Safety net in case a future sync copies them
-# over by accident.
+# Local-only files synced manually from the production workspace. They never
+# belong in the public repository.
 private/
 TODO.md
+
+# Contract preflight state is machine-local and regenerated on demand.
+.error_contract/
+.github_contract/
 
 # Python
 __pycache__/

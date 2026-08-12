@@ -4,10 +4,13 @@
 @REM
 @REM   Project: Finja - Twitch Interactivity Suite
 @REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-@REM   Version: 2.3.0
+@REM   Version: 2.4.0
 @REM   Description: Batch script to start static file server for overlay.
 @REM
-@REM   ✨ New in 2.3.0:
+@REM   ✨ New in 2.4.0:
+@REM     • Serves the new twitch_auth.js OAuth helper with the bot panel
+@REM
+@REM   📜 Changelog 2.3.0:
 @REM     • Merged Production + GitHub tracks (2026-07-19)
 @REM
 @REM   📜 Changelog 2.2.1:
@@ -34,7 +37,7 @@ REM ======================================================================
 cd /d "%~dp0"
 echo.
 echo ======================================================================
-echo   Finja Static File Server v2.3.0
+echo   Finja Static File Server v2.4.0
 echo ======================================================================
 echo.
 

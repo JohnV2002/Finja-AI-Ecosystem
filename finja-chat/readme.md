@@ -1,11 +1,19 @@
-# 💬 Finja Chat System
+# 💬 Finja Chat System — v2.4.0
 *OBS Chat Overlay + Bot Panel + Song Requests — cute, fast, Gen-Z approved. 💙*
 
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/yourusername/finja-chat)
+[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-chat)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v2.3.0:**
+> **✨ New in v2.4.0:**
+> - **24/7 Twitch OAuth:** public Device Code authorization with rotating access
+>   and refresh tokens; no client secret is stored in the browser or repository
+> - **Chat recovery:** hourly token validation, pre-expiry rotation, and controlled
+>   reconnect after authentication or socket failures
+> - Structured diagnostics: `FINJA-404` (device auth), `FINJA-405` (refresh), and
+>   `FINJA-406` (reconnect recovery)
+>
+> **Changelog v2.3.0:**
 > - **Song request toggle:** switch live between 24/7 auto-filter and manual
 >   moderation via a button in the bot panel (no server restart needed)
 > - **Fix:** `!pulse` was documented but had no effect — now properly wired up
@@ -62,9 +70,10 @@
    ```
    http://127.0.0.1:8088/bot_merged.html
    ```
-   - Get your OAuth token from [twitchtokengenerator.com](https://twitchtokengenerator.com)
-   - Enter channel name, bot username, and OAuth token
-   - Click **Connect**
+   - Enter your public Twitch application's Client ID
+   - Click **Twitch dauerhaft autorisieren**
+   - Open the displayed Twitch activation link and confirm the device code once
+   - Lexi validates, rotates, and reconnects with the token automatically afterward
 
 4. **(Optional) Start song requests:**
    ```bash
@@ -75,7 +84,7 @@
 
 ## 🤖 Components
 
-### Bot Panel (`bot_merged_fixed.html`)
+### Bot Panel (`bot_merged.html`)
 
 The central control hub for your Twitch bot integration.
 
@@ -86,6 +95,7 @@ The central control hub for your Twitch bot integration.
 - Integrates with OpenWebUI for AI chat responses
 - Modular toggles for VPet Bridge and Song Requests
 - Real-time log display
+- Twitch Device Code OAuth with automatic token rotation and reconnect recovery
 
 **Technology Stack:**
 - ComfyJS for Twitch chat
@@ -93,7 +103,7 @@ The central control hub for your Twitch bot integration.
 - BroadcastChannel API for overlay communication
 - LocalStorage for settings persistence
 
-### Overlay (`index_merged_fixed.html`)
+### Overlay (`index_merged.html`)
 
 Beautiful chat message display for OBS with extensive customization.
 
@@ -113,7 +123,7 @@ Beautiful chat message display for OBS with extensive customization.
 - **Light** — Bright and minimal
 - **Neon** — Vibrant glow effects with auto-RGB
 
-### Song Request Server (`spotify_request_server_env_fixed.py`)
+### Song Request Server (`spotify_request_server_env.py`)
 
 Moderated Spotify song request system with queue management.
 
@@ -193,13 +203,30 @@ The server will start on `http://127.0.0.1:8088`
 
 ## ⚙️ Configuration
 
-### Twitch OAuth Token
+### Twitch OAuth with Auto-Refresh
 
-1. Visit [twitchtokengenerator.com](https://twitchtokengenerator.com)
-2. Log in with your **bot account**
-3. Select scopes: `chat:read` and `chat:edit`
-4. Copy the generated access token
-5. Paste into bot panel (format: `oauth:abc123...`)
+Lexi uses Twitch's public **Device Code Grant**, so the panel can rotate tokens
+without embedding a client secret.
+
+1. Open the [Twitch Developer Console](https://dev.twitch.tv/console/apps).
+2. Create a dedicated application for Finja Chat. Twitch requires 2FA on the
+   developer account.
+3. Set **Client Type** to **Public**. The redirect URL is not used by the Device
+   Code flow; if the console requires one, use a local placeholder such as
+   `http://localhost`.
+4. Copy the **Client ID** into the bot panel. Client IDs are public identifiers;
+   never copy a Client Secret into the panel.
+5. Click **Twitch dauerhaft autorisieren**, open the displayed activation link,
+   and approve `chat:read` and `chat:edit` with the Lexi bot account.
+
+The panel validates the token on startup and hourly, rotates the one-time refresh
+token before the access token expires, and reconnects the existing chat client.
+Tokens remain local to that browser origin and are never written to logs.
+
+The legacy `oauth:...` input remains available for emergency migration, but those
+tokens are not refreshable. A public-client refresh token may require the Device
+Code step again after more than 30 days of inactivity, a password change, or an
+app revocation.
 
 ### OBS WebSocket
 
@@ -391,6 +418,7 @@ The overlay fetches emotes from the ivr.fi API, which indexes 7TV emotes by thei
 ```
 Chat/
 ├── bot_merged.html                 # Bot control panel
+├── twitch_auth.js                 # Twitch Device OAuth + rotation
 ├── index_merged.html               # OBS overlay
 ├── commands.html                   # Commands overlay
 ├── spotify_request_server_env.py   # Song request server
@@ -400,6 +428,7 @@ Chat/
 ├── test_command_bridge.py          # Bridge tests
 ├── test_spotify_request_server.py  # SR server tests
 ├── test_batch_files.py             # Launcher script tests
+├── test_twitch_auth.js             # OAuth/rotation unit tests
 ├── .env.example                    # Environment template (safe to share)
 ├── private/                        # NEVER synced/committed -- real .env,
 │                                    # personal scratch files, local cache
@@ -434,6 +463,7 @@ pytest test_spotify_request_server.py -v
 **All Tests:**
 ```bash
 pytest -v
+node --test test_twitch_auth.js
 ```
 
 ### Development Mode
@@ -525,7 +555,7 @@ All files have been validated with:
 - ⚠️ **Never commit `.env` files** to version control
 - ⚠️ **Never share OAuth tokens** publicly
 - ⚠️ **Add `.env` to `.gitignore`**
-- ⚠️ **Rotate tokens regularly**
+- ⚠️ **Use Device Code OAuth so the panel can rotate tokens automatically**
 - ⚠️ **Use environment variables** in production
 
 ### `.gitignore` Example
@@ -550,13 +580,14 @@ node_modules/
 
 ### Token Safety
 
-Your OAuth token and Spotify secrets provide **full access** to your accounts. Treat them like passwords:
+OAuth access/refresh tokens and Spotify secrets provide account access. Treat them like passwords:
 
 1. **Never** include them in screenshots
 2. **Never** paste them in public Discord/chat
 3. **Never** commit them to GitHub
 4. **Always** use `.env` files for local development
-5. **Always** use secrets management in production
+5. **Never** enter a Twitch Client Secret in the browser panel
+6. **Use only the minimal Twitch scopes** (`chat:read`, `chat:edit`)
 
 ---
 
@@ -595,6 +626,14 @@ All new features should include tests:
 Copyright / author lines in source headers must stay (standard MIT). Keeping the UI “Made with ❤️ …” credit is **appreciated**, not an extra legal requirement.
 
 Character / brand rules and non-MIT modules: root [README — License & Usage](../README.md#license--usage).
+
+---
+
+## Support & Contact
+
+- Email: [contact@jappshome.de](mailto:contact@jappshome.de)
+- Website: [jappshome.de](https://jappshome.de)
+- Support: [buymeacoffee.com/J.Apps](https://buymeacoffee.com/J.Apps)
 
 ---
 

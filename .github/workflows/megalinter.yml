@@ -15,7 +15,6 @@ permissions:
   contents: read
   statuses: write
   pull-requests: write
-  security-events: write
 
 concurrency:
   group: megalinter-${{ github.ref }}
@@ -28,19 +27,17 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # Match monorepo Actions majors (Node 24 runners; avoid Node 20 deprecation)
+        uses: actions/checkout@v7
         with:
-          # Full history helps changed-files mode and PR context
           fetch-depth: 0
 
       - name: MegaLinter
         id: ml
-        # Pin exact release (v10.0.0 confirmed on oxsecurity/megalinter)
-        uses: oxsecurity/megalinter@v10.0.0
+        # Flavor cupcake: broad enough for monorepo, lighter than "all"
+        uses: oxsecurity/megalinter/flavors/cupcake@v10.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Config lives in repo root .mega-linter.yml
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || 'true' }}
 
       - name: Upload MegaLinter reports
         if: always()
@@ -50,11 +47,5 @@ jobs:
           path: |
             megalinter-reports/**
           retention-days: 14
-
-      - name: Upload MegaLinter SARIF (if present)
-        if: always() && hashFiles('megalinter-reports/*.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
-        continue-on-error: true
-        with:
-          sarif_file: megalinter-reports
-          category: megalinter
+          # No SARIF upload to Code Scanning — multi-run same category is rejected.
+          # Reports stay in this artifact + MegaLinter PR comment.

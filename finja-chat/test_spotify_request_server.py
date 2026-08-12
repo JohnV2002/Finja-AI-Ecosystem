@@ -6,10 +6,14 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.3.0
+  Version: 2.4.0
   Description: Unit tests for Spotify song request server.
 
-  ✨ New in 2.3.0:
+  ✨ New in 2.4.0:
+    • Initializes the server with a mocked SpotifyOAuth provider so the
+      suite never requires real credentials during module import.
+
+  📜 Changelog 2.3.0:
     • Added force_moderated_mode fixture (MODERATED became an SR_MODERATED
       env toggle instead of hardcoded after the Production+GitHub merge;
       this suite still specifically targets moderated mode)
@@ -43,6 +47,7 @@
 """
 
 import pytest
+import importlib
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, MagicMock
 import time
@@ -52,6 +57,14 @@ from typing import Generator, Dict, Any
 # ==============================================================================
 # Test Fixtures
 # ==============================================================================
+
+@pytest.fixture(scope="module", autouse=True)
+def load_server_without_real_spotify_credentials() -> Generator:
+    """Import the server with its OAuth constructor isolated from real credentials."""
+    with patch("spotipy.oauth2.SpotifyOAuth", return_value=MagicMock()):
+        importlib.import_module("spotify_request_server_env")
+    yield
+
 
 @pytest.fixture(autouse=True)
 def mock_spotify() -> Generator:

@@ -1,0 +1,29 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: AI-Coding/github-contract / pyproject.toml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.1.0
+# Description: Python package and CLI metadata for GitHub Contract.
+# New in v1.0.1: Scanner reliability fixes and expanded source coverage.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+[project]
+name = "github-contract"
+version = "1.1.0"
+description = "Cross-project J. Apps GitHub contract: headers, module versions, and no-leak checks"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "J. Apps", email = "contact@jappshome.de" }]
+keywords = ["github", "headers", "semver", "finja", "codex", "grok", "j-apps"]
+
+[project.scripts]
+github-contract = "github_contract.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["github_contract*"]

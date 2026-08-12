@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-chat",
+  "module": "finja-chat",
+  "legend": "../error_contract.json",
+  "implementations": [
+    {"code": "FINJA-404", "name": "TwitchDeviceAuthorizationFailedError", "source": "core/exceptions.py"},
+    {"code": "FINJA-405", "name": "TwitchAccessTokenRefreshError", "source": "core/exceptions.py"},
+    {"code": "FINJA-406", "name": "TwitchChatReconnectRecoveryError", "source": "core/exceptions.py"}
+  ]
+}

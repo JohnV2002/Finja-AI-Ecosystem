@@ -1,0 +1,47 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner session_start",
+            "timeout": 30,
+            "env": {
+              "PYTHONPATH": "__ENGINE_ROOT__"
+            }
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|search_replace|write|str_replace",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner post_tool_use",
+            "timeout": 10,
+            "env": {
+              "PYTHONPATH": "__ENGINE_ROOT__"
+            }
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m error_contract.hooks_runner stop",
+            "timeout": 120,
+            "env": {
+              "PYTHONPATH": "__ENGINE_ROOT__"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

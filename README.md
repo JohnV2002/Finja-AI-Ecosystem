@@ -40,6 +40,10 @@ Your hybrid AI buddy for streaming – featuring a chatbot, music engine, memori
 
 Finja is not a single bot, but a **complete ecosystem**. Each module can run **standalone** – but only together do they form the full **Finja Experience**.
 
+All public structured error codes, their owning modules and their meanings are
+listed in the repository-root [`error_contract.json`](error_contract.json).
+Reading the legend does not require the Error Contract plugin.
+
 -   **Standalone Capable**: The music engine, chatbot, crawler, etc. can all be used individually.
 -   **Full Package = Finja**: Only their combination forms her personality.
 -   **LLM remains secret**: The language core now runs through the Neural Network (Brain), but the actual LLM configuration and prompts remain private and are not part of this repository. 🫣
@@ -54,12 +58,13 @@ Finja is not a single bot, but a **complete ecosystem**. Each module can run **s
 ---
 
 ## 📊 Project Status
-*As of: July 2026*
+*As of: August 2026*
 
 | Main Component | Version | Status | Description | Stats / Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | **finja-neural-network** 🧠 | **v5.1** | 🔵 Working on V2 (6.0) | The Brain — connects everything: Dashboard, Experts, Memory, Tools, Discord, TTS, Vision. | Tests & Docker CI still WIP · Sonar/Snyk/CodeQL noise expected. |
-| **finja-chat** | **v2.3.0** | 🟢 Stable | Twitch chat overlay + bot panel + Spotify song requests. | 45 tests · CI (3.9–3.11) · Codecov upload |
+| **finja-chat** | **v2.4.0** | 🔵 Update/Testing | Twitch chat overlay, bot panel, Spotify requests and refreshable Twitch authentication. | 45 Python + 4 auth tests · dedicated FINJA error codes |
+| **AI-Coding** | **Error 1.3.1 / GitHub 1.1.0** | 🟢 Stable | Cross-project coding contracts for Codex, Grok and Claude. | Public error legend · lifecycle hooks · leak/version/header gates |
 | **finja-music** | | 🟢 Stable | Music engine — pick **one** of the variants below. | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.2.0** | 🟢 Stable | **Recommended** all-in-one Web-UI music engine. | 44 tests · CI ✓ · Sonar clean |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.2.0** | 🟢 Stable | Dockerized Spotify-only music API. | 47 tests · CI ✓ · Sonar clean |
@@ -176,7 +181,25 @@ flowchart TD
 -   `/finja-canvas` 🎨 → Canvas drawing engine for overlays and VPet interactions.
 -   `/finja-omni-test` 👁️ → Screen observation pipeline (local OCR + Vision model testing).
 -   `/finja-agentic-code` 💻 → **Flare.** The external code worker system (Orchestrator + Sandbox) for automated coding tasks.
+-   `/AI-Coding` 🛡️ → Error Contract and GitHub Contract tooling for the J. Apps AI-assisted development workflow. [➡️ **Folder README**](./AI-Coding/README.md)
+-   `/error_contract.json` → Public repository-wide error-code legend; readable without installing the AI-Coding tools.
 -   `/Own-VPet` (Coming Soon) → The new standalone VPet core.
+
+---
+
+## 🛡️ AI-Coding Contracts & Error Legend
+
+[`AI-Coding/`](./AI-Coding/README.md) contains the repository tooling used by
+Codex, Grok and Claude in the J. Apps workflow. The folder follows the same
+nested documentation style as the rest of the ecosystem: folder README first,
+then one detailed README inside each contract.
+
+-   [**Error Contract v1.3.1**](./AI-Coding/error-contract/README.md) → Maintains structured error namespaces, module-local implementations, dynamic numeric categories and baseline-aware coding gates.
+-   [**GitHub Contract v1.1.0**](./AI-Coding/github-contract/README.md) → Enforces project-native headers, unified module versions, complete READMEs and protection against secret or private-path leaks.
+-   [**Public Error Code Legend**](./error_contract.json) → Repository-wide source of truth for error meanings and ownership; readable without installing either plugin.
+
+The contracts are development tooling, not part of Finja's Twitch runtime.
+Each target module keeps its own identity, version and established header style.
 
 ---
 

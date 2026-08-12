@@ -208,9 +208,15 @@ The Codecov **badge** on the root README uses Codecov’s public graph token (no
 ### MegaLinter notes
 
 - **Phase 1:** `DISABLE_ERRORS: true` — reports + artifacts, does **not** fail the job.
+- Flavor: **`cupcake`** (`oxsecurity/megalinter/flavors/cupcake@v10.0.0`) — smaller than `all`.
 - Excludes: `Not Maintained/`, galleries, `test_frames/`, caches, agent job workspaces, …
 - Trivy is **disabled inside MegaLinter** (own workflow already runs it).
-- First run can take a while (large Docker image pull). Watch **Actions → MegaLinter** and download the `megalinter-reports` artifact.
+- First run can take a while (Docker image pull). Watch **Actions → MegaLinter** and download the `megalinter-reports` artifact.
+- High first-pass counts (HTML/CSS/Markdown/Ruff/jscpd) are normal; treat them as backlog, not a red alert.
+
+### Codecov “~50%” means
+
+Codecov averages **line (and branch) coverage from Pytest** across uploaded modules — not “half the repo is broken” and not language %. Untested modules, huge files (`webserver.py`), UI HTML/JS without JS tests, and Docker-only paths pull the number down. Raising it = more tests on hot paths, not more scanners.
 
 Maintainer notes and install tips: [`tools/README.md`](./tools/README.md).
 

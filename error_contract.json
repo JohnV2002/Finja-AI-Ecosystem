@@ -1,0 +1,510 @@
+{
+  "schema_version": 1,
+  "title": "Error Code Legend",
+  "updated_at": "2026-08-12T14:51:07+00:00",
+  "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
+  "namespaces": {
+    "FINJA": {
+      "categories": {
+        "config": {
+          "range": "100-199",
+          "description": "Config / env / packages"
+        },
+        "llm": {
+          "range": "200-299",
+          "description": "LLM / providers"
+        },
+        "memory": {
+          "range": "300-399",
+          "description": "Memory / store / diary"
+        },
+        "session": {
+          "range": "400-499",
+          "description": "Session / auth / privileges"
+        },
+        "tool": {
+          "range": "500-599",
+          "description": "Tools / plugins"
+        },
+        "pipeline": {
+          "range": "600-699",
+          "description": "Pipeline / guard / safety / input"
+        },
+        "host": {
+          "range": "800-899",
+          "description": "Host / system / maintenance"
+        },
+        "unexpected": {
+          "range": "900-999",
+          "description": "Generic / unexpected (prefer dedicated codes)"
+        },
+        "privacy": {
+          "range": "1000-1099",
+          "description": "Privacy / output firewall (usually no inbox)"
+        },
+        "injection": {
+          "range": "1100-1199",
+          "description": "Prompt injection / input firewall (usually no inbox)"
+        }
+      },
+      "codes": {
+        "100": {
+          "name": "ConfigError",
+          "owner": "finja",
+          "module": "",
+          "category": "config",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "101": {
+          "name": "EnvError",
+          "owner": "finja",
+          "module": "",
+          "category": "config",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "ConfigError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "102": {
+          "name": "MissingPackageError",
+          "owner": "finja",
+          "module": "",
+          "category": "config",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "ConfigError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "200": {
+          "name": "LLMError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "201": {
+          "name": "LLMTimeoutError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "202": {
+          "name": "LLMConnectionError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "204": {
+          "name": "EmptyResponseError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "205": {
+          "name": "RateLimitError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "206": {
+          "name": "ModelNotFoundError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "210": {
+          "name": "AllProvidersFailedError",
+          "owner": "finja",
+          "module": "",
+          "category": "llm",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "LLMError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "300": {
+          "name": "MemoryStoreError",
+          "owner": "finja",
+          "module": "",
+          "category": "memory",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "303": {
+          "name": "MemoryServerError",
+          "owner": "finja",
+          "module": "",
+          "category": "memory",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "MemoryStoreError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "340": {
+          "name": "DiaryCorruptError",
+          "owner": "finja",
+          "module": "",
+          "category": "memory",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "MemoryStoreError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "341": {
+          "name": "MemoryStoreCorruptError",
+          "owner": "finja",
+          "module": "",
+          "category": "memory",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "MemoryStoreError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "400": {
+          "name": "SessionError",
+          "owner": "finja",
+          "module": "",
+          "category": "session",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "401": {
+          "name": "AuthError",
+          "owner": "finja",
+          "module": "",
+          "category": "session",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "402": {
+          "name": "UserNotFoundError",
+          "owner": "finja",
+          "module": "",
+          "category": "session",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "403": {
+          "name": "TwitchOauthInvalidError",
+          "owner": "finja-chat",
+          "module": "finja-chat",
+          "category": "session",
+          "description": "Twitch OAuth credentials are invalid.",
+          "source": "registry-only",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "404": {
+          "name": "TwitchDeviceAuthorizationFailedError",
+          "owner": "finja-chat",
+          "module": "finja-chat",
+          "category": "session",
+          "description": "Twitch Device Code authorization could not complete.",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "2.4.0",
+          "updated_at": ""
+        },
+        "405": {
+          "name": "TwitchAccessTokenRefreshError",
+          "owner": "finja-chat",
+          "module": "finja-chat",
+          "category": "session",
+          "description": "Twitch rejected or could not complete token rotation.",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "2.4.0",
+          "updated_at": ""
+        },
+        "406": {
+          "name": "TwitchChatReconnectRecoveryError",
+          "owner": "finja-chat",
+          "module": "finja-chat",
+          "category": "session",
+          "description": "Chat could not reconnect after credential recovery.",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "2.4.0",
+          "updated_at": ""
+        },
+        "444": {
+          "name": "NoPrivilegeError",
+          "owner": "finja",
+          "module": "",
+          "category": "session",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "SessionError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "500": {
+          "name": "ToolError",
+          "owner": "finja",
+          "module": "",
+          "category": "tool",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "501": {
+          "name": "ToolNotFoundError",
+          "owner": "finja",
+          "module": "",
+          "category": "tool",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "ToolError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "502": {
+          "name": "ToolExecutionError",
+          "owner": "finja",
+          "module": "",
+          "category": "tool",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "ToolError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "503": {
+          "name": "ToolTimeoutError",
+          "owner": "finja",
+          "module": "",
+          "category": "tool",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "ToolError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "504": {
+          "name": "ObsWebsocketDownError",
+          "owner": "obs-bridge",
+          "module": "obs",
+          "category": "tool",
+          "description": "",
+          "source": "obs-bridge/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "600": {
+          "name": "PipelineError",
+          "owner": "finja",
+          "module": "",
+          "category": "pipeline",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "601": {
+          "name": "GuardError",
+          "owner": "finja",
+          "module": "",
+          "category": "pipeline",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "PipelineError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "602": {
+          "name": "SafetyError",
+          "owner": "finja",
+          "module": "",
+          "category": "pipeline",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "PipelineError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "610": {
+          "name": "UserInputError",
+          "owner": "finja",
+          "module": "",
+          "category": "pipeline",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "PipelineError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "800": {
+          "name": "HostError",
+          "owner": "finja",
+          "module": "",
+          "category": "host",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "803": {
+          "name": "MaintenanceError",
+          "owner": "finja",
+          "module": "",
+          "category": "host",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "HostError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "900": {
+          "name": "AppError",
+          "owner": "finja",
+          "module": "",
+          "category": "unexpected",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "Exception",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "999": {
+          "name": "UnexpectedError",
+          "owner": "finja",
+          "module": "",
+          "category": "unexpected",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "1000": {
+          "name": "PrivacyError",
+          "owner": "finja",
+          "module": "",
+          "category": "privacy",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": false,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "1001": {
+          "name": "PrivacyLeakError",
+          "owner": "finja",
+          "module": "",
+          "category": "privacy",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "PrivacyError",
+          "to_inbox": false,
+          "introduced": "",
+          "updated_at": ""
+        },
+        "1100": {
+          "name": "PromptInjectionError",
+          "owner": "finja",
+          "module": "",
+          "category": "injection",
+          "description": "",
+          "source": "finja/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": false,
+          "introduced": "",
+          "updated_at": ""
+        }
+      }
+    }
+  }
+}

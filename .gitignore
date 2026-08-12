@@ -3,3 +3,7 @@
 megalinter-reports/
 .megalinter-setup.bak
 
+# Local contract scanner state (regenerated; never public source of truth)
+.error_contract/
+.github_contract/
+

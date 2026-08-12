@@ -6,14 +6,17 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.3.0
+  Version: 2.4.0
   Description: Validates that Windows startup scripts exist and
                reference the correct Python entry points.
 
   Note: These tests do NOT execute the batch files (which would block),
         but inspect their content to ensure integrity.
 
-  ✨ New in 2.3.0:
+  ✨ New in 2.4.0:
+    • Module version aligned; launcher integrity coverage is unchanged.
+
+  📜 Changelog 2.3.0:
     • Version number aligned with the rest of the Chat module (unified
       module version, changelog still stays per-file) -- no code changes
       to this file

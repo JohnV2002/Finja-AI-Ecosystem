@@ -6,10 +6,14 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.3.0
+  Version: 2.4.0
   Description: Robust moderated Song Request server for Spotify + Finja replies.
 
-  ✨ New in 2.3.0:
+  ✨ New in 2.4.0:
+    • Module version aligned with the Twitch OAuth/reconnect release;
+      Spotify request API behavior is unchanged.
+
+  📜 Changelog 2.3.0:
     • Merged Production + GitHub tracks into one common ground (2026-07-19)
     • Auto-filter mode restored (SR_MODERATED=false: popularity/label filter
       instead of a manual accept/deny queue)
@@ -810,7 +814,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print("=" * 70)
-    print("  Finja Song Request Server v2.3.0")
+    print("  Finja Song Request Server v2.4.0")
     print("=" * 70)
     print(f"  Moderated: {MODERATED}")
     print(f"  Cooldown: {COOLDOWN_SECS}s")

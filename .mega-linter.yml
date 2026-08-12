@@ -9,7 +9,9 @@
 # ======================================================================
 
 MEGALINTER_VERSION: v10.0.0
-MEGALINTER_FLAVOR: all
+# cupcake ≈ broad monorepo flavor (faster than "all"; custom flavor later if needed)
+MEGALINTER_FLAVOR: cupcake
+FLAVOR_SUGGESTIONS: false
 
 # Soft gate — CI stays green while we digest findings
 DISABLE_ERRORS: true
@@ -83,6 +85,8 @@ PRINT_ALPACA: false
 
 GITHUB_STATUS_REPORTER: true
 GITHUB_COMMENT_REPORTER: true
-SARIF_REPORTER: true
+# SARIF multi-run upload to Code Scanning is rejected (same category). Keep
+# text/JSON/PR comment + Actions artifact instead.
+SARIF_REPORTER: false
 TEXT_REPORTER: true
 JSON_REPORTER: true
