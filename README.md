@@ -337,7 +337,6 @@ Now we can set up the primary interface for interaction.
 [![MegaLinter](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/megalinter.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/megalinter.yml)
 [![Dependency Guard](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/dependency-guard.yml)
 
-Config: [`.mega-linter.yml`](./.mega-linter.yml) (phase 1: **report-only**, `DISABLE_ERRORS: true`).  
 Details: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md)**
 
 #### 🔨 Docker Builds
