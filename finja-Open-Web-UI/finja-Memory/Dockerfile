@@ -39,7 +39,7 @@
 
 # --- Stage 1: Build Stage ---
 # Dependabot may bump this tag; runtime stage must use the same tag.
-FROM python:3.13-alpine AS builder
+FROM python:3.14-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache gcc linux-headers musl-dev
 COPY requirements.txt .
@@ -48,7 +48,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Final Stage ---
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 WORKDIR /app
 
 # Create directories, user, and set permissions in ONE step (layer optimized)
