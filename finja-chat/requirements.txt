@@ -8,10 +8,10 @@
 #
 # HTML/JS is vanilla; no frontend package manager.
 # Install: pip install -r requirements.txt
-flask>=3.0.0
-flask-cors>=4.0.0
-fastapi>=0.110.0
+flask>=3.1.3
+flask-cors>=6.0.5
+fastapi>=0.141.1
 uvicorn[standard]>=0.52.1
 pydantic>=2.13.4
-spotipy>=2.23.0
-python-dotenv>=1.0.0
+spotipy>=2.26.0
+python-dotenv>=1.2.2
