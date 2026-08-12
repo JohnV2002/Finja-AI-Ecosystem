@@ -80,7 +80,7 @@ jobs:
           path: finja-youtube/coverage.xml
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: finja-youtube/coverage.xml
