@@ -1,6 +1,6 @@
 # Finja Instagram Reels - Dependencies
-playwright>=1.40.0
-fastapi>=0.110.0
-uvicorn[standard]>=0.52.1
+playwright>=1.62.0
+fastapi>=0.141.1
+uvicorn[standard]>=0.52.3
 httpx>=0.28.1
 python-dotenv
