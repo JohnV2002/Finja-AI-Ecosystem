@@ -5,12 +5,11 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.0
+  Version: 1.2.1
 
-  ✨ New in 1.2.0:
-    • Adopted into Production ("Finja MUSIK" folder) as part of the
-      module version/header unification (2026-07-20) -- no functional
-      changes in this file specifically
+  ✨ New in 1.2.1:
+    • Regression coverage for Basic Auth token refresh, invalid_grant privacy,
+      and stopping only the Spotify polling thread on permanent OAuth failure
 
   📜 Changelog 1.1.0:
     • Complete English documentation
@@ -50,6 +49,10 @@ import tempfile
 import shutil
 import importlib.util
 from pathlib import Path
+from unittest.mock import Mock, patch
+
+import webserver
+from core.exceptions import SpotifyAccessTokenRefreshError
 
 
 # =============================================================================
@@ -107,6 +110,75 @@ MOCK_POST_RESPONSES = {
         "invalid": {"success": False, "message": "Invalid action: invalid"},
     }
 }
+
+
+class TestSpotifyOAuthRefresh(unittest.TestCase):
+    """Regression tests for Spotify OAuth refresh and retry handling."""
+
+    @patch("webserver.requests.post")
+    def test_refresh_uses_basic_auth_without_credentials_in_body(self, post_mock):
+        response = Mock(status_code=200)
+        response.json.return_value = {"access_token": "fresh-access-token"}
+        post_mock.return_value = response
+
+        token = webserver.refresh_spotify_token(
+            "client-id", "client-secret", "refresh-token"
+        )
+
+        self.assertEqual(token, "fresh-access-token")
+        _, kwargs = post_mock.call_args
+        self.assertEqual(kwargs["auth"], ("client-id", "client-secret"))
+        self.assertEqual(
+            kwargs["data"],
+            {"grant_type": "refresh_token", "refresh_token": "refresh-token"}
+        )
+        self.assertNotIn("client_id", kwargs["data"])
+        self.assertNotIn("client_secret", kwargs["data"])
+
+    @patch("webserver.requests.post")
+    def test_invalid_grant_requires_reauthorization_without_secret_leak(self, post_mock):
+        response = Mock(status_code=400)
+        response.json.return_value = {
+            "error": "invalid_grant",
+            "error_description": "sensitive remote detail",
+        }
+        post_mock.return_value = response
+
+        with self.assertRaises(SpotifyAccessTokenRefreshError) as caught:
+            webserver.refresh_spotify_token(
+                "client-id", "client-secret", "refresh-token"
+            )
+
+        error = caught.exception
+        self.assertEqual(error.code, "FINJA-407")
+        self.assertTrue(error.context["reauthorization_required"])
+        self.assertFalse(error.context["retryable"])
+        self.assertNotIn("client-secret", str(error))
+        self.assertNotIn("refresh-token", str(error))
+        self.assertNotIn("sensitive remote detail", str(error))
+
+    @patch("webserver.log")
+    @patch("webserver._poll_spotify_once")
+    @patch("webserver._load_spotify_config")
+    def test_invalid_auth_stops_polling_but_not_server(
+        self, load_config_mock, poll_mock, log_mock
+    ):
+        load_config_mock.return_value = ("client-id", "client-secret", "refresh-token")
+        poll_mock.side_effect = SpotifyAccessTokenRefreshError(
+            "Spotify refresh token is expired or revoked; reauthorization is required.",
+            retryable=False,
+            reauthorization_required=True,
+        )
+        stop_event = Mock()
+        stop_event.is_set.return_value = False
+
+        webserver.spotify_nowplaying_main_loop(
+            Path("unused.txt"), Path("config.json"), 5, stop_event
+        )
+
+        poll_mock.assert_called_once()
+        stop_event.wait.assert_not_called()
+        self.assertTrue(any("FINJA-407" in str(call) for call in log_mock.call_args_list))
 
 
 # =============================================================================
@@ -693,15 +765,16 @@ class TestRTL89CDPNowPlaying(unittest.TestCase):
             except ValueError:
                 raise ValueError(f"Path traversal attempt: {path}")
         
-        base = "/home/user/finja"
-        
-        # Valid path
-        valid = validate_path("/home/user/finja/output/file.txt", base)
-        self.assertIsNotNone(valid)
-        
-        # Invalid path (traversal attempt)
-        with self.assertRaises(ValueError):
-            validate_path("/home/user/finja/../../../etc/passwd", base)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir) / "finja"
+
+            # Valid path
+            valid = validate_path(base / "output" / "file.txt", base)
+            self.assertIsNotNone(valid)
+
+            # Invalid path (traversal attempt)
+            with self.assertRaises(ValueError):
+                validate_path(base / ".." / "outside" / "passwd", base)
         
         print("✅ Path validation works (traversal protection)")
     
@@ -743,8 +816,8 @@ class TestSecurity(unittest.TestCase):
         """Test: Common path traversal vectors are blocked."""
         dangerous_paths = [
             "../../../etc/passwd",
-            "..\\..\\..\\windows\\system32\\config",
-            "/etc/passwd",
+            os.path.join("..", "..", "..", "windows", "system32", "config"),
+            os.path.join(os.sep, "etc", "passwd"),
             "....//....//etc/passwd",
             "%2e%2e%2f%2e%2e%2fetc/passwd",
             "..%252f..%252f..%252fetc/passwd",
@@ -756,7 +829,7 @@ class TestSecurity(unittest.TestCase):
             
             # Check for common traversal indicators or absolute paths
             is_traversal = ".." in p
-            is_absolute = path.startswith("/") or (len(path) > 1 and path[1] == ":")
+            is_absolute = Path(path).is_absolute() or path.startswith(os.sep)
             
             self.assertTrue(is_traversal or is_absolute, f"Vector should be detected: {path}")
         
@@ -877,7 +950,7 @@ class TestFileStructure(unittest.TestCase):
 
 if __name__ == '__main__':
     print("\n" + "=" * 70)
-    print("          Finja Music - Comprehensive Test Suite v1.1.0")
+    print("          Finja Music - Comprehensive Test Suite v1.2.1")
     print("=" * 70 + "\n")
     
     # Run all tests

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-08-12T14:51:07+00:00",
+  "updated_at": "2026-08-29T20:14:14+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -299,6 +299,18 @@
           "to_inbox": true,
           "introduced": "2.4.0",
           "updated_at": ""
+        },
+        "407": {
+          "name": "SpotifyAccessTokenRefreshError",
+          "owner": "finja-everything-in-once",
+          "module": "finja_music",
+          "category": "session",
+          "description": "Spotify rejected or could not refresh the user access token.",
+          "source": "Finja-music/finja-everything-in-once/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-08-29T20:14:14+00:00",
+          "updated_at": "2026-08-29T20:14:14+00:00"
         },
         "444": {
           "name": "NoPrivilegeError",

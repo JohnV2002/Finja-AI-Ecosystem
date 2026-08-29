@@ -1,11 +1,16 @@
-# 🎶 Finja Music - All-in-One Edition
+# 🎶 Finja Music - All-in-One Edition v1.2.1
 *Multi-source NowPlaying system with OBS overlays, radio scrapers & AI reactions. 💜*
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/yourusername/finja-music)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](https://github.com/yourusername/finja-music)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v1.2.0:**
+> **✨ New in v1.2.1:**
+> - **Spotify OAuth:** Token refresh uses the documented HTTP Basic client authentication
+> - **Clear recovery:** Expired or revoked refresh tokens report `FINJA-407` and request reauthorization
+> - **Stable server:** Permanent Spotify OAuth failures stop only Spotify polling; the control server remains online
+>
+> **Changelog v1.2.0:**
 > - **Fix:** Restored the Sleep Control panel (sleep/wake/auto) in `Musik.html` —
 >   the `/cmd/sleep|wake|auto` backend was still fully implemented, only the
 >   button panel had gone missing

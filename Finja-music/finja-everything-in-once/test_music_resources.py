@@ -6,7 +6,7 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.0
+  Version: 1.2.1
 
   ✨ New in 1.2.0:
     • Adopted into Production ("Finja MUSIK" folder) as part of the

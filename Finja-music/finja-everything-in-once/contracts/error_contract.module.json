@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-everything-in-once",
+  "module": "finja_music",
+  "legend": "../../error_contract.json",
+  "implementations": [
+    {
+      "code": "FINJA-407",
+      "name": "SpotifyAccessTokenRefreshError",
+      "source": "core/exceptions.py"
+    }
+  ]
+}

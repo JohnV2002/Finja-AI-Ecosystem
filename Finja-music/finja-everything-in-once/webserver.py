@@ -7,14 +7,13 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-everything-in-one
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.0
+  Version: 1.2.1
   Description: Central web server and control hub for all music modules.
 
-  ✨ New in 1.2.0:
-    • Version number aligned with the rest of the finja-music module
-      (2026-07-20) -- no functional changes in this file specifically;
-      the /cmd/sleep|wake|auto backend this file exposes was confirmed
-      still fully wired to the restored Sleep Control panel in Musik.html
+  ✨ New in 1.2.1:
+    • Spotify token refresh now uses HTTP Basic client authentication
+    • FINJA-407 reports safe OAuth causes without exposing credentials
+    • Non-retryable OAuth failures stop Spotify polling without stopping server
 
   📜 Changelog 1.1.0:
     • Complete English translation of all code and documentation
@@ -87,6 +86,8 @@ from difflib import SequenceMatcher
 import pickle
 from typing import Any, List, Dict, Tuple, Optional, Callable
 import signal
+
+from core.exceptions import SpotifyAccessTokenRefreshError
 
 # ==============================================================================
 # Third-Party Imports
@@ -3335,20 +3336,75 @@ def refresh_spotify_token(
         New access token
         
     Raises:
-        requests.exceptions.RequestException: If token refresh fails
+        SpotifyAccessTokenRefreshError: If Spotify rejects or cannot complete
+            the token refresh.
     """
     data = {
         'grant_type': 'refresh_token',
-        'refresh_token': refresh_token,
-        'client_id': client_id,
-        'client_secret': client_secret
+        'refresh_token': refresh_token
     }
-    
-    response = requests.post(SPOTIFY_TOKEN_URL, data=data, timeout=10)
-    response.raise_for_status()
-    
-    token_data = response.json()
-    return token_data['access_token']
+
+    try:
+        response = requests.post(
+            SPOTIFY_TOKEN_URL,
+            data=data,
+            auth=(client_id, client_secret),
+            timeout=10
+        )
+    except requests.exceptions.RequestException as exc:
+        raise SpotifyAccessTokenRefreshError(
+            "Spotify token refresh request could not reach Spotify.",
+            cause=exc,
+            retryable=True
+        ) from exc
+
+    if not 200 <= response.status_code < 300:
+        try:
+            error_payload = response.json()
+        except (ValueError, TypeError):
+            error_payload = {}
+
+        raw_error = error_payload.get("error") if isinstance(error_payload, dict) else None
+        known_errors = {
+            "invalid_client",
+            "invalid_grant",
+            "invalid_request",
+            "unsupported_grant_type",
+        }
+        oauth_error = raw_error if raw_error in known_errors else "unknown_oauth_error"
+        retryable = response.status_code == 429 or response.status_code >= 500
+
+        if oauth_error == "invalid_grant":
+            message = (
+                "Spotify refresh token is expired or revoked; "
+                "reauthorization is required."
+            )
+        elif oauth_error == "invalid_client":
+            message = (
+                "Spotify rejected the client credentials; "
+                "verify the client ID and client secret."
+            )
+        else:
+            message = f"Spotify token refresh failed ({oauth_error})."
+
+        raise SpotifyAccessTokenRefreshError(
+            message,
+            oauth_error=oauth_error,
+            status_code=response.status_code,
+            retryable=retryable,
+            reauthorization_required=oauth_error == "invalid_grant"
+        )
+
+    try:
+        access_token = response.json()["access_token"]
+    except (ValueError, TypeError, KeyError) as exc:
+        raise SpotifyAccessTokenRefreshError(
+            "Spotify token response did not contain a usable access token.",
+            cause=exc,
+            retryable=True
+        ) from exc
+
+    return access_token
 
 
 def get_spotify_now_playing(access_token: str) -> Optional[str]:
@@ -3500,6 +3556,11 @@ def _poll_spotify_once(
         # Update file if changed
         return _update_now_playing_file(output_file, current, last)
         
+    except SpotifyAccessTokenRefreshError as exc:
+        if not exc.context.get("retryable", False):
+            raise
+        log(f"[spotify_nowplaying] {exc.code}: {exc}")
+        return last
     except requests.exceptions.Timeout:
         log("[spotify_nowplaying] Request timeout")
         return last
@@ -3541,13 +3602,20 @@ def spotify_nowplaying_main_loop(
     
     # Main polling loop
     while not stop_event.is_set():
-        last = _poll_spotify_once(
-            output_file,
-            client_id,
-            client_secret,
-            refresh_token,
-            last
-        )
+        try:
+            last = _poll_spotify_once(
+                output_file,
+                client_id,
+                client_secret,
+                refresh_token,
+                last
+            )
+        except SpotifyAccessTokenRefreshError as exc:
+            log(
+                f"[spotify_nowplaying] {exc.code}: {exc} "
+                "Spotify polling stopped; the web server remains online."
+            )
+            break
         
         # Wait for stop event or timeout
         if stop_event.wait(timeout=interval):
@@ -6141,7 +6209,7 @@ def main():
 # This server is NOT exposed to the internet - it's bound to 127.0.0.1
 # Adding HTTPS would require certificates and provide no security benefit for local-only access
         httpd = socketserver.TCPServer(("", PORT), MyHandler)
-        log(f"Finja's BIG Musik BRAIN v1.1.0 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")  # NOSONAR - localhost only
+        log(f"Finja's BIG Musik BRAIN v1.2.1 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")  # NOSONAR - localhost only
         httpd.serve_forever()  # NOSONAR nosec B201 - localhost only, no external exposure
 
     except KeyboardInterrupt:

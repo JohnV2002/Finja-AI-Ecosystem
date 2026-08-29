@@ -6,7 +6,7 @@ REM
 REM   Project: Finja - Twitch Interactivity Suite
 REM   Module: RTL Helper - Repeat Detection
 REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-REM   Version: 1.2.0
+REM   Version: 1.2.1
 REM   Description: Launches Python-based repeat counter for RTL 89.0 source
 REM
 REM   Features:
@@ -73,8 +73,7 @@ REM ======================================================================
 REM Python Executable Detection
 REM ======================================================================
 
-REM Use python from PATH (or specify fixed path if needed)
-REM set "PYEXE=C:\Python311\python.exe"
+REM Use Python from PATH; override PYEXE with an environment-specific launcher if needed
 set "PYEXE=python"
 
 REM Verify Python is available

@@ -6,7 +6,7 @@ REM
 REM   Project: Finja - Twitch Interactivity Suite
 REM   Module: RTL Helper - Browser Automation
 REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-REM   Version: 1.2.0
+REM   Version: 1.2.1
 REM   Description: Launches Chrome with CDP and starts RTL now-playing scraper
 REM
 REM   Features:
@@ -53,9 +53,9 @@ REM ======================================================================
 REM Path Detection
 REM ======================================================================
 
-REM Chrome executable location (try common paths)
-set "CHROME_EXE=C:\Program Files\Google\Chrome\Application\chrome.exe"
-if not exist "%CHROME_EXE%" set "CHROME_EXE=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+REM Chrome executable location (try environment-provided program directories)
+set "CHROME_EXE=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
+if not exist "%CHROME_EXE%" set "CHROME_EXE=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
 
 REM Use the faster Radioplayer page (NOT the main 89.0 RTL site)
 set "URL=https://sites.89.0rtl.de/radioplayer/live/index.html"
