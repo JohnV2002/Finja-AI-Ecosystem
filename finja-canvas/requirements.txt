@@ -3,4 +3,4 @@
 requests==2.34.2
 python-dotenv==1.2.2
 pillow==12.3.0
-cairosvg==2.9.0
+cairosvg==2.9.1
