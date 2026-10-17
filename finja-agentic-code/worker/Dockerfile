@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-agentic-code / worker
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.1
+#   Version: 1.11.0
 #
 # ----------------------------------------------------------------------
 #
@@ -20,7 +20,7 @@
 #
 # ======================================================================
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 WORKDIR /worker
 
@@ -28,6 +28,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends patch \
     && rm -rf /var/lib/apt/lists/*
 
+COPY l1_diagnosis.py .
 COPY worker.py .
 
 CMD ["python", "/worker/worker.py"]

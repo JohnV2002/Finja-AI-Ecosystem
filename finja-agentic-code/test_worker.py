@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-agentic-code / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.11.0
   Description: Unit tests for the sandbox worker (worker/worker.py).
                The worker runs offline inside a throwaway container in
                production, but every function it uses is plain Python
@@ -31,6 +31,7 @@
 ======================================================================
 """
 
+import json
 import os
 import shutil
 import sys
@@ -114,9 +115,51 @@ class TestFileListing:
         assert "demo.py.orig" not in paths
 
     def test_snapshot_includes_content(self, workspace: Path) -> None:
-        (workspace / "demo.py").write_text("hello = 1\n", encoding="utf-8")
+        # newline="\n": a plain write_text turns "\n" into "\r\n" on Windows, and
+        # the snapshot now returns the bytes exactly as they are on disk.
+        (workspace / "demo.py").write_text("hello = 1\n", encoding="utf-8", newline="\n")
         snapshot = worker.snapshot_files()
         assert snapshot[0]["content"] == "hello = 1\n"
+
+    def test_snapshot_preserves_windows_line_endings(self, workspace: Path) -> None:
+        """
+        Reading text would translate Windows line endings to Unix ones, so a
+        file nothing had touched came back altered. The sandbox compares a digest of the bytes
+        on disk before and after the apply, and a snapshot that differs from
+        the disk made any job holding an untouched CRLF file fail that
+        comparison and roll back.
+        """
+        (workspace / "crlf.py").write_bytes(b"x = 1\r\ny = 2\r\n")
+        (workspace / "lf.py").write_bytes(b"x = 1\ny = 2\n")
+        (workspace / "mixed.py").write_bytes(b"a\r\nb\nc\r\n")
+
+        by_path = {entry["path"]: entry["content"] for entry in worker.snapshot_files()}
+        assert by_path["crlf.py"] == "x = 1\r\ny = 2\r\n"
+        assert by_path["lf.py"] == "x = 1\ny = 2\n"
+        assert by_path["mixed.py"] == "a\r\nb\nc\r\n"
+
+    def test_restoring_a_snapshot_reproduces_the_workspace_digest(
+        self, workspace: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        The invariant the verification depends on: write the snapshot back the
+        way the orchestrator does (newline="\\n", no translation) and the
+        workspace fingerprint must be unchanged, for any line endings.
+        """
+        (workspace / "crlf.py").write_bytes(b"x = 1\r\ny = 2\r\n")
+        (workspace / "sub").mkdir()
+        (workspace / "sub" / "lf.py").write_bytes(b"z = 3\n")
+        before = worker._workspace_fingerprint()
+
+        restored = tmp_path / "restored" / "workspace"
+        restored.mkdir(parents=True)
+        for entry in worker.snapshot_files():
+            target = restored / entry["path"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(entry["content"], encoding="utf-8", newline="\n")
+
+        monkeypatch.setattr(worker, "WORKSPACE", restored)
+        assert worker._workspace_fingerprint() == before
 
 
 # ==============================================================================
@@ -168,6 +211,76 @@ class TestWorkerMain:
         # The broken file must show up in the preflight syntax findings.
         assert len(result["preflight_python_syntax"]) == 1
         assert (worker.ROOT / "preflight_result.json").exists()
+
+    @pytest.mark.skipif(shutil.which("patch") is None, reason="`patch` binary not available")
+    def test_test_patch_phase_applies_candidate_in_disposable_workspace(
+        self, workspace: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(worker, "JOB_PHASE", "test_patch")
+        (workspace / "demo.py").write_text("x = 1\n", encoding="utf-8")
+        (worker.ROOT / "model.patch").write_text(
+            "--- demo.py\n+++ demo.py\n@@ -1 +1 @@\n-x = 1\n+x = 2\n",
+            encoding="utf-8",
+        )
+
+        worker.main()
+
+        result = json.loads((worker.ROOT / "test_patch_result.json").read_text(encoding="utf-8"))
+        assert result["patch_applied"] is True
+        assert result["files"] == [{"path": "demo.py", "content": "x = 2\n"}]
+
+
+class TestL3SandboxTests:
+    def test_pass_report_is_repeatable_for_same_input(
+        self, workspace: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(worker, "JOB_PHASE", "test_patch")
+        (workspace / "demo.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+        (workspace / "test_demo.py").write_text(
+            "import unittest\nfrom demo import add\n"
+            "class DemoTest(unittest.TestCase):\n"
+            "    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n",
+            encoding="utf-8",
+        )
+
+        first = worker.run_reproducible_tests()
+        second = worker.run_reproducible_tests()
+
+        assert first["status"] == second["status"] == "passed"
+        assert first["tests_run"] == second["tests_run"] == 1
+        assert first["source_sha256"] == second["source_sha256"]
+        assert first["workspace_mutated"] is False
+        assert first["log_artifact"] == "test_patch_tests.log"
+
+    def test_failing_test_is_not_green(self, workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(worker, "JOB_PHASE", "test_patch")
+        (workspace / "test_bad.py").write_text(
+            "import unittest\nclass Bad(unittest.TestCase):\n"
+            "    def test_no(self):\n        self.assertEqual(1, 2)\n",
+            encoding="utf-8",
+        )
+        assert worker.run_reproducible_tests()["status"] == "failed"
+
+    def test_no_tests_is_reported_not_run(self, workspace: Path) -> None:
+        (workspace / "demo.py").write_text("x = 1\n", encoding="utf-8")
+        evidence = worker.run_reproducible_tests()
+        assert evidence["status"] == "not_run"
+        assert evidence["tests_run"] == 0
+
+    def test_tests_cannot_mutate_promoted_candidate(
+        self, workspace: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(worker, "JOB_PHASE", "test_patch")
+        (workspace / "demo.py").write_text("x = 1\n", encoding="utf-8")
+        (workspace / "test_mutate.py").write_text(
+            "import unittest\nfrom pathlib import Path\n"
+            "class Mutate(unittest.TestCase):\n"
+            "    def test_change(self):\n        Path('demo.py').write_text('x = 2\\n')\n",
+            encoding="utf-8",
+        )
+        report = worker.run_reproducible_tests()
+        assert report["status"] == "failed"
+        assert report["workspace_mutated"] is True
 
 
 # ==============================================================================

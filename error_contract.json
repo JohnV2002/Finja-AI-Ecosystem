@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-08-29T20:14:14+00:00",
+  "updated_at": "2026-10-17T19:18:46+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -515,6 +515,328 @@
           "to_inbox": false,
           "introduced": "",
           "updated_at": ""
+        }
+      }
+    },
+    "FLARE": {
+      "categories": {
+        "config": {
+          "range": "100-199",
+          "description": "Config / env / packages"
+        },
+        "llm": {
+          "range": "200-299",
+          "description": "LLM / providers"
+        },
+        "memory": {
+          "range": "300-399",
+          "description": "Memory / store / diary"
+        },
+        "session": {
+          "range": "400-499",
+          "description": "Session / auth / privileges"
+        },
+        "tool": {
+          "range": "500-599",
+          "description": "Tools / plugins"
+        },
+        "pipeline": {
+          "range": "600-699",
+          "description": "Pipeline / guard / safety / input"
+        },
+        "host": {
+          "range": "800-899",
+          "description": "Host / system / maintenance"
+        },
+        "unexpected": {
+          "range": "900-999",
+          "description": "Generic / unexpected (prefer dedicated codes)"
+        },
+        "privacy": {
+          "range": "1000-1099",
+          "description": "Privacy / output firewall (usually no inbox)"
+        },
+        "injection": {
+          "range": "1100-1199",
+          "description": "Prompt injection / input firewall (usually no inbox)"
+        }
+      },
+      "codes": {
+        "100": {
+          "name": "RuntimeConfigurationError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "config",
+          "description": "Flare runtime configuration is invalid",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:01:04+00:00",
+          "updated_at": "2026-10-16T17:01:04+00:00"
+        },
+        "200": {
+          "name": "ModelRequestRetriesExhaustedError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "llm",
+          "description": "Model request retries exhausted",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:00:21+00:00",
+          "updated_at": "2026-10-16T17:00:21+00:00"
+        },
+        "500": {
+          "name": "WorkerExecutionTimedOutError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "tool",
+          "description": "Worker execution timed out",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:00:22+00:00",
+          "updated_at": "2026-10-16T17:00:22+00:00"
+        },
+        "501": {
+          "name": "WorkerExecutionError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "tool",
+          "description": "Worker execution failed",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:01:04+00:00",
+          "updated_at": "2026-10-16T17:01:04+00:00"
+        },
+        "502": {
+          "name": "DirectWriteRefusedError",
+          "owner": "finja-agentic-code",
+          "module": "tool",
+          "category": "tool",
+          "description": "Refused to run a container command outside the worker allowlist; Flare never writes to a running container",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T19:18:46+00:00",
+          "updated_at": "2026-10-17T19:18:46+00:00"
+        },
+        "600": {
+          "name": "JobCancelledError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Job was cancelled",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:00:22+00:00",
+          "updated_at": "2026-10-16T17:00:22+00:00"
+        },
+        "601": {
+          "name": "IdempotencyConflictError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Idempotency key conflicts with an existing job",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:24:25+00:00",
+          "updated_at": "2026-10-16T17:24:25+00:00"
+        },
+        "602": {
+          "name": "InvalidJobStateTransitionError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Job status transition is not allowed",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:47:16+00:00",
+          "updated_at": "2026-10-16T17:47:16+00:00"
+        },
+        "603": {
+          "name": "ActiveJobLimitReachedError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Active Flare job limit reached",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T09:53:07+00:00",
+          "updated_at": "2026-10-17T09:53:07+00:00"
+        },
+        "604": {
+          "name": "ResourceLockError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Repository or file lock operation failed",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T10:30:36+00:00",
+          "updated_at": "2026-10-17T10:30:36+00:00"
+        },
+        "605": {
+          "name": "InvalidJobRequestError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Job request validation failed",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T10:35:52+00:00",
+          "updated_at": "2026-10-17T10:35:52+00:00"
+        },
+        "606": {
+          "name": "RepairPatchRejectedError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Proposed repair diff is malformed or targets a path outside the submitted payload",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T13:22:35+00:00",
+          "updated_at": "2026-10-17T13:22:35+00:00"
+        },
+        "607": {
+          "name": "RepairPatchTooLargeError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Proposed repair diff exceeds the allowed repair scope",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T13:22:36+00:00",
+          "updated_at": "2026-10-17T13:22:36+00:00"
+        },
+        "608": {
+          "name": "HotfixApprovalGateError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Hotfix approval requires repeated passing sandbox tests",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T15:34:18+00:00",
+          "updated_at": "2026-10-17T15:34:18+00:00"
+        },
+        "609": {
+          "name": "ManualReviewRequiredError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Change requires human-led multi-file or architecture review",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T15:52:50+00:00",
+          "updated_at": "2026-10-17T15:52:50+00:00"
+        },
+        "610": {
+          "name": "InvalidIncidentEnvelopeError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Incident envelope is invalid or uses an unsupported version",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T16:02:47+00:00",
+          "updated_at": "2026-10-17T16:02:47+00:00"
+        },
+        "611": {
+          "name": "IncidentPrivacyViolationError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Incident envelope contains sensitive or unredacted data",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T16:02:48+00:00",
+          "updated_at": "2026-10-17T16:02:48+00:00"
+        },
+        "612": {
+          "name": "SensitiveInputRejectedError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Submitted files or task contain secrets, credentials or private data and were refused before staging",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T16:32:28+00:00",
+          "updated_at": "2026-10-17T16:32:28+00:00"
+        },
+        "613": {
+          "name": "RequestRateLimitedError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Too many submissions in a short time; the sender must wait before sending again",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T17:33:57+00:00",
+          "updated_at": "2026-10-17T17:33:57+00:00"
+        },
+        "614": {
+          "name": "ApprovalExpiredError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "pipeline",
+          "description": "Candidate was not approved in time and was withdrawn; resubmit it if it is still wanted",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-17T18:43:57+00:00",
+          "updated_at": "2026-10-17T18:43:57+00:00"
+        },
+        "800": {
+          "name": "JobRecoveryError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "host",
+          "description": "Persisted job state could not be recovered",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:00:23+00:00",
+          "updated_at": "2026-10-16T17:00:23+00:00"
+        },
+        "801": {
+          "name": "JobPersistenceError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "host",
+          "description": "Job state could not be persisted",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:24:26+00:00",
+          "updated_at": "2026-10-16T17:24:26+00:00"
+        },
+        "900": {
+          "name": "UnexpectedJobError",
+          "owner": "finja-agentic-code",
+          "module": "",
+          "category": "unexpected",
+          "description": "Unexpected job execution failure",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-16T17:01:38+00:00",
+          "updated_at": "2026-10-16T17:01:38+00:00"
         }
       }
     }

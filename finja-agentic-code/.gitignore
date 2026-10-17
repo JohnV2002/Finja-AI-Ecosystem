@@ -1,6 +1,10 @@
+# Flare (Finja Agentic Code) / local-only data - Version: 1.11.0
 .env
+private/
 agent_jobs/
+agent_jobs_testbed/
 __pycache__/
 *.pyc
 .pytest_cache/
+.ruff_cache/
 .DS_Store

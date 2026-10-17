@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "namespace": "FLARE",
+  "owner": "finja-agentic-code",
+  "module": "tool",
+  "legend": "../error_contract.json",
+  "implementations": [
+    {
+      "code": "FLARE-100",
+      "name": "RuntimeConfigurationError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-200",
+      "name": "ModelRequestRetriesExhaustedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-500",
+      "name": "WorkerExecutionTimedOutError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-501",
+      "name": "WorkerExecutionError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-502",
+      "name": "DirectWriteRefusedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-600",
+      "name": "JobCancelledError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-601",
+      "name": "IdempotencyConflictError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-602",
+      "name": "InvalidJobStateTransitionError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-603",
+      "name": "ActiveJobLimitReachedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-604",
+      "name": "ResourceLockError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-605",
+      "name": "InvalidJobRequestError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-606",
+      "name": "RepairPatchRejectedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-607",
+      "name": "RepairPatchTooLargeError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-608",
+      "name": "HotfixApprovalGateError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-609",
+      "name": "ManualReviewRequiredError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-610",
+      "name": "InvalidIncidentEnvelopeError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-611",
+      "name": "IncidentPrivacyViolationError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-612",
+      "name": "SensitiveInputRejectedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-613",
+      "name": "RequestRateLimitedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-614",
+      "name": "ApprovalExpiredError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-800",
+      "name": "JobRecoveryError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-801",
+      "name": "JobPersistenceError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FLARE-900",
+      "name": "UnexpectedJobError",
+      "source": "core/exceptions.py"
+    }
+  ]
+}

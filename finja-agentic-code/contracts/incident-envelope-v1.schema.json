@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "IncidentFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 60000,
+          "title": "Content",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "content",
+        "sha256"
+      ],
+      "title": "IncidentFile",
+      "type": "object"
+    },
+    "IncidentFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "line": {
+          "minimum": 1,
+          "title": "Line",
+          "type": "integer"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.<>-]{0,119}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        }
+      },
+      "required": [
+        "path",
+        "line"
+      ],
+      "title": "IncidentFrame",
+      "type": "object"
+    },
+    "RedactionAttestation": {
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "const": "finja-flare-redaction-v1",
+          "title": "Policy",
+          "type": "string"
+        },
+        "source_minimized": {
+          "const": true,
+          "title": "Source Minimized",
+          "type": "boolean"
+        },
+        "sensitive_values_removed": {
+          "const": true,
+          "title": "Sensitive Values Removed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "policy",
+        "source_minimized",
+        "sensitive_values_removed"
+      ],
+      "title": "RedactionAttestation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "envelope_version": {
+      "const": 1,
+      "title": "Envelope Version",
+      "type": "integer"
+    },
+    "incident_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "maxLength": 40,
+      "minLength": 20,
+      "title": "Observed At",
+      "type": "string"
+    },
+    "origin": {
+      "const": "finja",
+      "title": "Origin",
+      "type": "string"
+    },
+    "component": {
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "title": "Component",
+      "type": "string"
+    },
+    "repository": {
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "title": "Repository",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "standard",
+        "hotfix",
+        "manual"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "error_kind": {
+      "maxLength": 120,
+      "minLength": 1,
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.<>-]{0,119}$",
+      "title": "Error Kind",
+      "type": "string"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Z][A-Z0-9]{1,15}-[0-9]{3,5}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error Code"
+    },
+    "summary": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "frames": {
+      "items": {
+        "$ref": "#/$defs/IncidentFrame"
+      },
+      "maxItems": 8,
+      "title": "Frames",
+      "type": "array"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/IncidentFile"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "redaction": {
+      "$ref": "#/$defs/RedactionAttestation"
+    }
+  },
+  "required": [
+    "envelope_version",
+    "incident_id",
+    "observed_at",
+    "origin",
+    "component",
+    "repository",
+    "mode",
+    "error_kind",
+    "summary",
+    "files",
+    "redaction"
+  ],
+  "title": "IncidentEnvelope",
+  "type": "object"
+}

@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-agentic-code
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.1
+#   Version: 1.11.0
 #
 # ----------------------------------------------------------------------
 #
@@ -23,19 +23,32 @@
 services:
   orchestrator:
     build:
-      context: ./orchestrator
+      context: .
+      dockerfile: orchestrator/Dockerfile
     container_name: finja-agent-orchestrator
     ports:
-      - "8077:8077"
+      - "${FLARE_BIND_HOST:-127.0.0.1}:8077:8077"
     env_file:
       - .env
     environment:
       JOBS_DIR: /jobs
       WORKER_IMAGE: ${WORKER_IMAGE:-finja-agent-worker:dev}
-      WORKER_NETWORK: ${WORKER_NETWORK:-none}
+      WORKER_NETWORK: none
       AGENT_JOBS_HOST_DIR: ${AGENT_JOBS_HOST_DIR}
       MAX_PARALLEL_JOBS: ${MAX_PARALLEL_JOBS:-2}
+      MAX_ACTIVE_JOBS: ${MAX_ACTIVE_JOBS:-5}
+      MAX_PARALLEL_JOBS_PER_REPOSITORY: ${MAX_PARALLEL_JOBS_PER_REPOSITORY:-1}
+      HEARTBEAT_INTERVAL_SECONDS: ${HEARTBEAT_INTERVAL_SECONDS:-5}
+      HEARTBEAT_STALE_SECONDS: ${HEARTBEAT_STALE_SECONDS:-30}
+      PROGRESS_REPORT_LIMIT: ${PROGRESS_REPORT_LIMIT:-50}
       JOB_TIMEOUT_SECONDS: ${JOB_TIMEOUT_SECONDS:-600}
+      JOB_TOTAL_TIMEOUT_SECONDS: ${JOB_TOTAL_TIMEOUT_SECONDS:-900}
+      L4_REQUIRED_GREEN_RUNS: ${L4_REQUIRED_GREEN_RUNS:-3}
+      FINJA_TIMEOUT_RETRY_AFTER_SECONDS: ${FINJA_TIMEOUT_RETRY_AFTER_SECONDS:-30}
+      OPENROUTER_TIMEOUT_SECONDS: ${OPENROUTER_TIMEOUT_SECONDS:-90}
+      OPENROUTER_MAX_ATTEMPTS: ${OPENROUTER_MAX_ATTEMPTS:-3}
+      RETRY_BASE_DELAY_SECONDS: ${RETRY_BASE_DELAY_SECONDS:-1}
+      DEDUPE_WINDOW_SECONDS: ${DEDUPE_WINDOW_SECONDS:-300}
     volumes:
       - ${AGENT_JOBS_HOST_DIR}:/jobs
       - /var/run/docker.sock:/var/run/docker.sock
