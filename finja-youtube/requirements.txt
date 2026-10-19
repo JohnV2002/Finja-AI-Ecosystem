@@ -1,6 +1,6 @@
 # Finja YouTube Shorts - Dependencies
-playwright>=1.40.0
-fastapi>=0.141.1
-uvicorn[standard]>=0.27.0
+playwright>=1.64.0
+fastapi>=0.143.2
+uvicorn[standard]>=0.54.0
 httpx>=0.28.1
 python-dotenv
