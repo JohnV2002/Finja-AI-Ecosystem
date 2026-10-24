@@ -54,7 +54,7 @@ from typing import Any
 # * Expired credentials and missing settings get an `env-` fingerprint, so Flare's signal
 #   gateway tells a person instead of trying to repair code.
 # * Delivery problems are handed to `on_failure` once per distinct reason; the host project
-#   turns them into its own Error Contract code. This module never raises into the caller.
+#   turns them into its own Error Contract code (keep that callback a plain logger).
 
 CONTRACT_FILE = "analytics_contract.json"
 SCHEMA_VERSION = "1.0"
@@ -475,7 +475,8 @@ class AnalyticsSender:
             result = sink(error)
             try:
                 self.record_dashboard_error(error)
-            except Exception as exc:  # analytics must never break error reporting
+            except (TypeError, ValueError, KeyError, AttributeError, OSError) as exc:
+                # A malformed error record must never break the project's own error reporting.
                 self._fail({"reason": type(exc).__name__, "retry": False,
                             "message": "an error could not be turned into an analytics event"})
             return result
@@ -506,10 +507,7 @@ class AnalyticsSender:
         reason = str(problem.get("reason", ""))
         if reason != self._last_problem:  # once per distinct problem, not once per batch
             self._last_problem = reason
-            try:
-                self.on_failure(problem)
-            except Exception:  # the host's reporter must not take the sender down
-                pass
+            self.on_failure(problem)  # the host logs it with its own Error Contract code
 
     def flush_once(self) -> int:
         """Send queued events in batches; returns how many were delivered."""
@@ -591,5 +589,5 @@ class AnalyticsLogHandler(logging.Handler):
         try:
             self.sender.record_exception(record.exc_info[1], code=getattr(record, "error_code", None),
                                          traceback_obj=record.exc_info[2])
-        except Exception:  # logging must never fail because of analytics
-            self.handleError(record)
+        except (TypeError, ValueError, AttributeError, OSError):
+            self.handleError(record)  # logging's own path for a handler that could not emit

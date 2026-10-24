@@ -121,6 +121,9 @@ class TestGeneratedFile(GeneratedProject):
         body = text.split('"""', 2)[2]
         self.assertNotIn("import analytics_contract", body)  # no runtime dependency on the tool
         self.assertNotIn("from analytics_contract", body)
+        # Projects run the Error Contract gate over this file: no broad catch may come with it.
+        self.assertNotIn("except Exception", body)
+        self.assertNotIn("except:", body)
         self.assertNotIn("AI-Coding Tooling", text)
 
     def test_off_by_default_does_nothing(self) -> None:
