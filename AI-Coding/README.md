@@ -19,6 +19,7 @@ README, installation guide, engine and tests one level below it.
 |----------|---------|---------|---------------|
 | Error Contract | 1.3.2 | Structured error namespaces, public code legends, local implementations and baseline-aware gates | [Open README](error-contract/README.md) |
 | GitHub Contract | 1.1.1 | Project-native headers, module-wide versions, README completeness and leak prevention | [Open README](github-contract/README.md) |
+| Analytics Contract | 1.0.1 | Opt-in, fail-silent analytics discovery, metric planning and stable API schemas | [Open README](analytics-contract/README.md) |
 
 ## Repository Model
 
@@ -30,8 +31,10 @@ Finja-AI-Ecosystem/
     ├── README.md                     this index
     ├── error-contract/
     │   └── README.md                 Error Contract details
-    └── github-contract/
-        └── README.md                 GitHub Contract details
+    ├── github-contract/
+    │   └── README.md                 GitHub Contract details
+    └── analytics-contract/
+        └── README.md                 Analytics Contract details
 ```
 
 The public [`../error_contract.json`](../error_contract.json) is readable
@@ -39,12 +42,14 @@ without installing either contract. It records all known namespaces, codes,
 owners, meanings and logical source locations in one place.
 
 Module-local `contracts/error_contract.module.json` files are only small
-implementation indexes. Local `.error_contract/` and `.github_contract/`
-folders are regenerated scanner state and must remain ignored.
+implementation indexes. Each project may add a root `analytics_contract.json`
+that defaults to disabled and describes its safe metrics and transport settings.
+Local `.error_contract/`, `.github_contract/` and `.analytics_contract/` folders
+are regenerated state and must remain ignored.
 
 ## Installation
 
-Install both contracts from their respective folders:
+Install all contracts from their respective folders:
 
 ```powershell
 cd AI-Coding\error-contract
@@ -52,6 +57,10 @@ python -m error_contract install-skills --engines grok,codex,claude
 
 cd ..\github-contract
 python -m github_contract install-skills
+
+cd ..\analytics-contract
+python -m pip install -e .
+python -m analytics_contract install-skills
 ```
 
 The installers configure the skills and lifecycle hooks for the supported
@@ -69,6 +78,11 @@ error-contract slap .
 
 github-contract preflight .
 github-contract scan . --version X.Y.Z
+
+analytics-contract detect .
+analytics-contract init .
+analytics-contract plan .
+analytics-contract validate .
 ```
 
 Number categories are defined by each namespace in the repository-root legend;
@@ -88,6 +102,10 @@ github-contract scan . --version 1.3.2
 cd ..\github-contract
 python -m unittest discover -v
 github-contract scan . --version 1.1.1
+
+cd ..\analytics-contract
+python -m unittest discover -v
+github-contract scan . --version 1.0.1
 ```
 
 ## License

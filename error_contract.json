@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-17T19:18:46+00:00",
+  "updated_at": "2026-10-18T13:20:33+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -825,6 +825,18 @@
           "to_inbox": true,
           "introduced": "2026-10-16T17:24:26+00:00",
           "updated_at": "2026-10-16T17:24:26+00:00"
+        },
+        "802": {
+          "name": "DiscordNotificationError",
+          "owner": "finja-agentic-code",
+          "module": "discord",
+          "category": "host",
+          "description": "Discord incident notice could not be delivered",
+          "source": "finja-agentic-code/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-18T13:20:33+00:00",
+          "updated_at": "2026-10-18T13:20:33+00:00"
         },
         "900": {
           "name": "UnexpectedJobError",

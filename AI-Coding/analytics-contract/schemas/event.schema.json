@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jappshome.de/schemas/analytics-contract/event-1.0.json",
+  "title": "Analytics Contract Event 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "timestamp", "project_id", "event_name", "kind"],
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "error" } }, "required": ["kind"] },
+      "then": { "required": ["error"] }
+    }
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "event_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "project_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+    "module": { "type": ["string", "null"], "maxLength": 128 },
+    "event_name": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,127}$" },
+    "kind": { "enum": ["counter", "gauge", "timing", "event", "error"] },
+    "outcome": { "enum": ["success", "failure", "cancelled", "unknown", null] },
+    "value": { "type": ["number", "null"] },
+    "unit": { "type": ["string", "null"], "maxLength": 32 },
+    "duration_ms": { "type": ["number", "null"], "minimum": 0 },
+    "error": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["code", "fingerprint", "affected_file"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*-[0-9]+$" },
+        "fingerprint": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+        "affected_file": { "type": "string", "pattern": "^(?!/)(?!.*:)(?!.*(?:^|/)[.][.](?:/|$)).+$" },
+        "line": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": { "enum": ["environment", "version", "component", "operation", "outcome"] },
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"],
+        "maxLength": 128
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "maxProperties": 8,
+      "propertyNames": { "pattern": "^x_[a-z][a-z0-9_]{0,62}$" },
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"],
+        "maxLength": 128
+      }
+    }
+  }
+}
+
