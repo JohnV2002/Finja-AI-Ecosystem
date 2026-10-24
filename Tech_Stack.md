@@ -201,7 +201,7 @@ Monorepo modules (each can stand alone; together = Finja):
 | Music | `Finja-music` (everything-in-once + docker-spotify) |
 | Open WebUI backends | Memory, web-crawler, OCR, Stable Diffusion |
 | Sensors / scrapers | weather, youtube, instagram, omni-test, canvas |
-| Coding agent | `finja-agentic-code` (Flare) |
+| Coding agent | Flare (standalone repository `JohnV2002/Flare`) |
 
 Details: [README.md](./README.md) · tests: [TESTING.md](./TESTING.md)
 

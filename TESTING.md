@@ -25,10 +25,6 @@ Finja-AI-Ecosystem/
 │   ├── test_providers.py               # WMO mapping, Open-Meteo/Google parsing
 │   ├── test_docker_config.py           # Dockerfile/Compose sanity
 │   └── test_weather.py                 # (manual smoke test against a running instance)
-├── finja-agentic-code/
-│   ├── test_orchestrator.py            # Path validation, AES-GCM transport, auth, endpoints
-│   ├── test_worker.py                  # Syntax check, file snapshot, patch application
-│   └── test_agentic_job.py             # (manual smoke test against a running orchestrator)
 ├── finja-Open-Web-UI/
 │   ├── finja-Memory/
 │   │   ├── test_memory_server.py       # FastAPI endpoints, CRUD, Auth
@@ -95,16 +91,9 @@ pytest test_weather_api.py test_providers.py test_docker_config.py -v
 # test_weather.py is a manual smoke test — run it only against a live instance.
 ```
 
-### 🔥 Finja Agentic Code (Flare)
+### 🔥 Flare
 
-```bash
-cd finja-agentic-code
-pip install pytest httpx2
-pip install -r orchestrator/requirements.txt
-
-pytest test_orchestrator.py test_worker.py -v
-# test_agentic_job.py is a manual smoke test — needs a running orchestrator + Docker.
-```
+Flare moved to its own repository (`JohnV2002/Flare`) and is tested there.
 
 ### 🧠 Memory Module
 
@@ -159,7 +148,6 @@ Every workflow is **path-scoped**: a Pull Request or Push only triggers the chec
 | `finja-weather-tests.yml` | finja-weather | 3.12 |
 | `finja-music-everything-in-once.yml` | Finja-music/finja-everything-in-once | 3.9 / 3.10 / 3.11 |
 | `finja-music-docker-spotify.yml` | Finja-music/finja-music-docker-spotify | 3.10 / 3.11 |
-| `finja-agentic-code-tests.yml` | finja-agentic-code | 3.11 |
 | `memory-tests.yml` | finja-Open-Web-UI/finja-Memory | 3.11 |
 | `web-crawler-tests.yml` | finja-Open-Web-UI/finja-web-crawler | 3.12 |
 
@@ -168,8 +156,7 @@ Every workflow is **path-scoped**: a Pull Request or Push only triggers the chec
 ### Docker build checks (no Pytest — just verify the image builds)
 
 `finja-youtube-docker-build.yml`, `finja-instagram-docker-build.yml`,
-`finja-weather-docker-build.yml`, `finja-agentic-code-docker-build.yml`
-(builds both orchestrator + worker), `music-docker-build.yml`,
+`finja-weather-docker-build.yml`, `music-docker-build.yml`,
 `memory-build.yml` (also live-pings the container), `web-crawler-build.yml`,
 and `ocr-build.yml`.
 
@@ -263,7 +250,7 @@ def test_fallback_logic(mock_ddg):
 ```
 
 ### Manual smoke tests vs. unit tests
-Some modules ship a `test_*.py` that is a **manual smoke test** (hits a live, running service and just prints) rather than a Pytest suite — e.g. `finja-weather/test_weather.py` and `finja-agentic-code/test_agentic_job.py`. These are intentionally **not** run in CI; only the real Pytest suites are.
+Some modules ship a `test_*.py` that is a **manual smoke test** (hits a live, running service and just prints) rather than a Pytest suite — e.g. `finja-weather/test_weather.py`. These are intentionally **not** run in CI; only the real Pytest suites are.
 
 ## Support
 

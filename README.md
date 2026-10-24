@@ -58,7 +58,7 @@ Reading the legend does not require the Error Contract plugin.
 ---
 
 ## 📊 Project Status
-*As of: August 2026*
+*As of: October 2026*
 
 | Main Component | Version | Status | Description | Stats / Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -66,7 +66,8 @@ Reading the legend does not require the Error Contract plugin.
 | **finja-chat** | **v2.4.1** | 🔵 Update/Testing | Twitch chat overlay, bot panel, Spotify requests and refreshable Twitch authentication. | 45 Python + 4 auth tests · dedicated FINJA error codes |
 | **AI-Coding** 🛡️ | | 🟢 Stable | Cross-project coding contracts for Codex, Grok and Claude. | [Folder README](./AI-Coding/README.md) |
 | &nbsp;&nbsp;├─ error-contract | **v1.3.2** | 🟢 Stable | Structured error namespaces, public code legend and coding gates. | 11 tests · dynamic categories · atomic code creation |
-| &nbsp;&nbsp;└─ github-contract | **v1.1.1** | 🟢 Stable | Headers, module versions, README rules and leak prevention. | 8 tests · lifecycle hooks |
+| &nbsp;&nbsp;├─ github-contract | **v1.1.1** | 🟢 Stable | Headers, module versions, README rules and leak prevention. | 8 tests · lifecycle hooks |
+| &nbsp;&nbsp;└─ analytics-contract | **v1.0.1** | 🟢 Stable | Opt-in analytics discovery, metric planning and stable adapter API. | 19 tests · backend optional · Error Inbox integration |
 | **finja-music** | | 🟢 Stable | Music engine — pick **one** of the variants below. | |
 | &nbsp;&nbsp;└─ finja-everything-in-once | **v1.2.0** | 🟢 Stable | **Recommended** all-in-one Web-UI music engine. | 44 tests · CI ✓ · Sonar clean |
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.2.0** | 🟢 Stable | Dockerized Spotify-only music API. | 47 tests · CI ✓ · Sonar clean |
@@ -81,7 +82,7 @@ Reading the legend does not require the Error Contract plugin.
 | **finja-omni-test** 👁️ | **v1.0.0** | 🟢 Stable | Local screen observation (OCR/Vision testbed). | Cleaned & standardized |
 | **finja-youtube** 📺 | **v1.1.0** | 🔵 Testing | YouTube Shorts scraper + Vision AI proxy. | 59 tests · CI (3.11) · Docker build ✓ |
 | **finja-instagram** 📸 | **v1.1.0** | 🔵 Testing | Instagram Reels scraper + Vision AI proxy. | 79 tests · CI (3.11) · Docker build ✓ |
-| **finja-agentic-code** 💻 | **v1.0.1** | 🟢 Stable | **Flare** — external code worker (orchestrator + sandbox). | 48 tests · CI (3.11) · Docker build ✓ |
+| **Flare** 💻 | **v2.1.0** | 🟢 Stable | Independent repair platform; moved to its own private repository `JohnV2002/Flare`. | Tested and released there |
 | **OWN / Self-made VPet** 🐾 | | 🟡 Dev | Custom Python VPet core — **LIVE on Twitch!** | Release TBD |
 
 **Legend:** 🟢 Stable / Ready | 🔵 Update/Testing phase | 🟡 WIP / Dev | 🔴 Deprecated/Old
@@ -182,16 +183,17 @@ flowchart TD
 -   `/finja-weather` 🌦️ → Weather microservice (OpenMeteo/Google) + API.
 -   `/finja-canvas` 🎨 → Canvas drawing engine for overlays and VPet interactions.
 -   `/finja-omni-test` 👁️ → Screen observation pipeline (local OCR + Vision model testing).
--   `/finja-agentic-code` 💻 → **Flare.** The external code worker system (Orchestrator + Sandbox) for automated coding tasks.
+-   **Flare** 💻 → moved out of this monorepo into the standalone private repository `JohnV2002/Flare`. Finja talks to it through her Flare client (`tools/flare`).
 -   `/AI-Coding` 🛡️ → Coding-contract tooling for the J. Apps AI-assisted development workflow. [➡️ **Folder README**](./AI-Coding/README.md)
     -   `/error-contract` → Structured error namespaces, the public error legend, lifecycle hooks and coding gates.
     -   `/github-contract` → Repository headers, module versions, README conventions and leak prevention.
+    -   `/analytics-contract` → Disabled-by-default analytics discovery, instrumentation planning and stable event/API schemas.
 -   `/error_contract.json` → Public repository-wide error-code legend; readable without installing the AI-Coding tools.
 -   `/Own-VPet` (Coming Soon) → The new standalone VPet core.
 
 ---
 
-## 🛡️ AI-Coding Contracts & Error Legend
+## 🛡️ AI-Coding Contracts & Public Schemas
 
 [`AI-Coding/`](./AI-Coding/README.md) contains the repository tooling used by
 Codex, Grok and Claude in the J. Apps workflow. The folder follows the same
@@ -200,7 +202,8 @@ then one detailed README inside each contract.
 
 -   [**Error Contract v1.3.2**](./AI-Coding/error-contract/README.md) → Maintains structured error namespaces, module-local implementations, dynamic numeric categories and baseline-aware coding gates.
 -   [**GitHub Contract v1.1.1**](./AI-Coding/github-contract/README.md) → Enforces project-native headers, unified module versions, complete READMEs and protection against secret or private-path leaks.
--   [**Public Error Code Legend**](./error_contract.json) → Repository-wide source of truth for error meanings and ownership; readable without installing either plugin.
+-   [**Analytics Contract v1.0.1**](./AI-Coding/analytics-contract/README.md) → Detects projects and Error Inboxes, creates opt-in analytics configuration, selects relevant metrics and fixes the adapter-facing API schema.
+-   [**Public Error Code Legend**](./error_contract.json) → Repository-wide source of truth for error meanings and ownership; readable without installing the contracts.
 
 The contracts are development tooling, not part of Finja's Twitch runtime.
 Each target module keeps its own identity, version and established header style.
@@ -237,10 +240,6 @@ cd finja-weather
 pip install -r requirements.txt; pip install pytest pyyaml httpx2
 pytest test_weather_api.py test_providers.py test_docker_config.py -v
 
-# Example 4: Agentic Code (Flare) Unit Tests
-cd finja-agentic-code
-pip install -r orchestrator/requirements.txt; pip install pytest httpx2
-pytest test_orchestrator.py test_worker.py -v
 ```
 
 📖 **Full Test Documentation**: [TESTING.md](./TESTING.md)
@@ -292,10 +291,8 @@ Now we can set up the primary interface for interaction.
 4.  [➡️ **YouTube Instructions**](./finja-youtube/README.md) | [➡️ **Instagram Instructions**](./finja-instagram/README.md)
 
 ### Step 7: Launching the Coding Assistant (Flare)
-1.  Navigate to `/finja-agentic-code`.
-2.  Configure `.env` (add your `OPENROUTER_API_KEY` and docker folders).
-3.  Run `docker compose up -d --build` to start the orchestrator.
-4.  [➡️ **Flare Instructions**](./finja-agentic-code/README.md)
+Flare now lives in its own repository (`JohnV2002/Flare`); its README covers setup and deployment.
+Finja connects to it through `AGENT_ORCHESTRATOR_URL` and `ORCHESTRATOR_AUTH_TOKEN`.
 
 ---
 
@@ -352,7 +349,6 @@ Details: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md
 [![Weather Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-docker-build.yml)
 [![YouTube Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-docker-build.yml)
 [![Instagram Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-docker-build.yml)
-[![Agentic Code Build](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-docker-build.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-docker-build.yml)
 
 #### ✅ Automated Tests
 
@@ -364,7 +360,6 @@ Details: **[TESTING.md](./TESTING.md)** · **[tools/README.md](./tools/README.md
 [![Weather Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-weather-tests.yml)
 [![YouTube Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-youtube-tests.yml)
 [![Instagram Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-instagram-tests.yml)
-[![Agentic Code Tests](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-tests.yml/badge.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/actions/workflows/finja-agentic-code-tests.yml)
 
 ---
 

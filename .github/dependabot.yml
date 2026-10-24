@@ -10,7 +10,6 @@ updates:
   # ---------------------------------------------------------------------------
   - package-ecosystem: "pip"
     directories:
-      - "/finja-agentic-code/orchestrator"
       - "/finja-canvas"
       - "/finja-instagram"
       - "/finja-youtube"
@@ -78,7 +77,6 @@ updates:
       - "/finja-weather"
       - "/finja-youtube"
       - "/finja-instagram"
-      - "/finja-agentic-code/orchestrator"
       - "/finja-Open-Web-UI/finja-Memory"
       - "/finja-Open-Web-UI/finja-web-crawler"
     schedule:
