@@ -1,12 +1,12 @@
 # requirements.txt
-fastapi>=0.135.2
-starlette>=1.6.0
-uvicorn>=0.42.0
-pydantic>=2.13.4
-python-dotenv>=1.2.2
+fastapi>=0.156.8
+starlette>=1.9.0
+uvicorn>=0.54.0
+pydantic>=2.14.1
+python-dotenv>=1.2.4
 aiofiles>=25.1.0
 python-multipart>=0.0.32
 pytest>=9.1.1
 pytest-asyncio>=1.4.0
 httpx>=0.28.1
-cryptography>=50.0.0
+cryptography>=50.0.2
