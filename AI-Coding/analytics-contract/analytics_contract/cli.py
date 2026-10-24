@@ -122,6 +122,8 @@ def cmd_sender(args: argparse.Namespace) -> int:
     print(f"Created: {target}")
     print("Off until ANALYTICS_ENABLED is set; wire record_dashboard_error / record_exception or")
     print("AnalyticsLogHandler into the project's error path and call start() at boot.")
+    print("Ship analytics_contract.json with the app (Docker: COPY it and keep it out of .dockerignore);")
+    print("the sender reads the project id from it at runtime.")
     return 0
 
 
