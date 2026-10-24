@@ -92,6 +92,7 @@ _CONFIG_TEXT = re.compile(
     r"(?i)nicht\s+(?:gesetzt|konfiguriert)|fehlen?\s+in\s+(?:der\s+)?\.env|not\s+configured|"
     r"missing\s+\S{0,40}\s*(?:\.env|env(?:ironment)?\s+var|setting|config)|\(\.env\)")
 _ENV_PREFIX = {"AuthenticationError": "env-auth", "ConfigurationError": "env-config"}
+_COUNTED = "_analytics_contract_counted"
 
 MAX_BATCH_EVENTS = 100
 FLUSH_INTERVAL_SECONDS = 5.0
@@ -379,7 +380,6 @@ class AnalyticsSender:
         self._last_problem = ""
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
-        self._counted: set[int] = set()
         self.dropped = 0
 
     @property
@@ -454,11 +454,14 @@ class AnalyticsSender:
         if not self.enabled or not ERROR_CODE.fullmatch(code) or getattr(exception, "to_inbox", True) is False:
             return None
         chain = _chain(exception)
-        if any(id(item) in self._counted for item in chain):
+        if any(getattr(item, _COUNTED, False) for item in chain):
             return None  # a wrapper and its cause are one occurrence
-        self._counted.update(id(item) for item in chain)
-        if len(self._counted) > 4096:
-            self._counted.clear()
+        for item in chain:
+            # Marked on the object itself: ids are reused after garbage collection, a mark is not.
+            try:
+                setattr(item, _COUNTED, True)
+            except (AttributeError, TypeError):
+                pass  # an exception without __dict__ can only be counted, not marked
         frame = frame_from_exception(exception, self.root, traceback_obj)
         if frame is None:
             return None

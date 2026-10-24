@@ -168,6 +168,18 @@ class TestEvents(GeneratedProject):
         self.assertIsNotNone(sender.record_exception(exc))
         self.assertIsNone(sender.record_exception(exc))
 
+    def test_every_new_occurrence_counts_even_when_ids_are_reused(self) -> None:
+        import gc
+
+        sender = self.sender()
+        counted = 0
+        for _ in range(5):
+            exc = self.raised()
+            counted += sender.record_exception(exc) is not None
+            del exc
+            gc.collect()  # lets the next exception take the same id
+        self.assertEqual(counted, 5)
+
     def test_a_dashboard_error_with_expired_credentials_needs_a_person(self) -> None:
         sender = self.sender()
         trace = (f'Traceback (most recent call last):\n  File "{self.root / "demo" / "logic.py"}", '
