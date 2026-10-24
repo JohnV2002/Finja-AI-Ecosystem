@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / events.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Validate the stable language-neutral analytics event envelope.
 
   New in v1.0.1:

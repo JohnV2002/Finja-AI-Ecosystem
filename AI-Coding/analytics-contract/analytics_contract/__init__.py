@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / __init__.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Public package identity for Analytics Contract.
 
   New in v1.0.0:
@@ -20,5 +20,5 @@
 ======================================================================
 """
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 

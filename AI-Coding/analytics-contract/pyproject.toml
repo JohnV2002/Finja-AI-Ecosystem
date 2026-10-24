@@ -2,7 +2,7 @@
 # Project: J. Apps - AI-Coding Tooling
 # Module: AI-Coding/analytics-contract / pyproject.toml
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 1.0.1
+# Version: 1.1.0
 # Description: Python package and CLI metadata for Analytics Contract.
 # New in v1.0.0: Language-neutral analytics discovery, configuration, and API schemas.
 # Copyright (c) 2026 J. Apps - Licensed under the MIT License.
@@ -10,7 +10,7 @@
 
 [project]
 name = "analytics-contract"
-version = "1.0.1"
+version = "1.1.0"
 description = "Language-neutral analytics contract with Error Contract integration"
 requires-python = ">=3.10"
 readme = "README.md"
