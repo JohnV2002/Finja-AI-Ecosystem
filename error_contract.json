@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T15:35:26+00:00",
+  "updated_at": "2026-10-25T17:42:09+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -119,6 +119,18 @@
           "to_inbox": true,
           "introduced": "2026-10-25T14:32:28+00:00",
           "updated_at": "2026-10-25T14:32:28+00:00"
+        },
+        "106": {
+          "name": "OmniNotConfiguredError",
+          "owner": "vpet",
+          "module": "finja-omni-test",
+          "category": "config",
+          "description": "Finja Omni is not configured (a key or setting is missing).",
+          "source": "finja-omni-test/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T17:42:07+00:00",
+          "updated_at": "2026-10-25T17:42:07+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -575,6 +587,42 @@
           "to_inbox": true,
           "introduced": "2026-10-25T15:35:26+00:00",
           "updated_at": "2026-10-25T15:35:26+00:00"
+        },
+        "525": {
+          "name": "OmniPipelineError",
+          "owner": "vpet",
+          "module": "finja-omni-test",
+          "category": "tool",
+          "description": "A capture or OCR step of the Omni pipeline failed unexpectedly.",
+          "source": "finja-omni-test/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T17:42:07+00:00",
+          "updated_at": "2026-10-25T17:42:07+00:00"
+        },
+        "526": {
+          "name": "OmniModelError",
+          "owner": "vpet",
+          "module": "finja-omni-test",
+          "category": "tool",
+          "description": "A vision or chat model call failed.",
+          "source": "finja-omni-test/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T17:42:08+00:00",
+          "updated_at": "2026-10-25T17:42:08+00:00"
+        },
+        "527": {
+          "name": "OmniDiagnosticsProbeError",
+          "owner": "vpet",
+          "module": "finja-omni-test",
+          "category": "tool",
+          "description": "Finja Omni diagnostics probe hit a real bug.",
+          "source": "finja-omni-test/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T17:42:09+00:00",
+          "updated_at": "2026-10-25T17:42:09+00:00"
         },
         "600": {
           "name": "PipelineError",
