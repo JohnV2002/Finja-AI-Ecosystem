@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-instagram
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
 # ----------------------------------------------------------------------
 #
@@ -34,7 +34,16 @@
 #     4. docker compose logs -f
 #     5. Health: curl http://localhost:8061/health
 #
-#   New in v1.1.0:
+#   New in v1.2.0:
+#     • The VPN container also joins the external network
+#       `analytics-ingest` (only the Analytics Collector is there).
+#       Gluetun lets exactly that subnet past the tunnel
+#       (INSTAGRAM_ANALYTICS_SUBNET -> FIREWALL_OUTBOUND_SUBNETS);
+#       everything else still leaves through the VPN only, DNS included.
+#     • Analytics (off by default) and the owner-only probe token are
+#       passed through from .env (INSTAGRAM_ANALYTICS_*, INSTAGRAM_PROBE_TOKEN)
+#
+#   Changelog v1.1.0:
 #     • Merged Production + GitHub tracks (2026-07-19): added the
 #       INSTAGRAM_TARGET_URL/FINJA_BRAIN_URL/DISCORD_WEBHOOK_URL
 #       passthroughs from GitHub
@@ -66,6 +75,10 @@ services:
     volumes:
       - gluetun-ig-data:/gluetun
 
+    networks:
+      - default
+      - analytics-ingest
+
     environment:
       # ---- ProtonVPN Config ----
       - VPN_SERVICE_PROVIDER=protonvpn
@@ -81,6 +94,8 @@ services:
       # ---- Gluetun Settings ----
       - TZ=Europe/Berlin
       - UPDATER_PERIOD=24h
+      # Only the analytics-ingest subnet may bypass the tunnel (empty = nothing)
+      - FIREWALL_OUTBOUND_SUBNETS=${INSTAGRAM_ANALYTICS_SUBNET:-}
 
     healthcheck:
       test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
@@ -131,6 +146,13 @@ services:
       - INSTAGRAM_TARGET_URL=${INSTAGRAM_TARGET_URL:-about:blank}
       - FINJA_BRAIN_URL=${FINJA_BRAIN_URL:-http://finja-ai:8051}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      # Analytics Contract (off by default) -> Analytics Collector -> Flare
+      - ANALYTICS_ENABLED=${INSTAGRAM_ANALYTICS_ENABLED:-false}
+      - ANALYTICS_ENDPOINT=${INSTAGRAM_ANALYTICS_ENDPOINT:-}
+      - ANALYTICS_TOKEN=${INSTAGRAM_ANALYTICS_TOKEN:-}
+      - ANALYTICS_ENVIRONMENT=${INSTAGRAM_ANALYTICS_ENVIRONMENT:-production}
+      # Owner-only diagnostics probe (empty = probe off)
+      - INSTAGRAM_PROBE_TOKEN=${INSTAGRAM_PROBE_TOKEN:-}
 
     # Security
     security_opt:
@@ -150,6 +172,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  # Shared only with the Analytics Collector, created once with a fixed subnet:
+  #   docker network create --subnet <private-subnet> analytics-ingest
+  analytics-ingest:
+    external: true
 
 volumes:
   chrome-profile-ig:

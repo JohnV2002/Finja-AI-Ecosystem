@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-instagram",
+  "module": "finja-instagram",
+  "legend": "../error_contract.json",
+  "implementations": [
+    {"code": "FINJA-105", "name": "InstagramCookiesInvalidError", "source": "core/exceptions.py"},
+    {"code": "FINJA-512", "name": "AnalyticsDeliveryError", "source": "core/exceptions.py"},
+    {"code": "FINJA-517", "name": "InstagramChromeUnreachableError", "source": "core/exceptions.py"},
+    {"code": "FINJA-518", "name": "InstagramApiUnexpectedError", "source": "core/exceptions.py"},
+    {"code": "FINJA-519", "name": "InstagramDiagnosticsProbeError", "source": "core/exceptions.py"}
+  ]
+}

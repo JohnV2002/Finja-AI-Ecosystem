@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T11:52:36+00:00",
+  "updated_at": "2026-10-25T14:32:28+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -107,6 +107,18 @@
           "to_inbox": true,
           "introduced": "2026-10-25T13:15:33+00:00",
           "updated_at": "2026-10-25T13:15:33+00:00"
+        },
+        "105": {
+          "name": "InstagramCookiesInvalidError",
+          "owner": "finja",
+          "module": "finja-instagram",
+          "category": "config",
+          "description": "The Instagram cookie file could not be read",
+          "source": "finja-instagram/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:32:28+00:00",
+          "updated_at": "2026-10-25T14:32:28+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -455,6 +467,42 @@
           "to_inbox": true,
           "introduced": "2026-10-25T13:15:33+00:00",
           "updated_at": "2026-10-25T13:15:33+00:00"
+        },
+        "517": {
+          "name": "InstagramChromeUnreachableError",
+          "owner": "finja",
+          "module": "finja-instagram",
+          "category": "tool",
+          "description": "Finja Instagram could not reach its headless Chrome",
+          "source": "finja-instagram/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:32:28+00:00",
+          "updated_at": "2026-10-25T14:32:28+00:00"
+        },
+        "518": {
+          "name": "InstagramApiUnexpectedError",
+          "owner": "finja",
+          "module": "finja-instagram",
+          "category": "tool",
+          "description": "A Finja Instagram API request failed unexpectedly",
+          "source": "finja-instagram/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:32:28+00:00",
+          "updated_at": "2026-10-25T14:32:28+00:00"
+        },
+        "519": {
+          "name": "InstagramDiagnosticsProbeError",
+          "owner": "finja",
+          "module": "finja-instagram",
+          "category": "tool",
+          "description": "Finja Instagram diagnostics probe hit a real bug",
+          "source": "finja-instagram/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:32:28+00:00",
+          "updated_at": "2026-10-25T14:32:28+00:00"
         },
         "600": {
           "name": "PipelineError",

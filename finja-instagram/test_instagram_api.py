@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.2.0
   Description: Unit tests for the container API (instagram_api.py) --
                cookie parsing (JSON + Netscape TXT) and all REST
                endpoints, with the Chrome/Playwright connection fully

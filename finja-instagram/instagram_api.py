@@ -9,7 +9,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
 
 ----------------------------------------------------------------------
 
@@ -36,7 +36,18 @@
   ArrowDown navigation is more stable on the desktop layout for Reels.
 
 ----------------------------------------------------------------------
- New in v1.1.0:
+ New in v1.2.0:
+----------------------------------------------------------------------
+  • Structured FINJA errors (module finja-instagram): unreadable cookie
+    file FINJA-105, Chrome unreachable FINJA-517, unexpected request
+    failure FINJA-518, diagnostics probe FINJA-519
+  • Analytics Contract sender (off unless ANALYTICS_ENABLED): lifecycle,
+    CPU, RAM and errors to the Analytics Collector, which hands repeated
+    errors to Flare
+  • Owner-only GET /diagnostics/probe?token=… (INSTAGRAM_PROBE_TOKEN)
+
+----------------------------------------------------------------------
+ Changelog v1.1.0:
 ----------------------------------------------------------------------
   • Merged Production + GitHub tracks (2026-07-19)
   • Kept Production's domain-prefixed cookie filename default
@@ -51,13 +62,27 @@ import os
 import json
 import base64
 import asyncio
+import logging
+import secrets
 from pathlib import Path
 from contextlib import asynccontextmanager
 from urllib.parse import urlparse
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from playwright.async_api import async_playwright, Browser, Page
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from playwright.async_api import async_playwright, Browser, Error as PlaywrightError, Page
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    InstagramApiUnexpectedError,
+    InstagramChromeUnreachableError,
+    InstagramCookiesInvalidError,
+    InstagramDiagnosticsProbeError,
+)
+from reel_stats import like_rate
 
 # ---- Config ----
 CHROME_PORT = int(os.environ.get("CHROME_PORT", 9222))
@@ -67,6 +92,36 @@ _SCRIPT_DIR = str(Path(__file__).parent)
 COOKIES_JSON = os.environ.get("COOKIES_JSON", os.path.join(_SCRIPT_DIR, "www.instagram.com_cookies.json"))
 COOKIES_TXT = os.environ.get("COOKIES_TXT", os.path.join(_SCRIPT_DIR, "www.instagram.com_cookies.txt"))
 INSTAGRAM_TARGET_URL = os.environ.get("INSTAGRAM_TARGET_URL", "https://www.instagram.com/reels/")
+
+LOGGER = logging.getLogger("finja_instagram")
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def _report_analytics_problem(problem: dict) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    LOGGER.warning("%s %s context=%s", error.code, error, error.context)
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(PROJECT_ROOT, version="1.2.0")
+analytics = AnalyticsSender(_analytics_config, root=PROJECT_ROOT, on_failure=_report_analytics_problem)
+
+
+def report_failure(error: AppError) -> None:
+    """One structured line in the log and, when analytics is on, one error.occurrence event."""
+    LOGGER.error("%s %s context=%s", error.code, error, error.context)
+    analytics.record_exception(error)
+
+
+def _cookie_file_problem(fmt: str, exc: Exception) -> None:
+    """A broken cookie file is for a person to fix (re-export it), not for a code repair."""
+    try:
+        raise InstagramCookiesInvalidError(
+            "Instagram cookies are not configured correctly: the cookie file could not be read",
+            format=fmt, problem=type(exc).__name__) from None
+    except InstagramCookiesInvalidError as error:
+        report_failure(error)
+
 
 _browser: Browser | None = None
 _page: Page | None = None
@@ -107,8 +162,8 @@ def _load_cookies_json(filepath: str) -> list[dict]:
         return []
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[COOKIES] JSON parse error: {e}")
+    except (OSError, ValueError) as exc:
+        _cookie_file_problem("json", exc)
         return []
 
     cookies = []
@@ -159,8 +214,8 @@ def _load_cookies_txt(filepath: str) -> list[dict]:
             if exp > 0:
                 pw["expires"] = exp
             cookies.append(pw)
-    except Exception as e:
-        print(f"[COOKIES] TXT parse error: {e}")
+    except (OSError, ValueError) as exc:
+        _cookie_file_problem("txt", exc)
     return cookies
 
 
@@ -187,6 +242,9 @@ def _load_cookies() -> list[dict]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _browser, _page, _playwright
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
     print("[API] Connecting to Chrome via CDP...")
 
     pw = await async_playwright().start()
@@ -196,10 +254,14 @@ async def lifespan(app: FastAPI):
         try:
             _browser = await pw.chromium.connect_over_cdp(f"http://127.0.0.1:{CHROME_PORT}")
             break
-        except Exception as e:
+        except (PlaywrightError, OSError) as exc:
             if attempt == 9:
-                print(f"[API] ERROR: Chrome unreachable! {e}")
-                raise
+                unreachable = InstagramChromeUnreachableError(
+                    "Chrome did not answer over CDP after 10 attempts", cause=exc, port=CHROME_PORT)
+                report_failure(unreachable)
+                analytics.flush_once()  # the API is about to stop: send now
+                analytics.stop()
+                raise unreachable from exc
             await asyncio.sleep(1)
 
     context = _browser.contexts[0]
@@ -222,9 +284,25 @@ async def lifespan(app: FastAPI):
         await _browser.close()
     if _playwright:
         await _playwright.stop()
+    analytics.stop()
 
 
 app = FastAPI(title="Finja Instagram Reels", lifespan=lifespan)
+
+
+@app.exception_handler(AppError)
+async def structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = InstagramApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly", cause=exc,
+                                        endpoint=request.url.path)
+    report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
 
 
 # ==========================================
@@ -280,6 +358,19 @@ async def status():
         "title": await _page.title(),
         "awake": _is_instagram_url(_page.url),
     }
+
+
+@app.get("/diagnostics/probe")
+async def diagnostics_probe(token: str = ""):
+    """Owner-only: runs the Reel statistics before any Reel was seen (the onboarding pilot's real bug)."""
+    expected = os.environ.get("INSTAGRAM_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(404, "Not found")
+    try:
+        value = like_rate(0, 0)
+    except ZeroDivisionError as exc:
+        raise InstagramDiagnosticsProbeError("Diagnostics probe hit a real bug", probe="like_rate") from exc
+    return {"probe": "like_rate", "value": value}
 
 
 # ---- Wakeup: Open Instagram ----
@@ -443,4 +534,5 @@ async def like_reel():
 # ==========================================
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     uvicorn.run(app, host="0.0.0.0", port=API_PORT, log_level="info")
