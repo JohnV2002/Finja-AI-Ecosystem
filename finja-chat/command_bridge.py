@@ -5,8 +5,12 @@
 #
 #   Project: Finja - Twitch Interactivity Suite
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.4.1
+#   Version: 2.5.0
 #   Description: HTTP bridge between Twitch bot and VPet Desktop Pet plugin.
+#
+#   ✨ New in 2.5.0:
+#     • Host and port come from FINJA_CHAT_HOST / FINJA_CHAT_BRIDGE_PORT (Docker);
+#       the local default stays 127.0.0.1:8091.
 #
 #   ✨ New in 2.4.1:
 #     • Module version aligned for OAuth storage remediation; bridge behavior
@@ -173,7 +177,11 @@ if __name__ == '__main__':
         This is a simple in-memory bridge suitable for local development.
         For production, consider using a proper message queue or database.
     """
-    print("Starting Command Bridge on http://127.0.0.1:8091 ...")
+    import os
+
+    host = os.getenv("FINJA_CHAT_HOST", "127.0.0.1")
+    port = int(os.getenv("FINJA_CHAT_BRIDGE_PORT", "8091"))
+    print(f"Starting Command Bridge on http://{host}:{port} ...")
     print("Endpoints:")
     print("  POST /command - Receive commands from bot")
     print("  GET  /command - Retrieve commands for VPet")
@@ -182,4 +190,4 @@ if __name__ == '__main__':
     # Start Flask development server
     # Note: Not suitable for production deployment
     # For production, use gunicorn or uwsgi
-    app.run(host='127.0.0.1', port=8091, debug=False)
+    app.run(host=host, port=port, debug=False)

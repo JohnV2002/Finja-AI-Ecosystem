@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-18T13:20:33+00:00",
+  "updated_at": "2026-10-25T11:52:36+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -83,6 +83,18 @@
           "to_inbox": true,
           "introduced": "",
           "updated_at": ""
+        },
+        "103": {
+          "name": "SpotifyNotConfiguredError",
+          "owner": "finja",
+          "module": "finja-chat",
+          "category": "config",
+          "description": "Spotify is not configured for song requests",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T11:52:35+00:00",
+          "updated_at": "2026-10-25T11:52:35+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -383,6 +395,30 @@
           "to_inbox": true,
           "introduced": "",
           "updated_at": ""
+        },
+        "513": {
+          "name": "SongRequestUnexpectedError",
+          "owner": "finja",
+          "module": "finja-chat",
+          "category": "tool",
+          "description": "A song request failed unexpectedly",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T11:52:35+00:00",
+          "updated_at": "2026-10-25T11:52:35+00:00"
+        },
+        "514": {
+          "name": "ChatDiagnosticsProbeError",
+          "owner": "finja",
+          "module": "finja-chat",
+          "category": "tool",
+          "description": "Finja Chat diagnostics probe hit a real bug",
+          "source": "finja-chat/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T11:52:36+00:00",
+          "updated_at": "2026-10-25T11:52:36+00:00"
         },
         "600": {
           "name": "PipelineError",

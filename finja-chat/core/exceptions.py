@@ -6,9 +6,13 @@
   Project: Finja AI Ecosystem
   Module:  finja-chat / core/exceptions.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.1
+  Version: 2.5.0
   Description:
     Structured runtime errors owned and used by the Finja Chat module.
+
+  New in v2.5.0:
+    - FINJA-103 (Spotify not configured), FINJA-513 (song request failed unexpectedly),
+      FINJA-514 (diagnostics probe) and the shared FINJA-512 (analytics delivery)
 
   New in v2.4.1:
     - Version aligned; existing Twitch security error codes are unchanged
@@ -97,3 +101,36 @@ class TwitchChatReconnectRecoveryError(SessionError):
     """FINJA-406: Chat could not reconnect after credential recovery."""
 
     code_num = 406
+
+
+class ConfigError(AppError):
+    """Non-numbered base for missing or invalid settings."""
+
+
+class SpotifyNotConfiguredError(ConfigError):
+    """FINJA-103: Spotify is not configured for song requests (client id or token cache missing)."""
+
+    code_num = 103
+
+
+class ToolError(AppError):
+    """Non-numbered base for failures of Finja Chat's own tools (song requests, diagnostics)."""
+
+
+class SongRequestUnexpectedError(ToolError):
+    """FINJA-513: A song request failed in a way the server did not expect."""
+
+    code_num = 513
+
+
+class ChatDiagnosticsProbeError(ToolError):
+    """FINJA-514: The owner-only diagnostics probe hit its real, harmless bug."""
+
+    code_num = 514
+
+
+class AnalyticsDeliveryError(AppError):
+    """FINJA-512: Analytics events could not be delivered (shared with Finja, never to the inbox)."""
+
+    code_num = 512
+    to_inbox = False

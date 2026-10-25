@@ -1,0 +1,83 @@
+# Project: Finja Chat System
+# Module: container / docker-compose.yml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 2.5.0
+# Description: Overlay pages (8088), VPet bridge (8091) and song-request server (8099) from one image.
+# New in v2.5.0: First compose file; ports bind to FINJA_CHAT_BIND (loopback unless the host's
+#   private LAN address is set), the song server reports to the Analytics Collector when enabled.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
+x-hardening: &hardening
+  read_only: true
+  tmpfs:
+    - /tmp:rw,nosuid,nodev,size=16m
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  pids_limit: 64
+  restart: unless-stopped
+
+services:
+  songs:
+    <<: *hardening
+    build:
+      context: .
+      args:
+        BASE_IMAGE: ${FINJA_CHAT_PYTHON_BASE_IMAGE:?set a digest-pinned Python base image}
+    image: finja-chat:2.5.0
+    container_name: finja-chat-songs
+    command: ["python", "spotify_request_server_env.py"]
+    # Spotify credentials only; the token cache lives on the volume.
+    env_file:
+      - path: private/.env
+        required: false
+    environment:
+      FINJA_CHAT_ALLOWED_ORIGINS: ${FINJA_CHAT_ALLOWED_ORIGINS:-http://127.0.0.1:8088}
+      ANALYTICS_ENABLED: ${FINJA_CHAT_ANALYTICS_ENABLED:-false}
+      ANALYTICS_ENDPOINT: ${FINJA_CHAT_ANALYTICS_ENDPOINT:-http://analytics-collector:8080}
+      ANALYTICS_TOKEN: ${FINJA_CHAT_ANALYTICS_TOKEN:-}
+      ANALYTICS_ENVIRONMENT: ${FINJA_CHAT_ANALYTICS_ENVIRONMENT:-production}
+      FINJA_CHAT_PROBE_TOKEN: ${FINJA_CHAT_PROBE_TOKEN:-}
+    volumes:
+      - finja-chat-private:/app/private
+    ports:
+      - "${FINJA_CHAT_BIND:-127.0.0.1}:8099:8099"
+    mem_limit: 256m
+    networks:
+      - default
+      - flare-finja-private
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8099/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  bridge:
+    <<: *hardening
+    image: finja-chat:2.5.0
+    container_name: finja-chat-bridge
+    command: ["python", "command_bridge.py"]
+    depends_on:
+      - songs
+    ports:
+      - "${FINJA_CHAT_BIND:-127.0.0.1}:8091:8091"
+    mem_limit: 128m
+
+  static:
+    <<: *hardening
+    image: finja-chat:2.5.0
+    container_name: finja-chat-static
+    command: ["python", "-m", "http.server", "8088", "--directory", "/srv/static", "--bind", "0.0.0.0"]
+    depends_on:
+      - songs
+    ports:
+      - "${FINJA_CHAT_BIND:-127.0.0.1}:8088:8088"
+    mem_limit: 64m
+
+networks:
+  flare-finja-private:
+    external: true
+
+volumes:
+  finja-chat-private:
