@@ -1,12 +1,18 @@
-# 🎵 Finja Music System (Docker)
+# 🎵 Finja Music System (Docker) v1.3.0
 *Intelligent Spotify tracking, reaction generation & knowledge base for streamers. 💙*
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-yellow.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-> **✨ New in v1.2.0:**
+> **✨ New in v1.3.0:**
+> - **Spotify login expiry:** Since July 2026 Spotify ends refresh tokens 6 months after the login. An expired or revoked login is now `FINJA-408`: three quick tries, then a retry every 15 minutes (instead of a failing refresh every 5 seconds). `spotify_reauth.py` renews the token.
+> - **Rate limits:** HTTP 429 waits for `Retry-After`; `/health` shows the Spotify state.
+> - **Flare & Analytics (optional, off by default):** errors to the Analytics Collector; unexpected failures are `FINJA-522/523`; owner-only `/diagnostics/probe` (`FINJA-524`).
+> - **Docker:** hardened compose (bind address, private network, limits, healthcheck).
+>
+> **Changelog v1.2.0:**
 > - **Fix:** The example `.env` shipped with the repo used `CLIENT_ID`/`CLIENT_SECRET`
 >   (no `SPOTIFY_` prefix, no refresh token) — `app.py` never reads those names, so
 >   filling it in did nothing. Replaced with a correct `.env.example`.
@@ -276,13 +282,24 @@ python merge_bpm.py
 
 ### Spotify Issues
 
-**Problem:** `[spotify] refresh error 400`
-- **Solution:** Your Refresh Token is invalid or expired.
-- **Fix:** Generate a new token using a tool like [Spotify Token Generator](https://developer.spotify.com/documentation/web-api).
+**Problem:** `FINJA-408 Spotify login expired or was revoked (invalid_grant)` / `/health` shows `reauthorization_needed`
+- **Cause:** Spotify ends refresh tokens 6 months after the login (since July 2026), or access was removed in your Spotify account.
+- **Fix:** On the PC with your browser, add `http://127.0.0.1:8888/callback` as a redirect URI in your app on the Spotify developer dashboard (once), then run:
+  ```bash
+  python spotify_reauth.py
+  ```
+  Log in; the new token lands in `private/.env` (never printed). With `--all-in-one-config <path>/config/config_spotify.json` the All-in-One edition gets it too. Copy `private/.env` to the server and restart the container.
+- **Note:** Development-mode Spotify apps need the app owner to have Spotify Premium (since February 2026).
 
 **Problem:** "Unknown" genre/reaction
 - **Cause:** The song is not in `SongsDB/songs_kb.json`.
 - **Fix:** Add the song to the KB or check `reactions.json` for fallback policies.
+
+### Flare & Analytics (optional)
+
+Settings in `private/.env` (see `.env.example`): `ANALYTICS_ENABLED`, `ANALYTICS_ENDPOINT` (e.g. `http://analytics-collector:8080` on the `flare-finja-private` network), `ANALYTICS_TOKEN`, `MUSIC_DOCKER_PROBE_TOKEN` (empty = probe off). Off means no thread and no network traffic. The compose file joins the external network `flare-finja-private` (create it once with `docker network create flare-finja-private`); `MUSIC_DOCKER_BIND` in a `.env` next to `docker-compose.yml` sets the port's bind address.
+
+Errors: `FINJA-408` Spotify login expired/revoked or not configured (Flare asks a person), `FINJA-522` the polling loop, `FINJA-523` an unexpected request failure, `FINJA-524` the diagnostics probe.
 
 ### Docker Issues
 

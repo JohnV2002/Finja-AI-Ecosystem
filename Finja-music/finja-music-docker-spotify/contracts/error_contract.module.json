@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-music-docker-spotify",
+  "module": "finja-music-docker",
+  "legend": "../../error_contract.json",
+  "implementations": [
+    {
+      "code": "FINJA-408",
+      "name": "SpotifyReauthorizationRequiredError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-522",
+      "name": "MusicDockerLoopError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-523",
+      "name": "MusicDockerApiUnexpectedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-524",
+      "name": "MusicDockerDiagnosticsProbeError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-512",
+      "name": "AnalyticsDeliveryError",
+      "source": "core/exceptions.py"
+    }
+  ]
+}

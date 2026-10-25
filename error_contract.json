@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T14:57:44+00:00",
+  "updated_at": "2026-10-25T15:35:26+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -348,6 +348,18 @@
           "introduced": "2026-08-29T20:14:14+00:00",
           "updated_at": "2026-08-29T20:14:14+00:00"
         },
+        "408": {
+          "name": "SpotifyReauthorizationRequiredError",
+          "owner": "finja-music-docker-spotify",
+          "module": "finja-music-docker",
+          "category": "session",
+          "description": "Spotify login expired or was revoked; reauthorization is needed.",
+          "source": "Finja-music/finja-music-docker-spotify/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T15:35:25+00:00",
+          "updated_at": "2026-10-25T15:35:25+00:00"
+        },
         "444": {
           "name": "NoPrivilegeError",
           "owner": "finja",
@@ -527,6 +539,42 @@
           "to_inbox": true,
           "introduced": "2026-10-25T14:57:44+00:00",
           "updated_at": "2026-10-25T14:57:44+00:00"
+        },
+        "522": {
+          "name": "MusicDockerLoopError",
+          "owner": "finja-music-docker-spotify",
+          "module": "finja-music-docker",
+          "category": "tool",
+          "description": "The Spotify polling loop failed unexpectedly.",
+          "source": "Finja-music/finja-music-docker-spotify/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T15:35:25+00:00",
+          "updated_at": "2026-10-25T15:35:25+00:00"
+        },
+        "523": {
+          "name": "MusicDockerApiUnexpectedError",
+          "owner": "finja-music-docker-spotify",
+          "module": "finja-music-docker",
+          "category": "tool",
+          "description": "A Finja Music Docker request failed unexpectedly.",
+          "source": "Finja-music/finja-music-docker-spotify/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T15:35:26+00:00",
+          "updated_at": "2026-10-25T15:35:26+00:00"
+        },
+        "524": {
+          "name": "MusicDockerDiagnosticsProbeError",
+          "owner": "finja-music-docker-spotify",
+          "module": "finja-music-docker",
+          "category": "tool",
+          "description": "Finja Music Docker diagnostics probe hit a real bug.",
+          "source": "Finja-music/finja-music-docker-spotify/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T15:35:26+00:00",
+          "updated_at": "2026-10-25T15:35:26+00:00"
         },
         "600": {
           "name": "PipelineError",

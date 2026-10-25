@@ -2,37 +2,59 @@
 #  Project: Finja Musik Docker Spotify - Docker Compose
 #  Module: finja-music-docker-spotify
 #  Author: J. Apps (JohnV2002 / Sodakiller1)
-#  Version: 1.2.0
+#  Version: 1.3.0
 #  Description: Docker Compose configuration for the Music API service.
 #
-#  ✨ New in 1.1.0:
+#  ✨ New in 1.3.0:
+#    • Port bind address from MUSIC_DOCKER_BIND (loopback by default)
+#    • Joins the private Flare/Analytics network (analytics-collector)
+#    • Hardening (no-new-privileges, cap_drop, memory/pid limits),
+#      healthcheck, image tag; the unused config.json mount is gone
+#    • Spotify keys, ANALYTICS_* and MUSIC_DOCKER_PROBE_TOKEN come from
+#      ./private/.env (see .env.example)
+#
+#  📜 Changelog 1.1.0:
 #    • Updated port mapping to match Dockerfile (8022)
-#    • Updated copyright to 2026
-#    • env_file moved to ./private/.env (2026-07-20) -- private/ is never
-#      synced or committed; .env.example at the repo root documents the
-#      real variable names (SPOTIFY_CLIENT_ID/SECRET/REFRESH_TOKEN)
+#    • env_file moved to ./private/.env (2026-07-20)
 #
 # ---------------------------------------------------------------------
 #  Copyright (c) 2026 J. Apps
 #  Licensed under the MIT License.
 # =====================================================================
 
-version: '3.8'
-
 services:
   finja-musik-api:
     build: .
+    image: finja-musik-api:1.3.0
     container_name: finja-musik-api
     env_file:
       - ./private/.env
     ports:
-      - "8022:8022"
+      - "${MUSIC_DOCKER_BIND:-127.0.0.1}:8022:8022"
     volumes:
       - ./Nowplaying:/app/Nowplaying
       - ./Memory:/app/Memory
       - ./SongsDB:/app/SongsDB
       - ./cache:/app/cache
-      - ./config.json:/app/config.json
-      - ./config_min.json:/app/config_min.json
-    user: "${UID}:${GID}"
+      - ./config_min.json:/app/config_min.json:ro
+    user: "${UID:-1000}:${GID:-1000}"
+    networks:
+      - default
+      - flare-finja-private
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 512m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8022/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
+
+networks:
+  # Shared with the Analytics Collector and Flare (create once: docker network create flare-finja-private).
+  flare-finja-private:
+    external: true

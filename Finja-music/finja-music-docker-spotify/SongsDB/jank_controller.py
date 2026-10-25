@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify / SongsDB
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.3.0
   Description: Automated BPM/Key scraping controller that forces
                Spotify Desktop to play each song, waits for the
                Spicetify jank_scraper.js extension to capture

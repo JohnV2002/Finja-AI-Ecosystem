@@ -7,11 +7,21 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.0
+  Version: 1.3.0
   Description: Core logic for Spotify integration, knowledge base
                lookups, and reaction generation.
 
-  ✨ New in 1.2.0:
+  ✨ New in 1.3.0:
+    • An expired or revoked Spotify login (invalid_grant; Spotify ends refresh
+      tokens 6 months after the login since July 2026) is FINJA-408: reported
+      once per attempt, three quick tries, then a retry every 15 minutes
+      instead of a failing refresh every 5 seconds; spotify_reauth.py renews it
+    • HTTP 429 waits for Retry-After; 401 forces a fresh access token
+    • /health shows the Spotify state; unexpected loop/request failures are
+      FINJA-522/523; owner-only /diagnostics/probe (FINJA-524)
+    • Analytics Contract sender (off unless ANALYTICS_ENABLED)
+
+  📜 Changelog 1.2.0:
     • Version number aligned with the rest of the finja-music-docker-spotify
       module (2026-07-20) -- no functional changes in this file specifically
 
@@ -49,8 +59,20 @@ from typing import Optional, Tuple, Dict
 from datetime import datetime, timezone
 
 import requests
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    MusicDockerApiUnexpectedError,
+    MusicDockerDiagnosticsProbeError,
+    MusicDockerLoopError,
+    SpotifyReauthorizationRequiredError,
+)
+from listening_stats import average_listen_seconds
 
 # --- Paths & Config ---
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -75,6 +97,33 @@ RE_MULTI_SPACE = r"\s{2,}"
 def log(msg):
     """Prints a log message with timestamp."""
     print(time.strftime("[%Y-%m-%d %H:%M:%S]"), msg)
+
+def _report_analytics_problem(problem: dict) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    log(f"{error.code} {error} context={error.context}")
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(SCRIPT_DIR, version="1.3.0")
+analytics = AnalyticsSender(_analytics_config, root=SCRIPT_DIR, on_failure=_report_analytics_problem)
+_last_reported: Dict[str, float] = {}
+
+
+def report_failure(error: AppError) -> None:
+    """One structured log line and, when analytics is on, one error.occurrence event."""
+    log(f"{error.code} {error} context={error.context}")
+    analytics.record_exception(error)
+
+
+def report_throttled(error: AppError, every_s: float = 60.0) -> None:
+    """Same code and cause type at most once per minute, so a 5 s loop cannot flood the log or the collector."""
+    cause = getattr(error, "cause", None)
+    key = f"{error.code}:{type(cause).__name__ if cause else ''}"
+    now = time.time()
+    if now - _last_reported.get(key, 0.0) >= every_s:
+        _last_reported[key] = now
+        report_failure(error)
+
 
 def dbg(msg):
     """Prints a debug message if debug mode is enabled."""
@@ -459,29 +508,84 @@ SPOTIFY_REFRESH_TOKEN = os.getenv("SPOTIFY_REFRESH_TOKEN","")
 ACCESS_TOKEN = ""
 ACCESS_TOKEN_TS = 0
 TOKEN_REFRESH_INTERVAL_S = int(cfg.get("token_refresh_interval_s", 25*60))
+REAUTH_QUICK_TRIES = 3          # three tries a minute apart: Flare's 3-in-15-minutes rule sees the problem
+REAUTH_RETRY_S = int(cfg.get("reauth_retry_s", 15 * 60))
+MAX_RETRY_AFTER_S = 600
+SPOTIFY_STATE = {"status": "starting", "since": datetime.now(timezone.utc).isoformat()}
+_reauth_failures = 0
+
+
+def _set_spotify_state(status: str) -> None:
+    if SPOTIFY_STATE.get("status") != status:
+        SPOTIFY_STATE.update(status=status, since=datetime.now(timezone.utc).isoformat())
+
+
+def _oauth_error(response) -> str:
+    """Spotify's short OAuth error name (never the response body, which may echo request data)."""
+    try:
+        body = response.json()
+    except ValueError:
+        return ""
+    error = body.get("error") if isinstance(body, dict) else None
+    return error if isinstance(error, str) else ""
+
 
 def refresh_token():
-    """Refreshes the Spotify OAuth token."""
+    """Refreshes the Spotify OAuth access token; an expired or revoked login raises FINJA-408."""
     global ACCESS_TOKEN, ACCESS_TOKEN_TS
-    url = 'https://accounts.spotify.com/api/token'
-    try:
-        r = requests.post(
-            url,
-            data={'grant_type': 'refresh_token', 'refresh_token': SPOTIFY_REFRESH_TOKEN},
-            auth=(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET),
-            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-            timeout=10
-        )
-        if r.status_code != 200:
-            log(f"[spotify] refresh error {r.status_code}: {r.text}")
-            r.raise_for_status()
-        payload = r.json()
-        ACCESS_TOKEN = payload['access_token']
-        ACCESS_TOKEN_TS = time.time()
-        log("[spotify] token refreshed")
-    except Exception as e:
-        log(f"[spotify] refresh exception: {e}")
-        raise
+    if not (SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET and SPOTIFY_REFRESH_TOKEN):
+        raise SpotifyReauthorizationRequiredError(
+            "Spotify is not configured: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET or SPOTIFY_REFRESH_TOKEN "
+            "is missing (private/.env)", reason="not_configured")
+    r = requests.post(
+        'https://accounts.spotify.com/api/token',
+        data={'grant_type': 'refresh_token', 'refresh_token': SPOTIFY_REFRESH_TOKEN},
+        auth=(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET),
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        timeout=10
+    )
+    if r.status_code != 200:
+        oauth_error = _oauth_error(r)
+        if oauth_error in ("invalid_grant", "invalid_client"):
+            raise SpotifyReauthorizationRequiredError(
+                f"Spotify login expired or was revoked ({oauth_error}); run spotify_reauth.py for a new refresh token",
+                reason="reauthorization_needed", oauth_error=oauth_error, status_code=r.status_code)
+        log(f"[spotify] refresh error {r.status_code}: {oauth_error or 'no error name'}")
+        r.raise_for_status()
+    payload = r.json()
+    ACCESS_TOKEN = payload['access_token']
+    ACCESS_TOKEN_TS = time.time()
+    if payload.get("refresh_token") and payload["refresh_token"] != SPOTIFY_REFRESH_TOKEN:
+        log("[spotify] Spotify sent a new refresh token; run spotify_reauth.py to store one permanently")
+    log("[spotify] token refreshed")
+
+
+def _on_reauthorization_needed(error: SpotifyReauthorizationRequiredError) -> None:
+    """Report and wait: a few quick tries, then quietly every 15 minutes until private/.env is renewed."""
+    global _reauth_failures
+    _reauth_failures += 1
+    _set_spotify_state(str(error.context.get("reason") or "reauthorization_needed"))
+    report_failure(error)
+    time.sleep(60 if _reauth_failures < REAUTH_QUICK_TRIES else REAUTH_RETRY_S)
+
+
+def _on_spotify_http_error(exc: requests.HTTPError) -> None:
+    """429: wait as long as Spotify asks; 401: fetch a fresh access token next time; else report."""
+    global ACCESS_TOKEN
+    status = exc.response.status_code if exc.response is not None else 0
+    if status == 429:
+        try:
+            wait = int(exc.response.headers.get("Retry-After", "30"))
+        except ValueError:
+            wait = 30
+        _set_spotify_state("rate_limited")
+        log(f"[spotify] rate limited, waiting {min(wait, MAX_RETRY_AFTER_S)} s")
+        time.sleep(min(max(wait, 1), MAX_RETRY_AFTER_S))
+        return
+    if status == 401:
+        ACCESS_TOKEN = ""
+        return
+    report_throttled(MusicDockerLoopError(f"Spotify answered HTTP {status}", cause=exc, status_code=status))
 
 def spotify_nowplaying() -> Tuple[str,str]:
     """Fetches the currently playing song from Spotify."""
@@ -769,9 +873,12 @@ def _process_final_result(title: str, artists: str, ctx: str, last_written: Opti
 def tick_loop():
     """Main background loop to monitor Spotify and trigger updates."""
     global pending_until, mid_from, cooldown_until, last_key, last_song_log_ts, last_written, current_output
+    global _reauth_failures
     while True:
         try:
             title, artists = spotify_nowplaying()
+            _reauth_failures = 0
+            _set_spotify_state("ok")
             if not title and not artists:
                 time.sleep(INTERVAL_S)
                 continue
@@ -800,13 +907,55 @@ def tick_loop():
             # final compute
             last_written, cooldown_until, current_output = _process_final_result(title, artists, ctx, last_written, cooldown_until, current_output)
 
-        except Exception as e:
-            log(f"[loop] {e}")
+        except SpotifyReauthorizationRequiredError as error:
+            _on_reauthorization_needed(error)
+        except requests.HTTPError as exc:
+            _on_spotify_http_error(exc)
+        except Exception as exc:  # loop boundary: keep polling, one structured report per minute
+            report_throttled(MusicDockerLoopError("The Spotify polling loop failed unexpectedly", cause=exc))
         finally:
             time.sleep(INTERVAL_S)
 
 # --- FastAPI ---
-app = FastAPI()
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
+    yield
+    analytics.stop()
+
+
+app = FastAPI(lifespan=_lifespan)
+
+
+@app.exception_handler(AppError)
+async def structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = MusicDockerApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly", cause=exc,
+                                          endpoint=request.url.path)
+    report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
+
+
+@app.get("/diagnostics/probe")
+def diagnostics_probe(token: str = ""):
+    """Owner-only: averages listening time before any song finished (the onboarding pilot's real bug)."""
+    expected = os.getenv("MUSIC_DOCKER_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        value = average_listen_seconds([])
+    except ZeroDivisionError as exc:
+        raise MusicDockerDiagnosticsProbeError("Diagnostics probe hit a real bug",
+                                               probe="average_listen_seconds") from exc
+    return {"probe": "average_listen_seconds", "value": value}
 
 @app.get("/")
 def root():
@@ -823,7 +972,7 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "time": datetime.now(timezone.utc).isoformat()}
+    return {"ok": True, "time": datetime.now(timezone.utc).isoformat(), "spotify": dict(SPOTIFY_STATE)}
 
 @app.get("/get/Finja")
 def get_finja():
