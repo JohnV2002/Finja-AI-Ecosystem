@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-canvas",
+  "module": "finja-canvas",
+  "legend": "../error_contract.json",
+  "implementations": [
+    {"code": "FINJA-104", "name": "CanvasNotConfiguredError", "source": "core/exceptions.py"},
+    {"code": "FINJA-512", "name": "AnalyticsDeliveryError", "source": "core/exceptions.py"},
+    {"code": "FINJA-515", "name": "CanvasPainterError", "source": "core/exceptions.py"},
+    {"code": "FINJA-516", "name": "CanvasDiagnosticsProbeError", "source": "core/exceptions.py"}
+  ]
+}

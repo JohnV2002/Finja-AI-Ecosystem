@@ -96,6 +96,18 @@
           "introduced": "2026-10-25T11:52:35+00:00",
           "updated_at": "2026-10-25T11:52:35+00:00"
         },
+        "104": {
+          "name": "CanvasNotConfiguredError",
+          "owner": "finja",
+          "module": "finja-canvas",
+          "category": "config",
+          "description": "Finja Canvas is not configured (OpenRouter key missing)",
+          "source": "finja-canvas/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T13:15:33+00:00",
+          "updated_at": "2026-10-25T13:15:33+00:00"
+        },
         "200": {
           "name": "LLMError",
           "owner": "finja",
@@ -419,6 +431,30 @@
           "to_inbox": true,
           "introduced": "2026-10-25T11:52:36+00:00",
           "updated_at": "2026-10-25T11:52:36+00:00"
+        },
+        "515": {
+          "name": "CanvasPainterError",
+          "owner": "finja",
+          "module": "finja-canvas",
+          "category": "tool",
+          "description": "A Finja Canvas painting step failed unexpectedly",
+          "source": "finja-canvas/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T13:15:33+00:00",
+          "updated_at": "2026-10-25T13:15:33+00:00"
+        },
+        "516": {
+          "name": "CanvasDiagnosticsProbeError",
+          "owner": "finja",
+          "module": "finja-canvas",
+          "category": "tool",
+          "description": "Finja Canvas diagnostics probe hit a real bug",
+          "source": "finja-canvas/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T13:15:33+00:00",
+          "updated_at": "2026-10-25T13:15:33+00:00"
         },
         "600": {
           "name": "PipelineError",

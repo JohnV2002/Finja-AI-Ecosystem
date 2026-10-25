@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / painter
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
 
 ----------------------------------------------------------------------
 
@@ -23,6 +23,10 @@
   Main painting loop that places pixels according to the generated plan
   and template.
 
+ Changes (1.2.0):
+  An unexpected failure is reported as FINJA-515 (log + Analytics Collector)
+  before the painter stops as before; a missing key is FINJA-104.
+
  Changes (1.1.0):
   Now paints pixel templates generated from Recraft Vector SVG motifs.
 ======================================================================
@@ -30,17 +34,34 @@
 
 import csv
 import json
+import logging
 import os
 import random
 import re
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 from ai_client import API_KEY
 from plan_drawing import plan_drawing
 from render import render_full_canvas, render_motif_snapshot
 from shape_template import CanvasFullError, load_or_build_template, template_pixel_pool
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from core.exceptions import AnalyticsDeliveryError, CanvasNotConfiguredError, CanvasPainterError
+
+LOGGER = logging.getLogger("finja_canvas")
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def _report_analytics_problem(problem):
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    LOGGER.warning("%s %s context=%s", error.code, error, error.context)
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(PROJECT_ROOT, version="1.2.0")
+analytics = AnalyticsSender(_analytics_config, root=PROJECT_ROOT, on_failure=_report_analytics_problem)
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -111,10 +132,17 @@ def paint_one_pixel(plan, template):
     return True
 
 
-if __name__ == "__main__":
+def report_failure(error):
+    """One structured line in the log and, when analytics is on, one error.occurrence event."""
+    LOGGER.error("%s %s context=%s", error.code, error, error.context)
+    if analytics.record_exception(error) is not None:
+        analytics.flush_once()  # the painter is a short-lived process: send now, not later
+
+
+def run():
     if not API_KEY:
-        print("⚠️ No OPENROUTER_API_KEY found in .env! Please enter it and restart.")
-        raise SystemExit(1)
+        raise CanvasNotConfiguredError("Finja Canvas is not configured: OPENROUTER_API_KEY is missing",
+                                       setting="OPENROUTER_API_KEY")
 
     plan = load_plan()
     if plan is None:
@@ -144,3 +172,17 @@ if __name__ == "__main__":
         if result is False:
             break  # Motif finished, but still space - Exit-Code 0, entrypoint starts next motif
         time.sleep(INTERVAL_SECONDS)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    try:
+        run()
+    except (SystemExit, KeyboardInterrupt):
+        raise
+    except CanvasNotConfiguredError as missing:  # logged with its code: "OPENROUTER_API_KEY is missing"
+        report_failure(missing)
+        raise SystemExit(1) from missing
+    except Exception as exc:  # report a real failure with its code, then stop as before (entrypoint exits)
+        report_failure(CanvasPainterError("A painting step failed unexpectedly", cause=exc))
+        raise SystemExit(1) from exc

@@ -1,11 +1,27 @@
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-canvas / .dockerignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.2.0
+# Description: Keeps secrets, live canvas state, tests and tooling state out of the image.
+# New in v1.2.0: Tests and contract tooling stay out (analytics_contract.json stays in: the sender reads it).
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
 .env
 .git
 .claude
 .vscode
 __pycache__
 *.pyc
+.pytest_cache
 gallery/
 canvas.csv
 color.csv
 what_to_draw.json
 shape_template.json
+tests
+test_*.py
+pytest.ini
+contracts
+.error_contract
+.github_contract
+data
