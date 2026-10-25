@@ -3,10 +3,12 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-music-docker-spotify / spotify_reauth.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.3.0
+Version: 1.3.1
 Description: Renews the Spotify refresh token once you log in in your own browser. Since July
     2026 Spotify ends refresh tokens 6 months after the login (the app then logs FINJA-408).
-New in 1.3.0: First version. Stores the new token in private/.env (and, with
+New in 1.3.1: Writes hidden files (Windows refused open("w") on the hidden private/.env)
+    and never loses a granted token (fallback file in the home folder).
+Earlier in 1.3.0: First version. Stores the new token in private/.env (and, with
     --all-in-one-config, in the All-in-One edition's config_spotify.json); never prints it.
 Copyright (c) 2026 J. Apps. Licensed under the MIT License.
 
@@ -46,6 +48,19 @@ def read_env(path: Path) -> dict[str, str]:
     return values
 
 
+def overwrite_in_place(path: Path, text: str) -> None:
+    """Rewrite an existing file without re-creating it.
+
+    Windows refuses open(..., "w") on a file with the Hidden attribute (CREATE_ALWAYS needs the
+    same attributes), and .env files are often hidden. Opening the existing file with "r+" and
+    truncating keeps its attributes and permissions.
+    """
+    with path.open("r+", encoding="utf-8", newline="\n") as handle:
+        handle.seek(0)
+        handle.write(text)
+        handle.truncate()
+
+
 def set_env_value(path: Path, key: str, value: str) -> None:
     """Replace (or append) one KEY=value line and keep every other line as it is."""
     lines = path.read_text(encoding="utf-8-sig").splitlines()
@@ -55,14 +70,25 @@ def set_env_value(path: Path, key: str, value: str) -> None:
             break
     else:
         lines.append(f"{key}={value}")
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    overwrite_in_place(path, "\n".join(lines) + "\n")
 
 
 def set_all_in_one_token(path: Path, refresh_token: str) -> None:
     config = json.loads(path.read_text(encoding="utf-8-sig"))
     target = config["spotify"] if isinstance(config.get("spotify"), dict) else config
     target["refresh_token"] = refresh_token
-    path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    overwrite_in_place(path, json.dumps(config, indent=2, ensure_ascii=False) + "\n")
+
+
+def save_somewhere_private(refresh: str) -> Path:
+    """Last resort when a target file cannot be written: never lose a freshly granted token."""
+    fallback = Path.home() / "finja_spotify_refresh_token.txt"
+    fallback.write_text(f"SPOTIFY_REFRESH_TOKEN={refresh}\n", encoding="utf-8")
+    try:
+        fallback.chmod(0o600)
+    except OSError:
+        pass  # Windows: the home folder is already private to this user
+    return fallback
 
 
 def exchange_code(code: str, redirect_uri: str, client_id: str, client_secret: str) -> dict:
@@ -149,13 +175,21 @@ def main() -> int:
     refresh = tokens.get("refresh_token")
     if not refresh:
         raise SystemExit("Spotify returned no refresh token.")
-    set_env_value(args.env, "SPOTIFY_REFRESH_TOKEN", refresh)
-    print(f"New refresh token stored in {args.env} (scope: {tokens.get('scope')}).")
+    failed = False
+    targets = [(args.env, lambda: set_env_value(args.env, "SPOTIFY_REFRESH_TOKEN", refresh))]
     if args.all_in_one_config:
-        set_all_in_one_token(args.all_in_one_config, refresh)
-        print(f"Also stored in {args.all_in_one_config}.")
-    print("Restart the music service so it reads the new token.")
-    return 0
+        targets.append((args.all_in_one_config, lambda: set_all_in_one_token(args.all_in_one_config, refresh)))
+    for target, store in targets:
+        try:
+            store()
+            print(f"New refresh token stored in {target}.")
+        except (OSError, ValueError) as error:  # keep going: the token is single-use, so never lose it
+            failed = True
+            print(f"Could not write {target}: {type(error).__name__}: {error}")
+    if failed:
+        print(f"The token was saved to {save_somewhere_private(refresh)} instead; copy it over by hand.")
+    print(f"Scope: {tokens.get('scope')}. Restart the music service so it reads the new token.")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

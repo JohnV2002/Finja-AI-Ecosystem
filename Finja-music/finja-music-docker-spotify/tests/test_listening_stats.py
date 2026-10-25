@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-music-docker-spotify / tests / test_listening_stats.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.3.0
+Version: 1.3.1
 Description: Unit tests for the listening statistics: plain unittest classes without heavy
     imports, so Flare's offline sandbox (unittest discovery) can run them next to listening_stats.py.
 New in 1.3.0: First version.

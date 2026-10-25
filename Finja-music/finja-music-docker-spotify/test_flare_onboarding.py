@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-music-docker-spotify / test_flare_onboarding.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.3.0
+Version: 1.3.1
 Description: Spotify login expiry (FINJA-408), rate limits, the owner-only probe, structured
     failure reports and the re-login helper behave as expected. Lives next to the code (not in
     tests/) because it needs pytest and FastAPI, which Flare's unittest sandbox does not have.
@@ -147,7 +147,7 @@ def test_an_unexpected_request_failure_is_reported(client, reported, monkeypatch
 def _sender() -> AnalyticsSender:
     config, problem = AnalyticsConfig.from_environment(
         ROOT, {"ANALYTICS_ENABLED": "true", "ANALYTICS_ENDPOINT": "http://192.0.2.10:8080",
-               "ANALYTICS_TOKEN": "ingest-token"}, version="1.3.0")
+               "ANALYTICS_TOKEN": "ingest-token"}, version="1.3.1")
     assert problem is None and config.project_id == "finja-music-docker-spotify"
     return AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
 
@@ -182,6 +182,18 @@ def test_reauth_helper_replaces_only_the_refresh_token(tmp_path: Path) -> None:
     spotify_reauth.set_env_value(env, "SPOTIFY_REFRESH_TOKEN", "new")
     assert spotify_reauth.read_env(env) == {"SPOTIFY_CLIENT_ID": "a", "SPOTIFY_CLIENT_SECRET": "b",
                                             "SPOTIFY_REFRESH_TOKEN": "new", "OTHER": "1"}
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="the Hidden attribute exists on Windows only")
+def test_reauth_helper_can_write_a_hidden_env_file(tmp_path: Path) -> None:
+    import ctypes
+
+    env = tmp_path / ".env"
+    env.write_text("SPOTIFY_REFRESH_TOKEN=old\n", encoding="utf-8")
+    assert ctypes.windll.kernel32.SetFileAttributesW(str(env), 0x2)  # FILE_ATTRIBUTE_HIDDEN
+    spotify_reauth.set_env_value(env, "SPOTIFY_REFRESH_TOKEN", "new")
+    assert spotify_reauth.read_env(env) == {"SPOTIFY_REFRESH_TOKEN": "new"}
+    assert ctypes.windll.kernel32.GetFileAttributesW(str(env)) & 0x2  # still hidden
 
 
 def test_reauth_helper_updates_the_all_in_one_config(tmp_path: Path) -> None:

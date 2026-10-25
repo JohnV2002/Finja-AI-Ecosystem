@@ -7,11 +7,14 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.0
+  Version: 1.3.1
   Description: Core logic for Spotify integration, knowledge base
                lookups, and reaction generation.
 
-  ✨ New in 1.3.0:
+  ✨ New in 1.3.1:
+    • Module version aligned (spotify_reauth.py hidden-file fix); no change here
+
+  ✨ Changelog 1.3.0:
     • An expired or revoked Spotify login (invalid_grant; Spotify ends refresh
       tokens 6 months after the login since July 2026) is FINJA-408: reported
       once per attempt, three quick tries, then a retry every 15 minutes
@@ -104,7 +107,7 @@ def _report_analytics_problem(problem: dict) -> None:
     log(f"{error.code} {error} context={error.context}")
 
 
-_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(SCRIPT_DIR, version="1.3.0")
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(SCRIPT_DIR, version="1.3.1")
 analytics = AnalyticsSender(_analytics_config, root=SCRIPT_DIR, on_failure=_report_analytics_problem)
 _last_reported: Dict[str, float] = {}
 

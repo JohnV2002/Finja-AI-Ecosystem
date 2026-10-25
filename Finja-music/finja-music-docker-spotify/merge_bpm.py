@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-music-docker-spotify
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.0
+  Version: 1.3.1
   Description: Merges scraped BPM/Key data from fertige_bpm_keys.json
                into songs_kb.json. Uses spotify_id to match songs.
                Creates automatic backups before modifying the KB.

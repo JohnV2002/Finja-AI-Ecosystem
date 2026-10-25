@@ -1,12 +1,15 @@
-# 🎵 Finja Music System (Docker) v1.3.0
+# 🎵 Finja Music System (Docker) v1.3.1
 *Intelligent Spotify tracking, reaction generation & knowledge base for streamers. 💙*
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
+[![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)](https://github.com/JohnV2002/finja-music-docker-spotify)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-yellow.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-> **✨ New in v1.3.0:**
+> **✨ New in v1.3.1:**
+> - **Fix:** `spotify_reauth.py` can write a hidden `private/.env` on Windows (it stopped with `PermissionError` before) and keeps a granted token in a fallback file if a target cannot be written.
+>
+> **Changelog v1.3.0:**
 > - **Spotify login expiry:** Since July 2026 Spotify ends refresh tokens 6 months after the login. An expired or revoked login is now `FINJA-408`: three quick tries, then a retry every 15 minutes (instead of a failing refresh every 5 seconds). `spotify_reauth.py` renews the token.
 > - **Rate limits:** HTTP 429 waits for `Retry-After`; `/health` shows the Spotify state.
 > - **Flare & Analytics (optional, off by default):** errors to the Analytics Collector; unexpected failures are `FINJA-522/523`; owner-only `/diagnostics/probe` (`FINJA-524`).

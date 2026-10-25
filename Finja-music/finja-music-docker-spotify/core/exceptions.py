@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-music-docker-spotify / core / exceptions.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.3.0
+Version: 1.3.1
 Description: Structured FINJA errors of the Docker music service (module finja-music-docker).
 New in 1.3.0: First version: FINJA-408 Spotify reauthorization, FINJA-522 polling loop,
     FINJA-523 unexpected request, FINJA-524 diagnostics probe, shared FINJA-512.

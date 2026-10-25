@@ -1,7 +1,7 @@
 # Project: Finja - Twitch Interactivity Suite
 # Module: finja-music-docker-spotify / .dockerignore
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 1.3.0
+# Version: 1.3.1
 # Description: Keeps secrets, runtime state, tests and tooling out of the build context.
 # New in 1.3.0: Header; private/, tests and contract tooling stay out (analytics_contract.json
 #   stays in: the sender reads it).

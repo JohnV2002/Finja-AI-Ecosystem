@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-music-docker-spotify / listening_stats.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.3.0
+Version: 1.3.1
 Description: Small listening statistics behind the owner-only diagnostics probe.
 New in 1.3.0: average_listen_seconds carries a real, harmless bug on purpose (no finished
     song yet divides by zero) so Flare's onboarding of Finja Music Docker has something
