@@ -7,10 +7,17 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-everything-in-one
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.1
+  Version: 1.3.0
   Description: Central web server and control hub for all music modules.
 
-  ✨ New in 1.2.1:
+  ✨ New in 1.3.0:
+    • Analytics Contract sender (off unless ANALYTICS_ENABLED): lifecycle and
+      errors to the Analytics Collector, which hands repeated errors to Flare
+    • Unexpected request failures are reported once as FINJA-520 (no raw
+      exception text in the response any more); FINJA-407 is reported too
+    • Owner-only GET /diagnostics/probe?token=… (MUSIC_PROBE_TOKEN, FINJA-521)
+
+  📜 Changelog 1.2.1:
     • Spotify token refresh now uses HTTP Basic client authentication
     • FINJA-407 reports safe OAuth causes without exposing credentials
     • Non-retryable OAuth failures stop Spotify polling without stopping server
@@ -87,7 +94,14 @@ import pickle
 from typing import Any, List, Dict, Tuple, Optional, Callable
 import signal
 
-from core.exceptions import SpotifyAccessTokenRefreshError
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    MusicDiagnosticsProbeError,
+    MusicRequestUnexpectedError,
+    SpotifyAccessTokenRefreshError,
+)
+from music_stats import repeat_rate
 
 # ==============================================================================
 # Third-Party Imports
@@ -1610,6 +1624,21 @@ def _handle_gimick_repeat_counter(handler) -> None:
         "run/gimick_repeat_counter"
     )
     _send_json_response(handler, 200, success, message)
+
+
+def _handle_diagnostics_probe(handler) -> None:
+    """Owner-only: runs the repeat statistics before any song was played (the onboarding pilot's real bug)."""
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(handler.path).query)
+    expected = os.environ.get("MUSIC_PROBE_TOKEN", "")
+    supplied = (query.get("token") or [""])[0]
+    if not expected or not secrets.compare_digest(supplied, expected):
+        handler.send_error(404, "Not found")
+        return
+    try:
+        value = repeat_rate(0, 0)
+    except ZeroDivisionError as exc:
+        raise MusicDiagnosticsProbeError("Diagnostics probe hit a real bug", probe="repeat_rate") from exc
+    _send_json_response(handler, 200, True, "probe ok", value=value)
 
 
 def _handle_rtl_start_browser(handler) -> None:
@@ -3615,6 +3644,7 @@ def spotify_nowplaying_main_loop(
                 f"[spotify_nowplaying] {exc.code}: {exc} "
                 "Spotify polling stopped; the web server remains online."
             )
+            analytics.record_exception(exc)
             break
         
         # Wait for stop event or timeout
@@ -4806,6 +4836,27 @@ def _enrich_load_env_file():
         pass  # Ignore errors when loading .env
 
 _enrich_load_env_file()
+
+# ==============================================================================
+# Analytics Contract (off unless ANALYTICS_ENABLED; .env above is already loaded)
+# ==============================================================================
+from analytics_sender import AnalyticsConfig, AnalyticsSender  # noqa: E402  (needs the .env values)
+
+
+def _report_analytics_problem(problem: dict) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    log(f"{error.code} {error} context={error.context}")
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(SCRIPT_DIR, version="1.3.0")
+analytics = AnalyticsSender(_analytics_config, root=SCRIPT_DIR, on_failure=_report_analytics_problem)
+
+
+def report_failure(error: AppError) -> None:
+    """One structured log line and, when analytics is on, one error.occurrence event."""
+    log(f"{error.code} {error} context={error.context}")
+    analytics.record_exception(error)
 
 # --------------- Config (locked to allowlist) ---------------
 ENRICH_ROOT        = ENRICH_SAFE_ROOT
@@ -6067,9 +6118,25 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             /run/gimick_repeat_counter - Start RTL repeat counter
             /run/start_mdr - Start MDR helper script
             /get_artist_not_sure_entries - Get pending artist conflicts
+            /diagnostics/probe?token=... - Owner-only Flare test (MUSIC_PROBE_TOKEN)
         """
-        # Route to handlers
-        if self.path.startswith('/activate/'):
+        endpoint = self.path.split('?', 1)[0]
+        try:
+            return self._route_get()
+        except AppError as error:
+            report_failure(error)
+            _send_json_response(self, 500, False, error.code)
+        except Exception as exc:  # request boundary: report once with its cause, answer 500
+            error = MusicRequestUnexpectedError(f"GET {endpoint} failed unexpectedly", cause=exc, endpoint=endpoint)
+            report_failure(error)
+            _send_json_response(self, 500, False, error.code)
+
+    def _route_get(self):
+        """Dispatch one GET request to its handler."""
+        if self.path.startswith('/diagnostics/probe'):
+            _handle_diagnostics_probe(self)
+
+        elif self.path.startswith('/activate/'):
             source = self.path.split('/')[-1]
             _handle_activate(self, source)
         
@@ -6161,8 +6228,11 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             except json.JSONDecodeError:
                 _send_json_response(self, 400, False, "Invalid JSON")
             
-            except Exception as e:
-                _send_json_response(self, 500, False, str(e))
+            except Exception as exc:  # request boundary: report once with its cause, answer 500
+                error = MusicRequestUnexpectedError("POST /artist_not_sure_action failed unexpectedly", cause=exc,
+                                                    endpoint="/artist_not_sure_action")
+                report_failure(error)
+                _send_json_response(self, 500, False, error.code)
         
         else:
             self.send_response(404)
@@ -6203,13 +6273,16 @@ def main():
         sys.exit(1)
     
     httpd = None
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
     try:
         # Start HTTP server
 # NOTE: HTTP is intentional for localhost-only control interface
 # This server is NOT exposed to the internet - it's bound to 127.0.0.1
 # Adding HTTPS would require certificates and provide no security benefit for local-only access
         httpd = socketserver.TCPServer(("", PORT), MyHandler)
-        log(f"Finja's BIG Musik BRAIN v1.2.1 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")  # NOSONAR - localhost only
+        log(f"Finja's BIG Musik BRAIN v1.3.0 is online! :3 | Control panel: http://localhost:{PORT}/Musik.html")  # NOSONAR - localhost only
         httpd.serve_forever()  # NOSONAR nosec B201 - localhost only, no external exposure
 
     except KeyboardInterrupt:
@@ -6219,6 +6292,7 @@ def main():
             httpd.server_close()
         stop_current_writer_and_nowplaying()  # Ensure all threads are stopped
         release_lock()
+        analytics.stop()
         log("Clean shutdown complete.")
 
 

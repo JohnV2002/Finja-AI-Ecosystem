@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T14:32:28+00:00",
+  "updated_at": "2026-10-25T14:57:44+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -503,6 +503,30 @@
           "to_inbox": true,
           "introduced": "2026-10-25T14:32:28+00:00",
           "updated_at": "2026-10-25T14:32:28+00:00"
+        },
+        "520": {
+          "name": "MusicRequestUnexpectedError",
+          "owner": "finja-everything-in-once",
+          "module": "finja_music",
+          "category": "tool",
+          "description": "A Finja Music request failed unexpectedly.",
+          "source": "Finja-music/finja-everything-in-once/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:57:43+00:00",
+          "updated_at": "2026-10-25T14:57:43+00:00"
+        },
+        "521": {
+          "name": "MusicDiagnosticsProbeError",
+          "owner": "finja-everything-in-once",
+          "module": "finja_music",
+          "category": "tool",
+          "description": "Finja Music diagnostics probe hit a real bug.",
+          "source": "Finja-music/finja-everything-in-once/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T14:57:44+00:00",
+          "updated_at": "2026-10-25T14:57:44+00:00"
         },
         "600": {
           "name": "PipelineError",

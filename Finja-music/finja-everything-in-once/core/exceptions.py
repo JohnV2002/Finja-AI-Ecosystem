@@ -2,9 +2,10 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-everything-in-once / structured exceptions
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 1.2.1
+Version: 1.3.0
 Description: Structured FINJA error types owned by the music module.
-New in 1.2.1: Added FINJA-407 for Spotify access-token refresh failures.
+New in 1.3.0: FINJA-520 unexpected request failure, FINJA-521 diagnostics probe, shared FINJA-512.
+Earlier in 1.2.1: Added FINJA-407 for Spotify access-token refresh failures.
 Copyright (c) 2026 J. Apps — MIT License
 
 Numeric codes are reserved in the repository-root error_contract.json legend.
@@ -65,3 +66,27 @@ class SpotifyAccessTokenRefreshError(AppError):
     def __init__(self, message: str = 'Spotify rejected or could not refresh the user access token.', **kw):
         super().__init__(message, module=kw.pop('module', 'finja_music'), **kw)
 
+# --- FINJA-520 [tool] owner=finja-everything-in-once module=finja_music ---
+# Ledger-reserved: do not reuse this number under prefix FINJA
+class MusicRequestUnexpectedError(AppError):
+    code_num = 520
+    def __init__(self, message: str = 'A Finja Music request failed unexpectedly.', **kw):
+        super().__init__(message, module=kw.pop('module', 'finja_music'), **kw)
+
+# --- FINJA-521 [tool] owner=finja-everything-in-once module=finja_music ---
+# Ledger-reserved: do not reuse this number under prefix FINJA
+class MusicDiagnosticsProbeError(AppError):
+    code_num = 521
+    def __init__(self, message: str = 'Finja Music diagnostics probe hit a real bug.', **kw):
+        super().__init__(message, module=kw.pop('module', 'finja_music'), **kw)
+
+
+# --- FINJA-512 [analytics] shared with Finja (ledger owner: analytics) ---
+class AnalyticsDeliveryError(AppError):
+    """Analytics events could not be delivered (never to the inbox)."""
+
+    code_num = 512
+    to_inbox = False
+
+    def __init__(self, message: str = "Analytics events could not be delivered.", **kw):
+        super().__init__(message, module=kw.pop("module", "finja_music"), **kw)

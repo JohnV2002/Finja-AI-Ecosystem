@@ -5,7 +5,7 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.2.1
+  Version: 1.3.0
 
   ✨ New in 1.2.1:
     • Regression coverage for Basic Auth token refresh, invalid_grant privacy,
@@ -950,7 +950,7 @@ class TestFileStructure(unittest.TestCase):
 
 if __name__ == '__main__':
     print("\n" + "=" * 70)
-    print("          Finja Music - Comprehensive Test Suite v1.2.1")
+    print("          Finja Music - Comprehensive Test Suite v1.3.0")
     print("=" * 70 + "\n")
     
     # Run all tests
