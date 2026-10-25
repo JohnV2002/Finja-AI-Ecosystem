@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T17:42:09+00:00",
+  "updated_at": "2026-10-25T18:24:48+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -131,6 +131,18 @@
           "to_inbox": true,
           "introduced": "2026-10-25T17:42:07+00:00",
           "updated_at": "2026-10-25T17:42:07+00:00"
+        },
+        "107": {
+          "name": "MemoryNotConfiguredError",
+          "owner": "finja-memory",
+          "module": "finja-memory",
+          "category": "config",
+          "description": "The memory server is not configured (a key or setting is missing).",
+          "source": "finja-Open-Web-UI/finja-Memory/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T18:24:47+00:00",
+          "updated_at": "2026-10-25T18:24:47+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -623,6 +635,42 @@
           "to_inbox": true,
           "introduced": "2026-10-25T17:42:09+00:00",
           "updated_at": "2026-10-25T17:42:09+00:00"
+        },
+        "528": {
+          "name": "MemoryStorageError",
+          "owner": "finja-memory",
+          "module": "finja-memory",
+          "category": "tool",
+          "description": "Reading or writing a memory file failed.",
+          "source": "finja-Open-Web-UI/finja-Memory/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T18:24:47+00:00",
+          "updated_at": "2026-10-25T18:24:47+00:00"
+        },
+        "529": {
+          "name": "MemoryApiUnexpectedError",
+          "owner": "finja-memory",
+          "module": "finja-memory",
+          "category": "tool",
+          "description": "A memory server request failed unexpectedly.",
+          "source": "finja-Open-Web-UI/finja-Memory/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T18:24:48+00:00",
+          "updated_at": "2026-10-25T18:24:48+00:00"
+        },
+        "530": {
+          "name": "MemoryDiagnosticsProbeError",
+          "owner": "finja-memory",
+          "module": "finja-memory",
+          "category": "tool",
+          "description": "Memory server diagnostics probe hit a real bug.",
+          "source": "finja-Open-Web-UI/finja-Memory/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-25T18:24:48+00:00",
+          "updated_at": "2026-10-25T18:24:48+00:00"
         },
         "600": {
           "name": "PipelineError",

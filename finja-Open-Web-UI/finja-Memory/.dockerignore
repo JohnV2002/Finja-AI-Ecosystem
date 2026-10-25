@@ -1,8 +1,29 @@
-# .dockerignore
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-cloud-memory / .dockerignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 4.5.0
+# Description: Keeps secrets, user data, tests and tooling out of the build context.
+# New in 4.5.0: private/, .env, user data, tests and contract tooling stay out
+#   (analytics_contract.json stays in: the sender reads it).
+# Copyright (c) 2026 J. Apps - Licensed under the Apache License 2.0.
+
 __pycache__
 *.pyc
 .git
 .gitignore
 README.md
+private/
+.env
+user_memories/
+user_audio/
+tts_cache/
+backups/
+backups_pre_encrypt/
 tests/
+test_*.py
+pytest_out.txt
+.pytest_cache/
+contracts/
+.error_contract/
+.github_contract/
 venv/

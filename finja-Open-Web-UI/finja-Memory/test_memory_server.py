@@ -1,6 +1,11 @@
 """
-Unit tests for memory-server.py
-Tests the Server side Memory system for OpenWebUI
+Project: Finja - Twitch Interactivity Suite
+Module: finja-cloud-memory / test_memory_server.py
+Author: J. Apps (JohnV2002 / Sodakiller1)
+Version: 4.5.0
+Description: Unit tests for memory-server.py (the server side of the OpenWebUI memory system).
+New in 4.5.0: Ecosystem header added; tests unchanged.
+Copyright (c) 2026 J. Apps. Licensed under the Apache License 2.0.
 """
 import pytest
 import os

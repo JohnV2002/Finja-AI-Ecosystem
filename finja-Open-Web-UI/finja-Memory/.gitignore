@@ -1,0 +1,23 @@
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-cloud-memory / .gitignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 4.5.0
+# Description: Real keys and user data never reach the repository.
+# New in 4.5.0: First version. Secrets live in private/ (private/.env), see .env.example.
+# Copyright (c) 2026 J. Apps - Licensed under the Apache License 2.0.
+
+# Secrets — NEVER commit!
+private/
+.env
+
+# User data (memories, voice, TTS cache, backups)
+user_memories/
+user_audio/
+tts_cache/
+backups/
+backups_pre_encrypt/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

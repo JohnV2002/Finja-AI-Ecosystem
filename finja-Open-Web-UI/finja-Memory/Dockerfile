@@ -6,7 +6,7 @@
 #   Module: finja-cloud-memory
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
 #   Inspired by: gramanoid (diligent_chooser)
-#   Version: 4.4.5
+#   Version: 4.5.0
 #
 # ----------------------------------------------------------------------
 #
@@ -14,6 +14,10 @@
 #   Licensed under the Apache License 2.0
 #
 # ----------------------------------------------------------------------
+#
+#   ✨ New in 4.5.0:
+#     • Ships core/ (structured errors), the Analytics Contract sender, its
+#       contract file and memory_stats.py
 #
 #   ✨ New in 4.4.2:
 #     • Added backups folder to the container
@@ -61,7 +65,8 @@ RUN mkdir -p user_memories user_audio tts_cache backups && \
 COPY --from=builder /install /usr/local
 
 # Copy application code
-COPY --chown=appuser:appgroup --chmod=555 memory-server.py .
+COPY --chown=appuser:appgroup --chmod=555 memory-server.py memory_stats.py analytics_sender.py analytics_contract.json ./
+COPY --chown=appuser:appgroup --chmod=555 core ./core
 
 # Switch to non-root user
 USER appuser
