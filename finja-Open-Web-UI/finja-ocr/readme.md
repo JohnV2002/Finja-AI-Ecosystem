@@ -1,5 +1,10 @@
 # 📄 OCR Service with Apache Tika 🧠
 
+> [!CAUTION]
+> **Not maintained (since 2026-10-26).** This module is kept for reference only. It receives no updates,
+> no security fixes and no reviews, and it is not connected to Flare or the Analytics Collector.
+> Use it at your own risk.
+
 A standalone OCR service, based on **[Apache Tika](https://github.com/apache/tika-docker)** and **[Docker](https://www.docker.com/)**, that works perfectly with the **[OpenWebUI Document Extraction](https://docs.openwebui.com/features/document-extraction/apachetika)** feature. 💖
 
 It extracts text from images, PDFs, and Office documents, including built-in **Tesseract OCR** for scanned content. 🖼️➡️📄
