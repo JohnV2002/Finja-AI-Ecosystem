@@ -6,6 +6,17 @@
 # a future Dockerfile change to a blanket COPY can't silently start baking
 # secrets or test/dev files into the image.
 
+# Version 1.1.0: private/, tests and contract tooling stay out too
+# (analytics_contract.json stays in: the sender reads it).
+private/
+.env
+tests/
+test_*.py
+pytest.ini
+contracts/
+.error_contract/
+.github_contract/
+
 __pycache__/
 *.pyc
 .pytest_cache/

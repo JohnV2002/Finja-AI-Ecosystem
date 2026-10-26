@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-26T18:05:32+00:00",
+  "updated_at": "2026-10-26T18:18:28+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -143,6 +143,18 @@
           "to_inbox": true,
           "introduced": "2026-10-25T18:24:47+00:00",
           "updated_at": "2026-10-25T18:24:47+00:00"
+        },
+        "108": {
+          "name": "WeatherNotConfiguredError",
+          "owner": "finja-weather",
+          "module": "finja-weather",
+          "category": "config",
+          "description": "The weather service is not configured (a key or setting is missing).",
+          "source": "finja-weather/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:18:26+00:00",
+          "updated_at": "2026-10-26T18:18:26+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -719,6 +731,42 @@
           "to_inbox": true,
           "introduced": "2026-10-26T18:05:31+00:00",
           "updated_at": "2026-10-26T18:05:32+00:00"
+        },
+        "535": {
+          "name": "WeatherProviderFailedError",
+          "owner": "finja-weather",
+          "module": "finja-weather",
+          "category": "tool",
+          "description": "A weather provider (Open-Meteo or Google) failed (logged only: Flare cannot repair an external service).",
+          "source": "finja-weather/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": false,
+          "introduced": "2026-10-26T18:18:27+00:00",
+          "updated_at": "2026-10-26T18:18:27+00:00"
+        },
+        "536": {
+          "name": "WeatherApiUnexpectedError",
+          "owner": "finja-weather",
+          "module": "finja-weather",
+          "category": "tool",
+          "description": "A weather request failed unexpectedly.",
+          "source": "finja-weather/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:18:27+00:00",
+          "updated_at": "2026-10-26T18:18:27+00:00"
+        },
+        "537": {
+          "name": "WeatherDiagnosticsProbeError",
+          "owner": "finja-weather",
+          "module": "finja-weather",
+          "category": "tool",
+          "description": "Weather diagnostics probe hit a real bug.",
+          "source": "finja-weather/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:18:28+00:00",
+          "updated_at": "2026-10-26T18:18:28+00:00"
         },
         "600": {
           "name": "PipelineError",
