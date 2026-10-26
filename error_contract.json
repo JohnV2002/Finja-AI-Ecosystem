@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-26T18:18:28+00:00",
+  "updated_at": "2026-10-26T18:43:41+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -155,6 +155,18 @@
           "to_inbox": true,
           "introduced": "2026-10-26T18:18:26+00:00",
           "updated_at": "2026-10-26T18:18:26+00:00"
+        },
+        "109": {
+          "name": "YouTubeCookiesInvalidError",
+          "owner": "finja-youtube",
+          "module": "finja-youtube",
+          "category": "config",
+          "description": "The YouTube cookie file could not be read.",
+          "source": "finja-youtube/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:43:40+00:00",
+          "updated_at": "2026-10-26T18:43:40+00:00"
         },
         "200": {
           "name": "LLMError",
@@ -767,6 +779,42 @@
           "to_inbox": true,
           "introduced": "2026-10-26T18:18:28+00:00",
           "updated_at": "2026-10-26T18:18:28+00:00"
+        },
+        "538": {
+          "name": "YouTubeChromeUnreachableError",
+          "owner": "finja-youtube",
+          "module": "finja-youtube",
+          "category": "tool",
+          "description": "Finja YouTube could not reach its headless Chrome.",
+          "source": "finja-youtube/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:43:40+00:00",
+          "updated_at": "2026-10-26T18:43:40+00:00"
+        },
+        "539": {
+          "name": "YouTubeApiUnexpectedError",
+          "owner": "finja-youtube",
+          "module": "finja-youtube",
+          "category": "tool",
+          "description": "A Finja YouTube API request failed unexpectedly.",
+          "source": "finja-youtube/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:43:41+00:00",
+          "updated_at": "2026-10-26T18:43:41+00:00"
+        },
+        "540": {
+          "name": "YouTubeDiagnosticsProbeError",
+          "owner": "finja-youtube",
+          "module": "finja-youtube",
+          "category": "tool",
+          "description": "Finja YouTube diagnostics probe hit a real bug.",
+          "source": "finja-youtube/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:43:41+00:00",
+          "updated_at": "2026-10-26T18:43:41+00:00"
         },
         "600": {
           "name": "PipelineError",
