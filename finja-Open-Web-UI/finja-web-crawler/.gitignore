@@ -1,5 +1,10 @@
-# Secrets — NEVER commit! (.env holds the real BEARER_TOKEN once filled in;
+# Project: Finja - Twitch Interactivity Suite | Module: finja-web-crawler | Version: 2.2.0
+# New in v2.2.0: real settings live in private/.env (whole folder ignored).
+# Copyright (c) 2026 J. Apps - Licensed under the Apache License 2.0.
+
+# Secrets — NEVER commit! (private/.env holds the real BEARER_TOKEN once filled in;
 # .env.example is the shareable template)
+private/
 .env
 *.key
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Error Code Legend",
-  "updated_at": "2026-10-25T18:24:48+00:00",
+  "updated_at": "2026-10-26T18:05:32+00:00",
   "description": "Public source of truth for every structured error code in this repository. Runtime implementations may remain module-local.",
   "namespaces": {
     "FINJA": {
@@ -671,6 +671,54 @@
           "to_inbox": true,
           "introduced": "2026-10-25T18:24:48+00:00",
           "updated_at": "2026-10-25T18:24:48+00:00"
+        },
+        "531": {
+          "name": "SearchBackendError",
+          "owner": "finja-web-crawler",
+          "module": "finja-web-crawler",
+          "category": "tool",
+          "description": "A search backend (DuckDuckGo or the Google fallback) failed (logged only: Flare cannot repair an external service).",
+          "source": "finja-Open-Web-UI/finja-web-crawler/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": false,
+          "introduced": "2026-10-26T18:05:30+00:00",
+          "updated_at": "2026-10-26T18:05:30+00:00"
+        },
+        "532": {
+          "name": "CrawlSpawnError",
+          "owner": "finja-web-crawler",
+          "module": "finja-web-crawler",
+          "category": "tool",
+          "description": "Starting or reaching a short-lived crawl worker failed.",
+          "source": "finja-Open-Web-UI/finja-web-crawler/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:05:31+00:00",
+          "updated_at": "2026-10-26T18:05:31+00:00"
+        },
+        "533": {
+          "name": "CrawlerApiUnexpectedError",
+          "owner": "finja-web-crawler",
+          "module": "finja-web-crawler",
+          "category": "tool",
+          "description": "A web crawler request failed unexpectedly.",
+          "source": "finja-Open-Web-UI/finja-web-crawler/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:05:31+00:00",
+          "updated_at": "2026-10-26T18:05:31+00:00"
+        },
+        "534": {
+          "name": "CrawlerDiagnosticsProbeError",
+          "owner": "finja-web-crawler",
+          "module": "finja-web-crawler",
+          "category": "tool",
+          "description": "Web crawler diagnostics probe hit a real bug.",
+          "source": "finja-Open-Web-UI/finja-web-crawler/core/exceptions.py",
+          "base_class": "AppError",
+          "to_inbox": true,
+          "introduced": "2026-10-26T18:05:31+00:00",
+          "updated_at": "2026-10-26T18:05:32+00:00"
         },
         "600": {
           "name": "PipelineError",

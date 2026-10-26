@@ -7,7 +7,7 @@
 ======================================================================
 
   Project: Web Crawler API
-  Version: 2.1.0
+  Version: 2.2.0
   Author:  J. Apps (Sodakiller1)
   License: MIT License (c) 2026 J. Apps
 
@@ -27,7 +27,15 @@
   • Clean JSON responses for easy integration into other systems
 
 ----------------------------------------------------------------------
- New in v2.1.0:
+ New in v2.2.0:
+ ---------------------------------------------------------------------
+  • Search backend failures are logged with FINJA-531 (not sent to Flare:
+    DuckDuckGo/Tor trouble is external); unexpected request failures are
+    FINJA-533; Analytics Contract sender (off unless ANALYTICS_ENABLED)
+  • Settings from private/.env (then .env)
+
+----------------------------------------------------------------------
+ Changelog v2.1.0:
  ---------------------------------------------------------------------
   • Part of the distributed-crawl release: this search API now sits
     alongside the crawl-spawner / crawl-worker / research-orchestrator
@@ -51,7 +59,9 @@
 
 
 import uvicorn
-from fastapi import FastAPI, Header, Body, HTTPException
+from fastapi import FastAPI, Header, Body, HTTPException, Request
+from fastapi.responses import JSONResponse
+from pathlib import Path
 from pydantic import BaseModel, Field
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -66,7 +76,11 @@ import os
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from typing import Annotated
 
+load_dotenv(Path(__file__).resolve().parent / "private" / ".env")
 load_dotenv()
+
+import crawler_reporting  # noqa: E402  (after the .env: the sender reads ANALYTICS_*)
+from core.exceptions import AppError, CrawlerApiUnexpectedError, SearchBackendError  # noqa: E402
 
 # Logging setup — LOG_LEVEL env enables DEBUG verbosity for `docker logs`.
 SERVICE_NAME = "finja-search-proxy"
@@ -135,6 +149,31 @@ TRACKING_QUERY_PARAMS = {
 }
 
 app = FastAPI()
+
+
+@app.exception_handler(AppError)
+async def _structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    crawler_reporting.report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def _unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = CrawlerApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly",
+                                      module="finja-web-crawler", cause=exc, endpoint=request.url.path)
+    crawler_reporting.report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
+
+
+@app.on_event("startup")
+def _start_reporting() -> None:
+    crawler_reporting.start()
+
+
+@app.on_event("shutdown")
+def _stop_reporting() -> None:
+    crawler_reporting.stop()
 
 # Optional: API Key for authentication. It is highly recommended to change and use this in the .env!
 EXPECTED_BEARER_TOKEN = os.getenv("BEARER_TOKEN")
@@ -277,10 +316,11 @@ def ddg_search(query: str, count: int) -> list[SearchResult]:
             snippet=result.get("body"),
             source="duckduckgo",
         ) for result in search_results]
-    except Exception as e:
+    except Exception as e:  # backend boundary: any DDGS/Tor failure falls back to the Google crawler
         _m_incr("ddg_error")
         _m_error(f"ddg: {e}")
-        logger.error(f"Error during DuckDuckGo search: {e}")
+        crawler_reporting.report_throttled(SearchBackendError("DuckDuckGo search failed", module="finja-web-crawler",
+                                                              cause=e, backend="duckduckgo"))
         return []
 
 def _parse_google_html(html_text: str, count: int) -> list[SearchResult]:
@@ -347,10 +387,11 @@ def google_crawler(query: str, count: int) -> list[SearchResult]:
         logger.info(f"Crawler found {len(results)} results")
         return results
 
-    except Exception as e:
+    except Exception as e:  # backend boundary: the fallback must never break the search endpoint
         _m_incr("google_fallback_error")
         _m_error(f"google: {e}")
-        logger.error(f"Error in crawler: {e}")
+        crawler_reporting.report_throttled(SearchBackendError("Google fallback search failed",
+                                                              module="finja-web-crawler", cause=e, backend="google"))
         return []
 
 
