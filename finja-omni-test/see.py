@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-omni-test / see
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -96,7 +96,9 @@ def see_local(b64, prompt=VISION_PROMPT, model=LOCAL_MODEL, timeout=300):
 
 def see_openrouter(b64, prompt=VISION_PROMPT, model=OPENROUTER_MODEL, timeout=360):
     if not OPENROUTER_KEY:
-        raise RuntimeError("No OPENROUTER_API_KEY set (env variable).")
+        from core.exceptions import OmniNotConfiguredError
+        raise OmniNotConfiguredError("Finja Omni is not configured: OPENROUTER_API_KEY is missing (.env)",
+                                     setting="OPENROUTER_API_KEY")
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": [
@@ -142,14 +144,18 @@ if __name__ == "__main__":
             t0 = time.perf_counter()
             out = see_local(b64)
             print(f"\n  [LOCAL {LOCAL_MODEL}]  ({time.perf_counter()-t0:.1f}s)\n  {out}")
-        except Exception as e:
-            print(f"\n  [LOCAL] Error: {e}")
+        except Exception as exc:  # CLI boundary: report with its code, try the next backend
+            import omni_reporting
+            omni_reporting.report_failure(omni_reporting.as_app_error(exc, "The local vision model call failed",
+                                                                      backend="local"), flush=True)
 
     if mode in ("--openrouter", "--both"):
         try:
             t0 = time.perf_counter()
             out = see_openrouter(b64)
             print(f"\n  [OPENROUTER {OPENROUTER_MODEL}]  ({time.perf_counter()-t0:.1f}s)\n  {out}")
-        except Exception as e:
-            print(f"\n  [OPENROUTER] Error: {e}")
+        except Exception as exc:  # CLI boundary: report with its code
+            import omni_reporting
+            omni_reporting.report_failure(omni_reporting.as_app_error(exc, "The OpenRouter vision model call failed",
+                                                                      backend="openrouter"), flush=True)
     print()

@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jappshome.de/schemas/analytics-contract/contract-1.0.json",
+  "title": "Analytics Contract Project Configuration 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "protocol",
+    "project",
+    "analytics",
+    "error_integration",
+    "privacy",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_schema",
+        "api_major"
+      ],
+      "properties": {
+        "event_schema": {
+          "const": "1.0"
+        },
+        "api_major": {
+          "const": 1
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "languages",
+        "runtimes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "runtimes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "endpoint_env",
+        "timeout_ms",
+        "fail_silent",
+        "queue"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "endpoint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "endpoint_env": {
+          "type": "string",
+          "default": "ANALYTICS_ENDPOINT"
+        },
+        "auth_token_env": {
+          "type": "string",
+          "default": "ANALYTICS_TOKEN"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "fail_silent": {
+          "const": true
+        },
+        "queue": {
+          "type": "object"
+        }
+      }
+    },
+    "error_integration": {
+      "type": "object",
+      "required": [
+        "mode",
+        "reuse_error_event",
+        "file_path_mode",
+        "include_source",
+        "include_stacktrace"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "error_contract",
+            "none"
+          ]
+        },
+        "reuse_error_event": {
+          "const": true
+        },
+        "file_path_mode": {
+          "const": "project_relative"
+        },
+        "include_source": {
+          "const": false
+        },
+        "include_stacktrace": {
+          "const": false
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "allow_secrets",
+        "allow_prompts",
+        "allow_absolute_paths",
+        "allowed_tags"
+      ],
+      "properties": {
+        "allow_secrets": {
+          "const": false
+        },
+        "allow_prompts": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_absolute_paths": {
+          "const": false
+        },
+        "allowed_tags": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "environment",
+              "version",
+              "component",
+              "operation",
+              "outcome"
+            ]
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "flare": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How Flare's signal gateway, repair cards and apply path treat this project (optional).",
+      "required": [
+        "signals",
+        "apply"
+      ],
+      "properties": {
+        "apply": {
+          "enum": [
+            "host_agent",
+            "self_install",
+            "analysis_only"
+          ]
+        },
+        "activation_label": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "check_label": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 24
+        },
+        "signals": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "errors": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "min_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "window_minutes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1440
+                },
+                "operation": {
+                  "enum": [
+                    "observe",
+                    "diagnose",
+                    "repair"
+                  ]
+                },
+                "operator_fingerprint_prefixes": {
+                  "type": "array",
+                  "maxItems": 8,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,31}$"
+                  }
+                }
+              }
+            },
+            "resources": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "metric",
+                  "aggregation",
+                  "threshold"
+                ],
+                "properties": {
+                  "metric": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_.-]{0,95}$"
+                  },
+                  "aggregation": {
+                    "enum": [
+                      "avg",
+                      "max",
+                      "p95",
+                      "p99"
+                    ]
+                  },
+                  "threshold": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "window_minutes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1440
+                  }
+                }
+              }
+            },
+            "cooldown_minutes": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 10080
+            }
+          }
+        }
+      }
+    }
+  }
+}

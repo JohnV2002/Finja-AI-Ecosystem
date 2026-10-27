@@ -5,8 +5,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-canvas
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
+#   Changes (1.2.0): Ships the structured errors, the Analytics Contract sender and
+#                    its contract file (the sender reads it at runtime).
 #   Changes (1.1.0): Installs the SVG renderer needed for Recraft motifs.
 #
 # ----------------------------------------------------------------------
@@ -31,7 +33,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ai_client.py config.py gen_canv.py index.html new_motif.py painter.py \
-     plan_drawing.py render.py reset_canvas.py server.py shape_template.py entrypoint.sh ./
+     plan_drawing.py render.py reset_canvas.py server.py shape_template.py entrypoint.sh \
+     canvas_stats.py analytics_sender.py analytics_contract.json ./
+COPY core ./core
 
 # Fresh initial state is created IN the image (don't copy the dev states from the
 # machine, see .dockerignore) - canvas.csv/color.csv/gallery/ are usually

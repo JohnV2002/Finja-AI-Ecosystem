@@ -5,7 +5,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-web-crawler
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.1.0
+#   Version: 2.2.0
+#
+#   New in v2.2.0: ships the shared error reporting (core/, crawler_reporting.py,
+#   analytics_sender.py, analytics_contract.json).
 #
 # ----------------------------------------------------------------------
 #
@@ -48,6 +51,8 @@ COPY --from=builder /install /usr/local
 
 # Copy application code
 COPY main.py .
+COPY crawler_reporting.py analytics_sender.py analytics_contract.json ./
+COPY core ./core
 
 # Switch to non-root user for security
 USER appuser

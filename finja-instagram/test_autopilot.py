@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-instagram / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.2.0
   Description: Tests for autopilot.py -- the prototype autonomous
                browsing loop. load_instagram_cookies() and
                buffer_buster_jump() are real, synchronous, mockable

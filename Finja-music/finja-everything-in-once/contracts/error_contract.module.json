@@ -9,6 +9,21 @@
       "code": "FINJA-407",
       "name": "SpotifyAccessTokenRefreshError",
       "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-520",
+      "name": "MusicRequestUnexpectedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-521",
+      "name": "MusicDiagnosticsProbeError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-512",
+      "name": "AnalyticsDeliveryError",
+      "source": "core/exceptions.py"
     }
   ]
 }

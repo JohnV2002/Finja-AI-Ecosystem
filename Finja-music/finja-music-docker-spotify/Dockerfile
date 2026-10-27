@@ -2,10 +2,14 @@
 #  Project: Finja Cloud Musik API Docker - Dockerfile
 #  Module: finja-music-docker-spotify
 #  Author: J. Apps (JohnV2002 / Sodakiller1)
-#  Version: 1.2.0
+#  Version: 1.3.1
 #  Description: Dockerfile for the Music API service.
 #
-#  ✨ New in 1.2.0:
+#  ✨ New in 1.3.0:
+#    • Ships core/ (structured errors), the Analytics Contract sender, its
+#      contract file and listening_stats.py
+#
+#  📜 Changelog 1.2.0:
 #    • Version number aligned with the rest of the module (2026-07-20) --
 #      no functional changes in this file specifically
 #
@@ -60,6 +64,8 @@ COPY --from=builder --chmod=555 /usr/local/bin /usr/local/bin
 COPY --chown=root:root --chmod=555 app.py .
 COPY --chown=root:root --chmod=555 config_min.json .
 COPY --chown=root:root --chmod=555 requirements.txt .
+COPY --chown=root:root --chmod=555 listening_stats.py analytics_sender.py analytics_contract.json ./
+COPY --chown=root:root --chmod=555 core ./core
 
 # Copy writable data directories as appuser-owned (app needs write access at runtime)
 COPY --chown=appuser:appgroup --chmod=555 Memory ./Memory

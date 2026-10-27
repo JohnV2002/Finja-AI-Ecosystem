@@ -1,0 +1,37 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: AI-Coding/analytics-contract / pyproject.toml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.1.0
+# Description: Python package and CLI metadata for Analytics Contract.
+# New in v1.0.0: Language-neutral analytics discovery, configuration, and API schemas.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+[project]
+name = "analytics-contract"
+version = "1.1.0"
+description = "Language-neutral analytics contract with Error Contract integration"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "J. Apps", email = "contact@jappshome.de" }]
+keywords = ["analytics", "telemetry", "metrics", "errors", "codex", "grok", "j-apps"]
+
+[project.scripts]
+analytics-contract = "analytics_contract.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["analytics_contract*"]
+
+[tool.error-contract]
+exempt = true
+reason = "Analytics Contract tooling does not require its own runtime error namespace."
+
+[tool.analytics-contract]
+exempt = true
+reason = "Analytics Contract tooling does not instrument its own detector and schemas."

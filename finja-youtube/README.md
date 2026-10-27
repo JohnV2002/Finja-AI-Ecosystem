@@ -1,4 +1,4 @@
-# 📺 Finja YouTube Shorts v1.1.0
+# 📺 Finja YouTube Shorts v1.2.0
 
 A headless YouTube Shorts browser container that scrolls through Shorts, takes screenshots, scrapes metadata, and lets an external **Vision-LLM (the Brain)** decide whether to **like** and **forward** a video — all routed anonymously through a **VPN tunnel (Gluetun + ProtonVPN)**.
 
@@ -14,6 +14,12 @@ Built as a standalone Docker service for the **Finja AI Ecosystem**. 🕵️‍�
 - **Cookie Security**: Your `cookies.json` contains **real YouTube session tokens**. Never commit it to a public repository! Use `.gitignore` to exclude it.
 
 ---
+
+## 🆕 Changes (v1.2.0)
+
+- **Structured errors:** `FINJA-109` unreadable cookie file (the API starts without login instead of crashing; Flare asks a person), `FINJA-538` Chrome unreachable at startup, `FINJA-539` an unexpected request failure, `FINJA-540` the owner-only probe `GET /diagnostics/probe?token=…` (`YOUTUBE_PROBE_TOKEN`).
+- **Flare & Analytics (optional, off by default):** with `YOUTUBE_ANALYTICS_*` in `.env`, errors plus CPU/RAM go to the Analytics Collector, which hands repeated errors to Flare. The VPN container joins the external network `analytics-ingest` (only the collector is there, create it once: `docker network create --subnet <private-subnet> analytics-ingest`), and Gluetun lets exactly that subnet past the tunnel (`YOUTUBE_ANALYTICS_SUBNET`). Internet traffic and DNS stay on the VPN, so the endpoint is an IP address.
+- **Docker:** `.dockerignore` also keeps tests and contract tooling out of the image (the Dockerfile uses `COPY . .`).
 
 ## ✨ Features
 

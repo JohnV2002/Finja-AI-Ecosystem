@@ -2,7 +2,7 @@
  * Project: Finja - Twitch Interactivity Suite
  * Module: finja-chat / twitch_auth.js
  * Author: J. Apps (JohnV2002 / Sodakiller1)
- * Version: 2.4.1
+ * Version: 2.5.0
  * Description: Twitch Device Code OAuth, validation, and token rotation.
  * New in v2.4.1:
  *   - Keeps OAuth access and refresh tokens in page memory only.
@@ -18,7 +18,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function createTwitchAuthApi() {
   "use strict";
 
-  const VERSION = "2.4.1";
+  const VERSION = "2.5.0";
   const LEGACY_TOKEN_KEYS = ["finja_twitch_auth_v1", "finja_bot_oauth"];
   const CLIENT_ID_KEY = "finja_twitch_client_id";
   const SCOPES = ["chat:read", "chat:edit"];

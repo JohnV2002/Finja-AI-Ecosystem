@@ -1,7 +1,7 @@
 # Project: Finja - Twitch Interactivity Suite
 # Module: finja-chat / requirements.txt
 # Author: J. Apps (JohnV2002 / Sodakiller1)
-# Version: 2.4.1
+# Version: 2.5.0
 # Description: Python bridge and Spotify request dependencies.
 # New in v2.4.1: Memory-only OAuth storage needs no additional dependency.
 # Copyright (c) 2026 J. Apps — Licensed under the MIT License.

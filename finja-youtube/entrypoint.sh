@@ -6,7 +6,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-youtube / entrypoint
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
 # ----------------------------------------------------------------------
 #
@@ -24,7 +24,7 @@
 #
 # ----------------------------------------------------------------------
 #   New in v1.1.0:
-#     • Adopted into Production (Z:\Bilder\Streaming\Finja - Browser test)
+#     • Adopted into Production (the local "Finja - Browser test" folder)
 #       as part of the module version/header unification (2026-07-19) --
 #       no functional changes in this file specifically
 # ======================================================================

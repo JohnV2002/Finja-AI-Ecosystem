@@ -1,10 +1,18 @@
-# 🌦️ Finja Weather API v1.0.0
+# 🌦️ Finja Weather API v1.1.0
 
 A stateless weather microservice built for the **Finja AI Ecosystem**. It fetches normalized weather data for a given set of coordinates via a pluggable provider abstraction.
 
 **Important:** This module handles **no user data and stores no user consent**. User location mapping and consent logic lives entirely on the Finja side. This microservice purely translates `(latitude, longitude)` into structured weather intelligence.
 
 ---
+
+## 🆕 Changes (v1.1.0)
+
+- **Secrets in `private/`:** real settings live in `private/.env` (folder in `.gitignore`); `docker-compose.yml` reads it.
+- **Flare & Analytics (optional, off by default):** with `ANALYTICS_ENABLED=true`, errors plus CPU/RAM go to the Analytics Collector, which hands repeated errors to Flare. The container joins the private Flare network.
+  - `FINJA-535` a provider (Open-Meteo/Google) failed: **logged only**, never sent to Flare (an external outage cannot be repaired in code)
+  - `FINJA-108` the Google key is missing (Flare asks a person instead of repairing)
+  - `FINJA-536` an unexpected request failure, `FINJA-537` the owner-only probe `GET /diagnostics/probe?token=…` (`WEATHER_PROBE_TOKEN`)
 
 ## ✨ Features
 

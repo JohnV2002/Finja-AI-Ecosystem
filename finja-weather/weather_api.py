@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-weather / weather_api
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -27,6 +27,14 @@
   - Expose /current and /forecast for coordinates.
   - Bearer-token auth, health + self-contained telemetry (/stats).
   - Stay stateless: no user data, no consent storage (handled in Finja).
+
+ New in v1.1.0:
+  - Provider failures are logged with FINJA-535 (not sent to Flare: Open-Meteo
+    and Google are external); a missing Google key is FINJA-108 (a person fixes
+    it); unexpected request failures FINJA-536; owner-only
+    GET /diagnostics/probe?token=... (WEATHER_PROBE_TOKEN, FINJA-537).
+  - Analytics Contract sender (off unless ANALYTICS_ENABLED); settings from
+    private/.env (then .env).
 ======================================================================
 """
 
@@ -35,17 +43,38 @@ from __future__ import annotations
 import collections
 import logging
 import os
+import secrets
 import threading
 import time
+from pathlib import Path
 from typing import Annotated, Any
 
 from dotenv import load_dotenv
-from fastapi import Body, FastAPI, Header, HTTPException
+from fastapi import Body, FastAPI, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from providers import WeatherProviderError, get_provider, google_air_quality, google_pollen
+from providers import (
+    WeatherNotConfiguredProviderError,
+    WeatherProviderError,
+    get_provider,
+    google_air_quality,
+    google_pollen,
+)
 
+load_dotenv(Path(__file__).resolve().parent / "private" / ".env")
 load_dotenv()
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender  # noqa: E402  (needs the .env values)
+from core.exceptions import (  # noqa: E402
+    AnalyticsDeliveryError,
+    AppError,
+    WeatherApiUnexpectedError,
+    WeatherDiagnosticsProbeError,
+    WeatherNotConfiguredError,
+    WeatherProviderFailedError,
+)
+from weather_stats import rain_share  # noqa: E402
 
 SERVICE_NAME = "finja-weather"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -59,6 +88,89 @@ EXPECTED_BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 DEFAULT_PROVIDER = os.getenv("WEATHER_PROVIDER", "open-meteo").strip().lower()
 
 app = FastAPI(title="Finja Weather API", version="0.1.0")
+
+_errors_log = logging.getLogger("finja.weather.errors")
+_last_reported: dict[str, float] = {}
+
+
+def _report_analytics_problem(problem: dict[str, Any]) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    _errors_log.warning("%s %s context=%s", error.code, error, error.context)
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(Path(__file__).resolve().parent,
+                                                                        version="1.1.0")
+analytics = AnalyticsSender(_analytics_config, root=Path(__file__).resolve().parent,
+                            on_failure=_report_analytics_problem)
+
+
+def report_failure(error: AppError) -> None:
+    """One structured log line and, unless the code is log-only, one error.occurrence event."""
+    _errors_log.error("%s %s context=%s", error.code, error, error.context)
+    analytics.record_exception(error)  # skips FINJA-535 (to_inbox=False)
+
+
+def report_throttled(error: AppError, every_s: float = 60.0) -> None:
+    """Same code and cause type at most once per minute."""
+    cause = getattr(error, "cause", None)
+    key = f"{error.code}:{type(cause).__name__ if cause else ''}:{error.context.get('endpoint', '')}"
+    now = time.time()
+    if now - _last_reported.get(key, 0.0) >= every_s:
+        _last_reported[key] = now
+        report_failure(error)
+
+
+def report_provider_failure(exc: WeatherProviderError, endpoint: str) -> None:
+    """A missing key asks a person (FINJA-108); an outage of the external provider is logged only (FINJA-535)."""
+    if isinstance(exc, WeatherNotConfiguredProviderError):
+        error: AppError = WeatherNotConfiguredError(str(exc), module="finja-weather", cause=exc, endpoint=endpoint,
+                                                    setting="GOOGLE_WEATHER_API_KEY")
+    else:
+        error = WeatherProviderFailedError("The weather provider failed", module="finja-weather", cause=exc,
+                                           endpoint=endpoint)
+    report_throttled(error)
+
+
+@app.on_event("startup")
+def _start_reporting() -> None:
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
+
+
+@app.on_event("shutdown")
+def _stop_reporting() -> None:
+    analytics.stop()
+
+
+@app.exception_handler(AppError)
+async def _structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def _unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = WeatherApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly",
+                                      module="finja-weather", cause=exc, endpoint=request.url.path)
+    report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
+
+
+@app.get("/diagnostics/probe")
+def _diagnostics_probe(token: str = "") -> dict[str, Any]:
+    """Owner-only: the rain share before any hour was looked at (the onboarding pilot's real bug)."""
+    expected = os.getenv("WEATHER_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        value = rain_share(0, 0)
+    except ZeroDivisionError as exc:
+        raise WeatherDiagnosticsProbeError("Diagnostics probe hit a real bug", module="finja-weather",
+                                           probe="rain_share") from exc
+    return {"probe": "rain_share", "value": value}
 
 # ── Telemetry (self-contained, in-process counters exposed via /stats) ─────────
 _METRICS_LOCK = threading.Lock()
@@ -293,7 +405,7 @@ async def current_endpoint(
     except WeatherProviderError as exc:
         _m_incr("current_fail")
         _m_error(f"current: {exc}")
-        logger.warning("Current weather failed: %s", exc)
+        report_provider_failure(exc, "current")
         # Generic client message — do not leak exception text (CodeQL info exposure).
         raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
@@ -350,7 +462,7 @@ async def forecast_endpoint(
     except WeatherProviderError as exc:
         _m_incr("forecast_fail")
         _m_error(f"forecast: {exc}")
-        logger.warning("Forecast failed: %s", exc)
+        report_provider_failure(exc, "forecast")
         raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("forecast_ok")
@@ -385,7 +497,7 @@ async def pollen_endpoint(
     except WeatherProviderError as exc:
         _m_incr("pollen_fail")
         _m_error(f"pollen: {exc}")
-        logger.warning("Pollen failed: %s", exc)
+        report_provider_failure(exc, "pollen")
         raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("pollen_ok")
@@ -419,7 +531,7 @@ async def air_quality_endpoint(
     except WeatherProviderError as exc:
         _m_incr("air_quality_fail")
         _m_error(f"air_quality: {exc}")
-        logger.warning("Air quality failed: %s", exc)
+        report_provider_failure(exc, "air-quality")
         raise HTTPException(status_code=502, detail="Weather provider error") from exc
     duration_ms = int((time.time() - start) * 1000)
     _m_incr("air_quality_ok")

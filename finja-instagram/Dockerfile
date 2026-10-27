@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-instagram
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
 # ----------------------------------------------------------------------
 #
@@ -26,7 +26,11 @@
 #     • CRLF fix for Windows → Linux compatibility
 #     • Healthcheck endpoint on port 8061
 #
-#   New in v1.1.0:
+#   New in v1.2.0:
+#     • Ships core/, reel_stats.py, the Analytics Contract sender and its
+#       contract file (COPY . . with tests and tooling kept out)
+#
+#   Changelog v1.1.0:
 #     • Merged Production + GitHub tracks (2026-07-19). Fixed a real
 #       security gap: .dockerignore didn't exclude the real cookie
 #       files, so every build was baking live Instagram session

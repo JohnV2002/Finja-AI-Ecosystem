@@ -9,7 +9,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-youtube
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
 
 ----------------------------------------------------------------------
 
@@ -36,7 +36,16 @@
   This container is intentionally "dumb" — it only executes actions.
 
 ----------------------------------------------------------------------
- New in v1.1.0:
+ New in v1.2.0:
+----------------------------------------------------------------------
+  • Structured FINJA errors (module finja-youtube): unreadable cookie file
+    FINJA-109 (before: the API crashed at startup), Chrome unreachable
+    FINJA-538, unexpected request failure FINJA-539, probe FINJA-540
+  • Analytics Contract sender (off unless ANALYTICS_ENABLED)
+  • Owner-only GET /diagnostics/probe?token=… (YOUTUBE_PROBE_TOKEN)
+
+----------------------------------------------------------------------
+ Changelog v1.1.0:
 ----------------------------------------------------------------------
   • Adopted into Production ("Finja - Browser test" folder)
     as part of the module version/header unification (2026-07-19) --
@@ -58,19 +67,54 @@ import os
 import json
 import base64
 import asyncio
+import logging
+import secrets
+import time
 from pathlib import Path
 from contextlib import asynccontextmanager
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from playwright.async_api import async_playwright, Browser, Page
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from playwright.async_api import async_playwright, Browser, Error as PlaywrightError, Page
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    YouTubeApiUnexpectedError,
+    YouTubeChromeUnreachableError,
+    YouTubeCookiesInvalidError,
+    YouTubeDiagnosticsProbeError,
+)
+from shorts_stats import like_share
 
 # ---- Config ----
 CHROME_PORT = int(os.environ.get("CHROME_PORT", 9222))
 API_PORT = int(os.environ.get("YOUTUBE_API_PORT", 8060))
 COOKIES_FILE = os.environ.get("COOKIES_FILE", "/app/cookies.json")
 YOUTUBE_TARGET_URL = os.environ.get("YOUTUBE_TARGET_URL", "https://m.youtube.com/shorts")
+
+LOGGER = logging.getLogger("finja_youtube")
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def _report_analytics_problem(problem: dict) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    LOGGER.warning("%s %s context=%s", error.code, error, error.context)
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(PROJECT_ROOT, version="1.2.0")
+analytics = AnalyticsSender(_analytics_config, root=PROJECT_ROOT, on_failure=_report_analytics_problem)
+
+
+def report_failure(error: AppError) -> None:
+    """One structured log line and, when analytics is on, one error.occurrence event."""
+    LOGGER.error("%s %s context=%s", error.code, error, error.context)
+    analytics.record_exception(error)
+
 
 _browser: Browser | None = None
 _page: Page | None = None
@@ -84,7 +128,18 @@ def _load_cookies(filepath: str) -> list[dict]:
     path = Path(filepath)
     if not path.exists():
         return []
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, list):
+            raise ValueError("cookie export is not a list")
+    except (OSError, ValueError) as exc:  # a broken export is for a person to fix; start without login
+        try:
+            raise YouTubeCookiesInvalidError(
+                "YouTube cookies are not configured correctly: the cookie file could not be read",
+                module="finja-youtube", problem=type(exc).__name__) from None
+        except YouTubeCookiesInvalidError as error:
+            report_failure(error)
+        return []
     cookies = []
     for c in raw:
         if "partitionKey" in c:
@@ -109,6 +164,9 @@ def _load_cookies(filepath: str) -> list[dict]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _browser, _page, _playwright
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
     print("[API] Connecting to Chrome via CDP...")
 
     pw = await async_playwright().start()
@@ -118,10 +176,15 @@ async def lifespan(app: FastAPI):
         try:
             _browser = await pw.chromium.connect_over_cdp(f"http://127.0.0.1:{CHROME_PORT}")
             break
-        except Exception as e:
+        except (PlaywrightError, OSError) as exc:
             if attempt == 9:
-                print(f"[API] ERROR: Chrome unreachable! {e}")
-                raise
+                unreachable = YouTubeChromeUnreachableError(
+                    "Chrome did not answer over CDP after 10 attempts", module="finja-youtube", cause=exc,
+                    port=CHROME_PORT)
+                report_failure(unreachable)
+                analytics.flush_once()  # the API is about to stop: send now
+                analytics.stop()
+                raise unreachable from exc
             await asyncio.sleep(1)
 
     context = _browser.contexts[0]
@@ -147,9 +210,39 @@ async def lifespan(app: FastAPI):
         await _browser.close()
     if _playwright:
         await _playwright.stop()
+    analytics.stop()
 
 
 app = FastAPI(title="Finja YouTube Shorts", lifespan=lifespan)
+
+
+@app.exception_handler(AppError)
+async def structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = YouTubeApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly",
+                                      module="finja-youtube", cause=exc, endpoint=request.url.path)
+    report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
+
+
+@app.get("/diagnostics/probe")
+async def diagnostics_probe(token: str = ""):
+    """Owner-only: the like share before any Short was seen (the onboarding pilot's real bug)."""
+    expected = os.environ.get("YOUTUBE_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(404, "Not found")
+    try:
+        value = like_share(0, 0)
+    except ZeroDivisionError as exc:
+        raise YouTubeDiagnosticsProbeError("Diagnostics probe hit a real bug", module="finja-youtube",
+                                           probe="like_share") from exc
+    return {"probe": "like_share", "value": value}
 
 
 # ---- Health ----
@@ -306,4 +399,5 @@ async def like():
 
 # ---- Run ----
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     uvicorn.run(app, host="0.0.0.0", port=API_PORT, log_level="info")

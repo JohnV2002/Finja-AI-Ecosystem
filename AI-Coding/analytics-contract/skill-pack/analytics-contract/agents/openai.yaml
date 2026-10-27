@@ -1,0 +1,15 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: analytics-contract / agents/openai.yaml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.1.0
+# Description: Codex-facing metadata for Analytics Contract.
+# New in v1.0.0: Automatic analytics-contract discovery and planning.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+interface:
+  display_name: "Analytics Contract"
+  short_description: "Plan safe, opt-in analytics for any project"
+  default_prompt: "Use $analytics-contract to detect this project, initialize its disabled-by-default contract if needed, and plan relevant instrumentation."
+

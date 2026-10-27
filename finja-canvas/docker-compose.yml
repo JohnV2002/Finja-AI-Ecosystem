@@ -5,8 +5,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-canvas
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
+#   Changes (1.2.0): Port bind address from CANVAS_BIND (loopback by default),
+#                    joins the private Flare/Analytics network, image tag.
 #   Changes (1.1.0): Runs the Recraft Vector-based motif workflow.
 #
 # ----------------------------------------------------------------------
@@ -19,18 +21,31 @@
 services:
   finja-canvas:
     build: .
+    image: finja-canvas:1.2.0
     ports:
-      - "7676:8000"
+      - "${CANVAS_BIND:-127.0.0.1}:7676:8000"
+    # OpenRouter key, painter switch, analytics and probe settings (see .env.example).
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - PAINT_INTERVAL_SECONDS=20
     volumes:
       - ./data/canvas.csv:/app/canvas.csv
       - ./data/color.csv:/app/color.csv
       - ./data/gallery:/app/gallery
+    networks:
+      - default
+      - flare-finja-private
+    mem_limit: 512m
+    pids_limit: 64
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+networks:
+  # Shared with the Analytics Collector and Flare (create once: docker network create flare-finja-private).
+  flare-finja-private:
+    external: true

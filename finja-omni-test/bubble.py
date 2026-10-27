@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-omni-test / bubble
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ import tkinter as tk
 from tkinter import font as tkfont
 
 import db
+import omni_reporting
 import quatsch
 
 # Event-driven: reacts to app switch (snappy), otherwise "ambient" now and then.
@@ -184,8 +185,10 @@ class Bubble:
             self.last_comment = txt
             self.last_app = app
             self.last_comment_time = time.time()
-        except Exception as e:
-            txt = f"(Error: {e})"
+        except Exception as exc:  # thread boundary: report, show a short note in the bubble
+            error = omni_reporting.as_app_error(exc, "The chat model call failed", model=quatsch.CHAT_MODEL)
+            omni_reporting.report_throttled(error)
+            txt = f"(Fehler {error.code})"
         log("FINJA", txt)
         self.root.after(0, lambda: self._show(txt))
 
@@ -199,7 +202,11 @@ if __name__ == "__main__":
     print("Finja bubble started — bottom right of the screen.")
     print("  (move: drag | close: ESC or right-click)")
     print("  Tip: run 'live.py' in parallel so she has fresh data.")
+    omni_reporting.start()
     root = tk.Tk()
     root.title("Finja")
     Bubble(root)
-    root.mainloop()
+    try:
+        root.mainloop()
+    finally:
+        omni_reporting.stop()

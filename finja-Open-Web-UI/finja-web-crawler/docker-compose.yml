@@ -5,7 +5,11 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-web-crawler
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.1.0
+#   Version: 2.2.0
+#
+#   New in v2.2.0: settings from ./private/.env (real token never in the
+#   repository); proxy, spawner and orchestrator also join the private
+#   Flare/Analytics network (analytics-collector).
 #
 # ----------------------------------------------------------------------
 #
@@ -17,6 +21,9 @@
 networks:
   default:
     name: finja-web-crawler-net
+  # Shared with the Analytics Collector and Flare (create once: docker network create flare-finja-private).
+  flare-finja-private:
+    external: true
 
 services:
   tor:
@@ -38,7 +45,10 @@ services:
       - tor
     restart: unless-stopped
     env_file:
-      - .env
+      - ./private/.env
+    networks:
+      - default
+      - flare-finja-private
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
 
@@ -81,6 +91,11 @@ services:
     depends_on:
       - tor
     restart: unless-stopped
+    env_file:
+      - ./private/.env
+    networks:
+      - default
+      - flare-finja-private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -107,7 +122,10 @@ services:
       - crawl-spawner
     restart: unless-stopped
     env_file:
-      - .env
+      - ./private/.env
+    networks:
+      - default
+      - flare-finja-private
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - SEARCH_API_URL=http://search-proxy/search

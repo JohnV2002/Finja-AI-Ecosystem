@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-omni-test / quatsch
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -96,7 +96,9 @@ def build_context(conn, minutes=5, since=None, seconds=None):
 
 def ask(context, question, avoid=None):
     if not OPENROUTER_KEY:
-        raise SystemExit("No OPENROUTER_API_KEY found in .env.")
+        from core.exceptions import OmniNotConfiguredError
+        raise OmniNotConfiguredError("Finja Omni is not configured: OPENROUTER_API_KEY is missing (.env)",
+                                     setting="OPENROUTER_API_KEY")
     user_msg = f"[Screen recording of the last few minutes]\n{context}"
     if question:
         user_msg += f"\n\n[Dad asks]: {question}"
@@ -150,6 +152,8 @@ if __name__ == "__main__":
     print("=" * 64)
     try:
         print("  " + ask(context, question).replace("\n", "\n  "))
-    except Exception as e:
-        print(f"  [Error: {e}]")
+    except Exception as exc:  # CLI boundary: report with its code
+        import omni_reporting
+        omni_reporting.report_failure(omni_reporting.as_app_error(exc, "The chat model call failed",
+                                                                  model=CHAT_MODEL), flush=True)
     print()

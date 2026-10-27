@@ -20,7 +20,6 @@ body:
         - finja-weather
         - finja-youtube / instagram
         - finja-canvas / omni
-        - finja-agentic-code (Flare)
         - docs / DX / CI
         - ecosystem-wide
     validations:

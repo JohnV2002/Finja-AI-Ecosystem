@@ -1,8 +1,10 @@
-# 🎨 Finja AI Pixel Canvas v1.1.0
+# 🎨 Finja AI Pixel Canvas v1.2.0
 
 An experimental headless AI pixel art project within the **Finja AI Ecosystem**. Multiple free AI models from OpenRouter (like Gemma and Nemotron) collaborate in a continuous loop to design, place, and paint motifs on a shared 64x64 grid—pixel by pixel.
 
 **Note:** This module operates independently and does not yet communicate directly with the main Finja brain, but integration is planned for the future.
+
+**Changes (v1.2.0):** Finja Canvas reports to the Analytics Collector and Flare (structured `FINJA-104/515/516` errors, CPU and RAM), can run with the painter switched off (`CANVAS_PAINTER_ENABLED=false`, no Recraft credit used), and the container now really resets a full canvas instead of stopping.
 
 **Changes (v1.1.0):** Recraft V4.1 Vector is now the default motif artist. Its transparent SVG motifs are rasterized into canvas pixels and painted over time.
 
@@ -30,6 +32,9 @@ An experimental headless AI pixel art project within the **Finja AI Ecosystem**.
 | `server.py` | A simple HTTP server to serve the frontend without caching. |
 | `reset_canvas.py` | Utility script to manually wipe the canvas and AI plans. |
 | `index.html` | The live dashboard frontend. |
+| `canvas_stats.py` | Small canvas statistics behind the owner-only diagnostics probe. |
+| `core/exceptions.py` | Structured errors (FINJA namespace, module finja-canvas). |
+| `analytics_sender.py` | Analytics Contract sender (off unless `ANALYTICS_ENABLED=true`). |
 
 ---
 
@@ -56,6 +61,25 @@ Open your browser and navigate to:
 [http://localhost:7676](http://localhost:7676)
 
 You will see the pixels appear one by one as the AI executes its plan.
+
+---
+
+## 🔥 Flare & Analytics (optional)
+
+Everything here is **off by default**; the canvas runs without any backend.
+
+| Setting (`.env`) | Meaning |
+|------------------|---------|
+| `CANVAS_PAINTER_ENABLED` | `false` serves only the canvas page: no OpenRouter key needed, no Recraft credit used. |
+| `CANVAS_BIND` | Address port 7676 listens on (loopback by default; the host's LAN address for OBS). |
+| `ANALYTICS_ENABLED`, `ANALYTICS_ENDPOINT`, `ANALYTICS_TOKEN` | Send errors, CPU and RAM to the Analytics Collector, which hands repeated errors to Flare. |
+| `CANVAS_PROBE_TOKEN` | Enables the owner-only `/diagnostics/probe?token=…` route (empty = off). |
+
+The compose file joins the external Docker network `flare-finja-private` (shared with the Analytics Collector and Flare); create it once with `docker network create flare-finja-private`.
+
+Errors: `FINJA-104` missing OpenRouter key (Flare asks a person instead of repairing), `FINJA-515` an unexpected painter failure (the painter stops as before), `FINJA-516` the diagnostics probe.
+
+Tests: `python -m pytest` (all) or `python -m unittest discover -s tests -t tests` (what Flare's sandbox runs).
 
 ---
 

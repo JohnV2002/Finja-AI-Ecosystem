@@ -1,4 +1,9 @@
+# Project: Finja - Twitch Interactivity Suite | Module: finja-weather | Version: 1.1.0
+# New in v1.1.0: real settings live in private/.env (whole folder ignored).
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
 # Secrets — NEVER commit!
+private/
 .env
 
 # Python

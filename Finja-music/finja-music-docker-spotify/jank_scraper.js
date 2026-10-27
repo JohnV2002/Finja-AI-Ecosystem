@@ -5,7 +5,7 @@
 //   Project: Finja - Twitch Interactivity Suite
 //   Module: finja-music-docker-spotify
 //   Author: J. Apps (JohnV2002 / Sodakiller1)
-//   Version: 1.2.0
+//   Version: 1.3.1
 //   Description: The absolute sledgehammer! Spicetify extension that
 //                scrapes BPM/Key from Spotify's DJ mode UI and POSTs
 //                it to the local jank_controller.py server.

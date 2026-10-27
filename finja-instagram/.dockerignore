@@ -1,4 +1,12 @@
-# Finja Instagram Reels - Docker Ignore
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-instagram / .dockerignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.2.0
+# Description: Keeps secrets, tests and tooling state out of the image.
+# New in v1.2.0: Tests, contracts and tool state stay out (analytics_contract.json stays in:
+#   the sender reads it).
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
 __pycache__/
 *.pyc
 *.pyo
@@ -19,3 +27,12 @@ www.instagram.com_cookies.json
 www.instagram.com_cookies.txt
 *.example
 .env
+
+# Tests and contract tooling (not needed in the container)
+tests/
+test_*.py
+pytest.ini
+.pytest_cache/
+contracts/
+.error_contract/
+.github_contract/

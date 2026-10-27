@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-youtube / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.2.0
   Description: Unit tests for the container API (youtube_api.py) --
                cookie parsing and all REST endpoints, with the
                Chrome/Playwright connection fully mocked (no real

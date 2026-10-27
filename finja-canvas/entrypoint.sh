@@ -6,8 +6,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-canvas
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
 #
+#   Changes (1.2.0): CANVAS_PAINTER_ENABLED=false serves the canvas only
+#                    (no key needed, no Recraft credit used).
 #   Changes (1.1.0): Starts the painter with Recraft Vector motifs.
 #
 # ----------------------------------------------------------------------
@@ -18,6 +20,13 @@
 # ======================================================================
 
 set -e
+
+case "$(echo "${CANVAS_PAINTER_ENABLED:-true}" | tr '[:upper:]' '[:lower:]')" in
+    0|false|no|off)
+        echo "🖌️ Painter is off (CANVAS_PAINTER_ENABLED) - serving the canvas only."
+        exec python server.py
+        ;;
+esac
 
 if [ -z "$OPENROUTER_API_KEY" ]; then
     echo "ERROR: OPENROUTER_API_KEY is not set (pass via -e or .env/env_file)."
@@ -40,8 +49,8 @@ trap cleanup TERM INT
 #                                                        reset canvas and start over
 #   Exit 1 = real error (e.g. no API key)             -> stop container
 while true; do
-    python painter.py
-    STATUS=$?
+    STATUS=0
+    python painter.py || STATUS=$?
 
     if [ $STATUS -eq 2 ]; then
         echo "🖼️ Canvas was completely full (snapshot saved) - resetting and starting anew."

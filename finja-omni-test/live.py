@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-omni-test / live
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -29,6 +29,10 @@
                           both -> SQLite (one connection + lock)
 
   CTRL+C exits cleanly.   ->   python live.py
+
+ New in v1.1.0:
+  Capture/OCR failures report FINJA-525 and model failures FINJA-526
+  (at most once a minute each; Analytics Collector when enabled).
 ======================================================================
 """
 
@@ -41,7 +45,9 @@ import mss
 import capture
 import db
 import ocr
+import omni_reporting
 import see
+from core.exceptions import OmniPipelineError
 
 # --- CONFIG ---
 TICK           = 3     # snappier (with preloaded models no problem)
@@ -109,8 +115,10 @@ def producer():
         while not stop.is_set():
             try:
                 grab = capture.grab_active(sct)
-            except Exception as e:
-                print(f"[producer] {e}"); stop.wait(TICK); continue
+            except Exception as exc:  # thread boundary: report, keep observing
+                omni_reporting.report_throttled(OmniPipelineError("Capturing the active window failed", cause=exc,
+                                                                  step="capture"))
+                stop.wait(TICK); continue
 
             ph = db.phash(grab["image"])
             if last_phash and db.hamming(ph, last_phash) <= PHASH_DUP:
@@ -143,8 +151,9 @@ def ocr_worker():
         if content == "video":
             try:
                 text = ocr.read_text(grab["image"], band=SUB_BAND if fs else None)
-            except Exception as e:
-                text = f"[ocr err: {e}]"
+            except Exception as exc:  # thread boundary: report, keep the frame
+                omni_reporting.report_throttled(OmniPipelineError("OCR of a frame failed", cause=exc, step="ocr"))
+                text = f"[ocr err: {type(exc).__name__}]"
         save(conn, grab, text, "")
         nag = " 💢" if grab["wants_fullscreen"] else ""
         out = f"  [{time.strftime('%H:%M:%S')}] {content:5}{nag} {grab['app'][:20]:20}"
@@ -169,8 +178,10 @@ def vision_worker():
                 try:
                     b64 = see.prep_image(grab["image"], content, grab["fullscreen"])
                     desc = do_vision(b64)
-                except Exception as e:
-                    desc = f"[vision err: {e}]"
+                except Exception as exc:  # thread boundary: report, keep the frame
+                    omni_reporting.report_throttled(omni_reporting.as_app_error(
+                        exc, "The vision model call failed", backend=VISION_BACKEND))
+                    desc = f"[vision err: {type(exc).__name__}]"
                 last[content] = now
                 save(conn, grab, "", desc)   # ts = capture time of the frame
                 cap = grab["captured_at"].split(" ")[-1]
@@ -187,6 +198,7 @@ if __name__ == "__main__":
     print(f"  Tick: {TICK}s | Vision: {vmode} | DB: {db.DB_PATH}")
     print("=" * 64)
 
+    omni_reporting.start()
     warmup()   # preload models -> warm from frame 1
     print("=" * 64)
     print("  GO! Observation running. CTRL+C to exit.")
@@ -210,3 +222,4 @@ if __name__ == "__main__":
             t.join(timeout=10)
         total, by = db.stats(db.get_conn())
         print(f"  Done. DB entries total: {total}  {by}")
+        omni_reporting.stop()

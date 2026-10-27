@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-weather / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
   Description: Unit tests for the FastAPI layer (weather_api.py) --
                auth, the location cache, the consensus cross-check
                merge, and error-to-HTTP-status mapping. All outbound

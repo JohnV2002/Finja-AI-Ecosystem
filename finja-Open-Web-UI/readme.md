@@ -12,10 +12,10 @@ All modules are designed to work seamlessly with OpenWebUI and can be easily dep
 
 | Module | Description | Status |
 | :--- | :--- | :--- |
-| 🧠 **Cloud Memory** | Long-term memory storage per user and **True TTS Network Caching**. | ✅ Ready (v4.4.2) |
-| 🌐 **Web Crawler** | Anonymous web searches via Tor + DDG + Fallbacks to provide up-to-date data. | ✅ Ready (v1.0.0) |
-| 📄 **OCR Service** | Extracts text from uploaded documents and images (PDFs, JPGs, etc.). | ✅ Ready |
-| 🎨 **Image Generation** | Generates images locally on your own hardware via Stable Diffusion. | ✅ Ready |
+| 🧠 **Cloud Memory** | Long-term memory storage per user and **True TTS Network Caching**. | ✅ Ready (v4.5.0) 🔥 |
+| 🌐 **Web Crawler** | Anonymous web searches via Tor + DDG + Fallbacks to provide up-to-date data. | ✅ Ready (v2.2.0) 🔥 |
+| 📄 **OCR Service** | Extracts text from uploaded documents and images (PDFs, JPGs, etc.). | ⛔ Not maintained |
+| 🎨 **Image Generation** | Generates images locally on your own hardware via Stable Diffusion. | ⛔ Not maintained |
 | 🗣️ **Text-to-Speech (TTS)** | *Moved:* Speech synthesis module. | 🚧 Moved to Neural System |
 
 ---
@@ -38,14 +38,14 @@ With this module, your AI can access up-to-date information from the internet. I
 
 [➡️ **Go to the detailed setup guide for the Web Crawler...**](./finja-web-crawler/readme.md)
 
-### 📄 OCR Service with Apache Tika
+### 📄 OCR Service with Apache Tika (⛔ not maintained)
 Allows your AI to "read" the content of documents. Upload a PDF, an image, or an Office file, and this module extracts the text so the LLM can process it.
 -   **Key Features:** Uses Apache Tika and Tesseract-OCR for broad format support, runs isolated in Docker, and is pre-configured for German and English. *(Note: Base image is outdated; use with caution).*
 -   **Technology:** Apache Tika, Tesseract, Docker.
 
 [➡️ **Go to the detailed setup guide for the OCR Service...**](./finja-ocr/readme.md)
 
-### 🎨 Image Generation with Stable Diffusion
+### 🎨 Image Generation with Stable Diffusion (⛔ not maintained)
 Give your AI the ability to paint pictures! This module runs a local instance of the popular Automatic1111 WebUI and enables text-to-image generation directly from the chat.
 -   **Key Features:** Runs completely locally (CPU-focused), permanently stores generated images, and is fully compatible with the OpenWebUI image generation feature.
 -   **Technology:** Stable Diffusion (Automatic1111), Docker.

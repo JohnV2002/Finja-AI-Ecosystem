@@ -27,7 +27,6 @@ body:
         - finja-instagram
         - finja-canvas
         - finja-omni-test
-        - finja-agentic-code (Flare)
         - tools / CI / repo root
         - unclear / multiple
     validations:

@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-weather / providers
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
 
 ----------------------------------------------------------------------
 
@@ -110,6 +110,10 @@ def _nowcast_now(minutely: dict[str, Any] | None, now_iso: Any) -> tuple[float |
 class WeatherProviderError(RuntimeError):
     """Raised when a provider cannot fulfil a request."""
 
+
+
+class WeatherNotConfiguredProviderError(WeatherProviderError):
+    """A provider needs a key or setting that is missing (a person fixes it, not a code change)."""
 
 class WeatherProvider:
     """Base provider interface. Subclasses return the normalized schema."""
@@ -264,8 +268,8 @@ class GoogleWeatherProvider(WeatherProvider):
     def _get(self, url: str, params: dict[str, Any]) -> dict[str, Any]:
         """Perform a Google Weather request and return parsed JSON."""
         if not self._api_key:
-            raise WeatherProviderError(
-                "GOOGLE_WEATHER_API_KEY not set — cannot use the google provider."
+            raise WeatherNotConfiguredProviderError(
+                "Weather is not configured: GOOGLE_WEATHER_API_KEY is missing (needed for the google provider)."
             )
         try:
             resp = requests.get(url, params={**params, "key": self._api_key}, timeout=self._timeout)
@@ -348,7 +352,8 @@ def _google_key() -> str:
     """Return the Google API key (shared by Weather, Pollen and Air Quality)."""
     key = (os.getenv("GOOGLE_WEATHER_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     if not key:
-        raise WeatherProviderError("GOOGLE_WEATHER_API_KEY not set — pollen/air-quality need the Google key.")
+        raise WeatherNotConfiguredProviderError(
+            "Weather is not configured: GOOGLE_WEATHER_API_KEY is missing (needed for pollen/air quality).")
     return key
 
 

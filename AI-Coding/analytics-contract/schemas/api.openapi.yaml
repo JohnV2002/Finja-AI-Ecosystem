@@ -1,0 +1,180 @@
+# ============================================================================
+# Project: J. Apps - AI-Coding Tooling
+# Module: AI-Coding/analytics-contract / schemas/api.openapi.yaml
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.1.0
+# Description: Stable ingestion and query API for Analytics Contract adapters.
+# New in v1.0.1: Idempotent receipts and privacy-safe error fingerprints.
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+# ============================================================================
+
+openapi: 3.1.0
+info:
+  title: Analytics Contract API
+  version: 1.0.0
+  description: >-
+    Language-neutral, fail-silent analytics transport. Projects may run without
+    this API. Producers validate before enqueueing and collectors repeat the
+    same validation before accepting events. Retried deliveries retain event_id.
+paths:
+  /v1/health:
+    get:
+      operationId: analyticsHealth
+      responses:
+        "200":
+          description: Collector is ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /v1/events:
+    post:
+      operationId: ingestAnalyticsEvents
+      security:
+        - bearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventBatch"
+      responses:
+        "202":
+          description: Events accepted for processing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestReceipt"
+        "400":
+          description: Invalid schema or unsafe event payload.
+  /v1/query:
+    post:
+      operationId: queryAnalytics
+      security:
+        - bearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetricQuery"
+      responses:
+        "200":
+          description: Aggregated metric series and related structured errors.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricQueryResult"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Health:
+      type: object
+      required: [status, schema_versions]
+      properties:
+        status:
+          const: ok
+        schema_versions:
+          type: array
+          items:
+            type: string
+    EventBatch:
+      type: object
+      additionalProperties: false
+      required: [events]
+      properties:
+        events:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "./event.schema.json"
+    IngestReceipt:
+      type: object
+      required: [accepted, rejected, duplicates]
+      properties:
+        accepted:
+          type: integer
+          minimum: 0
+        rejected:
+          type: integer
+          minimum: 0
+        duplicates:
+          type: integer
+          minimum: 0
+    MetricQuery:
+      type: object
+      additionalProperties: false
+      required: [project_id, metric, from, to, aggregation]
+      properties:
+        project_id:
+          type: string
+        metric:
+          type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        aggregation:
+          enum: [count, sum, min, max, avg, p50, p95, p99]
+        group_by:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+        filters:
+          type: object
+          additionalProperties:
+            type: [string, number, boolean]
+    MetricPoint:
+      type: object
+      required: [timestamp, value]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        value:
+          type: number
+        tags:
+          type: object
+          additionalProperties:
+            type: [string, number, boolean]
+    RelatedError:
+      type: object
+      required: [timestamp, code, fingerprint, affected_file]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        code:
+          type: string
+        fingerprint:
+          type: string
+        affected_file:
+          type: string
+        line:
+          type: [integer, "null"]
+    MetricQueryResult:
+      type: object
+      required: [project_id, metric, points, related_errors]
+      properties:
+        project_id:
+          type: string
+        metric:
+          type: string
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricPoint"
+        related_errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/RelatedError"
+
