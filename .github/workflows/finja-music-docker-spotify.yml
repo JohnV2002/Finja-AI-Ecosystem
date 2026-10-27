@@ -60,13 +60,13 @@ jobs:
       - name: Run app tests
         working-directory: ./Finja-music/finja-music-docker-spotify
         run: |
-          # Running the specific test file as requested
-          pytest test_music_app.py -v --tb=short
+          # Include OAuth privacy regressions and module helper suites.
+          pytest . -v --tb=short
 
       - name: Generate coverage report
         working-directory: ./Finja-music/finja-music-docker-spotify
         run: |
-          pytest test_music_app.py --cov=. --cov-branch --cov-report=term --cov-report=xml
+          pytest . --cov=. --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v7
