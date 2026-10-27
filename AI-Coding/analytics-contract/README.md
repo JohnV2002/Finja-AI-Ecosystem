@@ -1,8 +1,8 @@
-# 📊 Analytics Contract v1.0.1
+# 📊 Analytics Contract v1.1.0
 
 *Observe every project. Depend on nothing.*
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](../../README.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](../../README.md)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 
@@ -89,6 +89,21 @@ analytics-contract validate .
 `init` creates `analytics_contract.json` without overwriting an existing human
 configuration unless `--force` is explicitly passed.
 
+## Flare Onboarding (v1.1.0)
+
+New contracts carry a `flare` block: the signal-gateway rules (repeated errors,
+CPU/RAM thresholds, `env-` fingerprints that need a person), the apply mode
+(`host_agent`, `self_install`, `analysis_only`) and the words on the repair card.
+Flare's `scripts/onboard_project.py` turns it into the project's Flare profile.
+
+`analytics-contract sender --lang python --project-name "My App" --version 1.0.0`
+writes the canonical, dependency-free sender into the project (`analytics_sender.py`
+by default): off until `ANALYTICS_ENABLED` is set, validated and bounded,
+only code/fingerprint/project-relative file/line per error, CPU and RAM from
+`/proc/self`, lifecycle events. Hook it up with `record_dashboard_error(dict)`,
+`record_exception(exc)` or `AnalyticsLogHandler`, then call `start()` at boot.
+Other languages get a template when their first project is onboarded.
+
 ## Install
 
 ```powershell
@@ -108,6 +123,11 @@ See [`INSTALL.md`](INSTALL.md) for Codex, Grok and Claude setup.
 | `test_analytics_contract.py` | Cross-language and safety regressions |
 
 ## Version History
+
+### v1.1.0
+
+- `flare` block in new contracts (validated against Flare's profile limits).
+- `analytics-contract sender --lang python`: canonical sender template.
 
 ### v1.0.1
 

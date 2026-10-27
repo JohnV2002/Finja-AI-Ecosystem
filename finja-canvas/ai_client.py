@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-canvas / ai_client
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.0
+  Version: 1.2.0
 
 ----------------------------------------------------------------------
 

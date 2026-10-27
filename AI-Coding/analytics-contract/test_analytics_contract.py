@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics-contract / test_analytics_contract.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Regression tests for detection, safe defaults, and event schema.
 
   New in v1.0.1:

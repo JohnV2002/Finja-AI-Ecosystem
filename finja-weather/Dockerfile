@@ -5,7 +5,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-weather
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
+#
+#   New in v1.1.0: ships core/ (structured errors), the Analytics Contract
+#   sender, its contract file and weather_stats.py.
 #
 # ----------------------------------------------------------------------
 #
@@ -30,7 +33,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Application code.
-COPY weather_api.py providers.py .
+COPY weather_api.py providers.py weather_stats.py analytics_sender.py analytics_contract.json ./
+COPY core ./core
 
 EXPOSE 80
 CMD ["uvicorn", "weather_api:app", "--host", "0.0.0.0", "--port", "80"]

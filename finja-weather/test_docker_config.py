@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-weather / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
   Description: Validates the Docker/Compose setup by inspecting file
                content -- no Docker daemon required, so this runs
                anywhere (including plain CI without Docker-in-Docker).
@@ -77,7 +77,9 @@ class TestDockerfile:
     def test_copies_only_required_application_files(self) -> None:
         content = _read("Dockerfile")
         assert "COPY requirements.txt ." in content
-        assert "COPY weather_api.py providers.py ." in content
+        assert "COPY weather_api.py providers.py weather_stats.py analytics_sender.py analytics_contract.json ./" in content
+        assert "COPY core ./core" in content
+        assert "COPY . ." not in content  # never the whole folder (private/, tests)
 
     def test_exposes_the_correct_port(self) -> None:
         content = _read("Dockerfile")
@@ -91,7 +93,7 @@ class TestDockerfile:
         """Dependency layer must come before app-code layer for build caching."""
         content = _read("Dockerfile")
         req_pos = content.find("COPY requirements.txt .")
-        app_pos = content.find("COPY weather_api.py providers.py .")
+        app_pos = content.find("COPY weather_api.py providers.py weather_stats.py analytics_sender.py analytics_contract.json ./")
         assert req_pos != -1 and app_pos != -1
         assert req_pos < app_pos
 
@@ -122,8 +124,8 @@ class TestDockerComposeStructure:
     def test_loads_env_file(self, compose: dict) -> None:
         """WEATHER_CONSENSUS and other vars flow in via env_file, not hardcoded."""
         env_files = compose["services"]["weather"].get("env_file")
-        assert env_files, "No env_file directive -- .env would never reach the container!"
-        assert ".env" in env_files
+        assert env_files, "No env_file directive -- private/.env would never reach the container!"
+        assert "./private/.env" in env_files  # real settings live in the ignored private/ folder
 
     def test_restarts_unless_stopped(self, compose: dict) -> None:
         assert compose["services"]["weather"].get("restart") == "unless-stopped"

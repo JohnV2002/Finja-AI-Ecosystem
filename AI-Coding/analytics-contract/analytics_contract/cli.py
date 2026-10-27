@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / cli.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: CLI for detection, initialization, planning, and validation.
 
   New in v1.0.1:
@@ -31,6 +31,7 @@ from .contract import load_allowed_tags, validate_contract, write_contract
 from .detect import detect_project
 from .events import validate_event
 from .install_skills import install_skills
+from .sender import SenderError, write_sender
 
 
 def _print_json(value) -> None:
@@ -111,6 +112,21 @@ def cmd_validate_event(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sender(args: argparse.Namespace) -> int:
+    try:
+        target = write_sender(args.path, language=args.lang, out=args.out, project_name=args.project_name,
+                              version=args.version, force=args.force)
+    except SenderError as exc:
+        print(f"Sender not written: {exc}")
+        return 1
+    print(f"Created: {target}")
+    print("Off until ANALYTICS_ENABLED is set; wire record_dashboard_error / record_exception or")
+    print("AnalyticsLogHandler into the project's error path and call start() at boot.")
+    print("Ship analytics_contract.json with the app (Docker: COPY it and keep it out of .dockerignore);")
+    print("the sender reads the project id from it at runtime.")
+    return 0
+
+
 def cmd_install(_args: argparse.Namespace) -> int:
     _print_json(install_skills())
     return 0
@@ -143,6 +159,15 @@ def build_parser() -> argparse.ArgumentParser:
     event.add_argument("file")
     event.add_argument("--project", default=".", help="Project whose tag allowlist applies")
     event.set_defaults(func=cmd_validate_event)
+
+    sender = sub.add_parser("sender", help="Write the canonical analytics sender into a project")
+    sender.add_argument("path", nargs="?", default=".")
+    sender.add_argument("--lang", default="python", help="Template language (python)")
+    sender.add_argument("--out", help="Target file inside the project (default analytics_sender.py)")
+    sender.add_argument("--project-name", required=True, help="Project name for the file header")
+    sender.add_argument("--version", required=True, help="Project version MAJOR.FEATURES.BUGS for the header")
+    sender.add_argument("--force", action="store_true")
+    sender.set_defaults(func=cmd_sender)
 
     install = sub.add_parser("install-skills", help="Install skills for Codex, Grok, and Claude")
     install.set_defaults(func=cmd_install)

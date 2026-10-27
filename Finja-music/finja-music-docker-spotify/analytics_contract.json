@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "protocol": {
+    "event_schema": "1.0",
+    "api_major": 1
+  },
+  "project": {
+    "id": "finja-music-docker-spotify",
+    "languages": [
+      "javascript",
+      "python"
+    ],
+    "runtimes": [
+      "docker",
+      "web_api"
+    ]
+  },
+  "analytics": {
+    "enabled": false,
+    "endpoint": null,
+    "endpoint_env": "ANALYTICS_ENDPOINT",
+    "auth_token_env": "ANALYTICS_TOKEN",
+    "timeout_ms": 750,
+    "fail_silent": true,
+    "queue": {
+      "max_events": 1000,
+      "batch_size": 100,
+      "drop_oldest": true
+    }
+  },
+  "error_integration": {
+    "detected": true,
+    "mode": "error_contract",
+    "reuse_error_event": true,
+    "include_affected_file": true,
+    "file_path_mode": "project_relative",
+    "include_source": false,
+    "include_stacktrace": false
+  },
+  "privacy": {
+    "allow_personal_data": false,
+    "allow_secrets": false,
+    "allow_prompts": false,
+    "allow_absolute_paths": false,
+    "allowed_tags": [
+      "environment",
+      "version",
+      "component",
+      "operation",
+      "outcome"
+    ]
+  },
+  "metrics": {
+    "app.lifecycle": {
+      "name": "app.lifecycle",
+      "kind": "event",
+      "unit": "event",
+      "reason": "Know when the application starts and stops.",
+      "source": "baseline"
+    },
+    "error.occurrence": {
+      "name": "error.occurrence",
+      "kind": "error",
+      "unit": "count",
+      "reason": "Reuse structured Error Contract events without double counting.",
+      "source": "error_contract"
+    },
+    "system.cpu.usage": {
+      "name": "system.cpu.usage",
+      "kind": "gauge",
+      "unit": "percent",
+      "reason": "Detect sustained container CPU pressure.",
+      "source": "docker"
+    },
+    "system.memory.usage": {
+      "name": "system.memory.usage",
+      "kind": "gauge",
+      "unit": "bytes",
+      "reason": "Detect memory growth and container pressure.",
+      "source": "docker"
+    }
+  },
+  "flare": {
+    "signals": {
+      "errors": {
+        "enabled": true,
+        "min_count": 3,
+        "window_minutes": 15,
+        "operation": "repair",
+        "operator_fingerprint_prefixes": [
+          "env-"
+        ]
+      },
+      "resources": [
+        {
+          "metric": "system.cpu.usage",
+          "aggregation": "p95",
+          "threshold": 85,
+          "window_minutes": 10
+        },
+        {
+          "metric": "system.memory.usage",
+          "aggregation": "max",
+          "threshold": 268435456,
+          "window_minutes": 10
+        }
+      ],
+      "cooldown_minutes": 360
+    },
+    "apply": "host_agent",
+    "activation_label": "Neustart & Healthcheck",
+    "check_label": "Healthcheck"
+  }
+}

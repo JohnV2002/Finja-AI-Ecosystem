@@ -5,7 +5,10 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-weather
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.0.0
+#   Version: 1.1.0
+#
+#   New in v1.1.0: settings from ./private/.env (real keys never in the
+#   repository); joins the private Flare/Analytics network.
 #
 # ----------------------------------------------------------------------
 #
@@ -27,7 +30,15 @@ services:
       - "8095:80"
     restart: unless-stopped
     env_file:
-      - .env
+      - ./private/.env
+    networks:
+      - default
+      - flare-finja-private
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - WEATHER_PROVIDER=${WEATHER_PROVIDER:-open-meteo}
+
+networks:
+  # Shared with the Analytics Collector and Flare (create once: docker network create flare-finja-private).
+  flare-finja-private:
+    external: true

@@ -6,7 +6,7 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.1
+  Version: 2.5.0
   Description: Unit tests for Spotify song request server.
 
   ✨ New in 2.4.1:

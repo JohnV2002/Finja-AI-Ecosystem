@@ -2,7 +2,7 @@
 .env
 
 # Local-only files — synced manually from Production
-# (Z:\Bilder\Streaming\Finja - Instagram test), never meant to reach this repo.
+# (the local "Finja - Instagram test" folder), never meant to reach this repo.
 # Safety net in case a future sync copies them over by accident.
 private/
 TODO.md

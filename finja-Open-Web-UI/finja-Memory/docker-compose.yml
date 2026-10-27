@@ -5,7 +5,7 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module: finja-cloud-memory
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 4.4.5
+#   Version: 4.5.1
 #
 # ----------------------------------------------------------------------
 #
@@ -14,6 +14,11 @@
 #
 #
 # ----------------------------------------------------------------------
+#
+#   ✨ New in 4.5.0:
+#     • Settings from ./private/.env (real keys never in the repository)
+#     • Port bind address from MEMORY_BIND (all interfaces by default, as before)
+#     • Joins the private Flare/Analytics network; hardening and healthcheck
 #
 #   ✨ New in 4.4.2:
 #     • Added backups folder volume mount
@@ -34,7 +39,7 @@ services:
     # Load configuration (API key) from .env file
     # Safer than copying the file into the image
     env_file:
-      - .env
+      - ./private/.env
     # Mount data folders to host for persistence across container rebuilds
     volumes:
       - ./user_audio:/app/user_audio
@@ -43,8 +48,27 @@ services:
       - ./backups:/app/backups
     # Forward host port 8000 to container port 8000
     ports:
-      - "8007:8000"
+      - "${MEMORY_BIND:-0.0.0.0}:8007:8000"
+    networks:
+      - default
+      - flare-finja-private
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     # Run as host user to avoid permission issues on Linux
     user: "${UID:-1000}:${GID:-1000}"
     # Auto-restart unless manually stopped
     restart: unless-stopped
+
+networks:
+  # Shared with the Analytics Collector and Flare (create once: docker network create flare-finja-private).
+  flare-finja-private:
+    external: true

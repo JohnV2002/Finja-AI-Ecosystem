@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "namespace": "FINJA",
+  "owner": "finja-youtube",
+  "module": "finja-youtube",
+  "legend": "../error_contract.json",
+  "implementations": [
+    {
+      "code": "FINJA-109",
+      "name": "YouTubeCookiesInvalidError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-538",
+      "name": "YouTubeChromeUnreachableError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-539",
+      "name": "YouTubeApiUnexpectedError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-540",
+      "name": "YouTubeDiagnosticsProbeError",
+      "source": "core/exceptions.py"
+    },
+    {
+      "code": "FINJA-512",
+      "name": "AnalyticsDeliveryError",
+      "source": "core/exceptions.py"
+    }
+  ]
+}

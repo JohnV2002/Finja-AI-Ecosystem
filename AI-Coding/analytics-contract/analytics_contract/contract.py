@@ -6,8 +6,11 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / contract.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Create and validate the public project analytics contract.
+
+  New in v1.1.0:
+    - New contracts carry a `flare` block (signals, apply mode, card words); validate checks it
 
   New in v1.0.1:
     - Pins event/API compatibility and validates the reviewed tag allowlist
@@ -28,6 +31,7 @@ from typing import Any
 
 from .detect import detect_project
 from .events import DEFAULT_ALLOWED_TAGS
+from .flare import default_flare_block, validate_flare_block
 
 
 CONTRACT_FILE = "analytics_contract.json"
@@ -72,6 +76,7 @@ def build_contract(path: str | Path) -> dict[str, Any]:
             "allowed_tags": ["environment", "version", "component", "operation", "outcome"],
         },
         "metrics": {item.name: item.to_dict() for item in profile.recommendations},
+        "flare": default_flare_block(profile),
     }
 
 
@@ -123,6 +128,8 @@ def validate_contract(path: str | Path) -> list[str]:
         problems.append("privacy.allowed_tags must not contain duplicates")
     elif any(not isinstance(tag, str) or tag not in DEFAULT_ALLOWED_TAGS for tag in allowed_tags):
         problems.append("privacy.allowed_tags contains an unsafe or unknown tag")
+    if "flare" in data:  # optional: contracts written before 1.1.0 have none
+        problems.extend(validate_flare_block(data["flare"]))
     return problems
 
 

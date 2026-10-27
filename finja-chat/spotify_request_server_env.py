@@ -6,8 +6,15 @@
 
   Project: Finja - Twitch Interactivity Suite
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.4.1
+  Version: 2.5.0
   Description: Robust moderated Song Request server for Spotify + Finja replies.
+
+  ✨ New in 2.5.0:
+    - Runs in Docker: host, port and allowed origins come from the environment
+    - Spotify is set up on first use, so the server starts without credentials;
+      missing credentials are FINJA-103 instead of a crash at import
+    - Unexpected failures are FINJA-513 and reach the Analytics Collector through
+      the generated sender; owner-only diagnostics probe (FINJA-514)
 
   ✨ New in 2.4.1:
     • Module version aligned for OAuth storage remediation; Spotify request
@@ -51,7 +58,10 @@ import signal
 import sys
 import urllib.parse
 import urllib.request
+from contextlib import asynccontextmanager
 from typing import Dict, Tuple, List, Any, Optional
+import logging
+import secrets
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -60,6 +70,16 @@ from pydantic import BaseModel
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth, CacheFileHandler
 from spotipy.exceptions import SpotifyException
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from chat_stats import average_wait_seconds
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    ChatDiagnosticsProbeError,
+    SongRequestUnexpectedError,
+    SpotifyNotConfiguredError,
+)
 
 # ==============================================================================
 # Environment Configuration
@@ -122,24 +142,76 @@ if os.getenv("SPOTIPY_REDIRECT_URI"):
 # Spotify Client Initialization
 # ==============================================================================
 
-# cache_handler explicit -- spotipy defaults to ".cache" in the CWD, but the
-# real cached token lives in private/ now (never synced/committed).
-sp = Spotify(auth_manager=SpotifyOAuth(
-    scope=SPOTIFY_SCOPES,
-    open_browser=False,
-    cache_handler=CacheFileHandler(cache_path=_ENV_PATH.replace(".env", ".cache")),
-))
+LOGGER = logging.getLogger("finja_chat.song_requests")
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+_TOKEN_CACHE = os.getenv("SPOTIFY_TOKEN_CACHE", "").strip() or _ENV_PATH.replace(".env", ".cache")
+
+
+def _report_analytics_problem(problem: Dict[str, Any]) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    LOGGER.warning("%s %s context=%s", error.code, error, error.context)
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(PROJECT_ROOT, version="2.5.0")
+analytics = AnalyticsSender(_analytics_config, root=PROJECT_ROOT, on_failure=_report_analytics_problem)
+
+
+def report_failure(error: AppError) -> None:
+    """One structured line in the log and, when analytics is on, one error.occurrence event."""
+    LOGGER.error("%s %s context=%s", error.code, error, error.context)
+    analytics.record_exception(error)
+
+
+class _LazySpotify:
+    """Builds the Spotify client on first use, so the server starts without credentials.
+
+    The token cache lives in private/ (never synced) or wherever SPOTIFY_TOKEN_CACHE points
+    (the container keeps it on a volume).
+    """
+
+    def __init__(self) -> None:
+        self._client: Optional[Spotify] = None
+
+    def _get(self) -> Spotify:
+        if self._client is None:
+            if not os.getenv("SPOTIPY_CLIENT_ID"):
+                raise SpotifyNotConfiguredError(
+                    "Spotify ist nicht konfiguriert: SPOTIPY_CLIENT_ID fehlt in der .env", setting="SPOTIPY_CLIENT_ID")
+            self._client = Spotify(auth_manager=SpotifyOAuth(
+                scope=SPOTIFY_SCOPES,
+                open_browser=False,
+                cache_handler=CacheFileHandler(cache_path=_TOKEN_CACHE),
+            ))
+        return self._client
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._get(), name)
+
+
+sp: Any = _LazySpotify()
 
 # ==============================================================================
 # FastAPI Application Setup
 # ==============================================================================
 
-app = FastAPI(title="Finja SongRequest v2 (Moderated)")
+@asynccontextmanager
+async def _lifespan(_: FastAPI):
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
+    yield
+    analytics.stop()
+
+
+app = FastAPI(title="Finja SongRequest v2 (Moderated)", lifespan=_lifespan)
 
 # Enable CORS for bot communication
+# Local default stays open; the container lists only the overlay/panel origins.
+_ALLOWED_ORIGINS = [item.strip() for item in os.getenv("FINJA_CHAT_ALLOWED_ORIGINS", "*").split(",") if item.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS or ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -356,7 +428,7 @@ def check_track_filter(uri: str) -> Tuple[bool, str]:
 
         return True, "ok"
     except Exception as e:
-        print(f"[filter] Fehler bei {uri}: {e}")
+        report_failure(SongRequestUnexpectedError("Song filter failed", operation="filter", cause=e))
         return True, "ok"  # im Zweifel durchlassen
 
 
@@ -386,7 +458,7 @@ def search_track_uri(query: str) -> str:
     except SpotifyException as e:
         print(f"[Spotify] Search error for '{query}': {e}")
     except Exception as e:
-        print(f"[Spotify] Unexpected error searching '{query}': {e}")
+        report_failure(SongRequestUnexpectedError("Track search failed", operation="search", cause=e))
 
     print(f"[Spotify] No results for: {query}")
     return ""
@@ -417,7 +489,7 @@ def track_title_from_uri(uri: str) -> str:
         print(f"[track_title_from_uri] Spotify error: {e}")
         return f"(Fehler bei {uri})"
     except Exception as e:
-        print(f"[track_title_from_uri] Unexpected error: {e}")
+        report_failure(SongRequestUnexpectedError("Track title lookup failed", operation="track_title", cause=e))
         return f"(Fehler bei {uri})"
 
 
@@ -429,7 +501,7 @@ def list_devices() -> List[Dict[str, Any]]:
         print(f"[devices] Spotify error: {e}")
         return []
     except Exception as e:
-        print(f"[devices] Unexpected error: {e}")
+        report_failure(SongRequestUnexpectedError("Device list failed", operation="devices", cause=e))
         return []
 
     if not isinstance(result, dict):
@@ -529,7 +601,7 @@ def add_to_queue(uri: str) -> Tuple[bool, Optional[str]]:
         return False, "SPOTIFY_QUEUE_FAILED"
 
     except Exception as e:
-        print(f"[add_to_queue] Unexpected error: {e}")
+        report_failure(SongRequestUnexpectedError("Adding to the queue failed", operation="add_to_queue", cause=e))
         return False, "SPOTIFY_QUEUE_FAILED"
 
 
@@ -549,7 +621,7 @@ def force_play_now(uri: str) -> Tuple[bool, Optional[str]]:
         return False, "SPOTIFY_PLAY_FAILED"
 
     except Exception as e:
-        print(f"[force_play_now] Unexpected error: {e}")
+        report_failure(SongRequestUnexpectedError("Playing now failed", operation="force_play", cause=e))
         return False, "SPOTIFY_PLAY_FAILED"
 
 
@@ -557,10 +629,33 @@ def force_play_now(uri: str) -> Tuple[bool, Optional[str]]:
 # API Endpoints
 # ==============================================================================
 
+@app.exception_handler(AppError)
+async def structured_error(_request: Any, exc: AppError):
+    from fastapi.responses import JSONResponse
+
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
 @app.get("/health")
 def health() -> Dict[str, Any]:
     """Health check endpoint."""
     return {"ok": True, "pending": len(pending), "moderated": MODERATED}
+
+
+@app.get("/diagnostics/probe")
+def diagnostics_probe(token: str = "") -> Dict[str, Any]:
+    """Owner-only: runs the queue statistics on an empty queue (the onboarding pilot's real bug)."""
+    expected = os.getenv("FINJA_CHAT_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        value = average_wait_seconds([])
+    except ZeroDivisionError as exc:
+        raise ChatDiagnosticsProbeError("Diagnostics probe hit a real bug", probe="average_wait_seconds") from exc
+    return {"probe": "average_wait_seconds", "value": value}
 
 
 class ModeCommand(BaseModel):
@@ -818,7 +913,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print("=" * 70)
-    print("  Finja Song Request Server v2.4.1")
+    print("  Finja Song Request Server v2.5.0")
     print("=" * 70)
     print(f"  Moderated: {MODERATED}")
     print(f"  Cooldown: {COOLDOWN_SECS}s")
@@ -832,8 +927,10 @@ if __name__ == "__main__":
         print(f"  Preferred device ID: {PREFERRED_DEVICE_ID}")
     print("=" * 70)
     print()
-    print("[INFO] Starting server on http://127.0.0.1:8099")
+    host = os.getenv("FINJA_CHAT_HOST", "127.0.0.1")
+    port = int(os.getenv("FINJA_CHAT_SONG_PORT", "8099"))
+    print(f"[INFO] Starting server on http://{host}:{port}")
     print("[INFO] Press Ctrl+C to stop")
     print()
 
-    uvicorn.run(app, host="127.0.0.1", port=8099, log_level="info")
+    uvicorn.run(app, host=host, port=port, log_level="info")

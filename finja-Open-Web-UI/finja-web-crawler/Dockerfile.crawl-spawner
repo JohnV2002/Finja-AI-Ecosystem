@@ -5,7 +5,10 @@
 #   Project: Finja Web Crawler
 #   Module: finja-crawl-spawner
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 2.1.0
+#   Version: 2.2.0
+#
+#   New in v2.2.0: ships the shared error reporting (core/, crawler_reporting.py,
+#   analytics_sender.py, analytics_contract.json).
 #
 # ----------------------------------------------------------------------
 #
@@ -36,6 +39,8 @@ COPY --from=builder /install /usr/local
 
 COPY crawl_worker.py .
 COPY crawl_spawner.py .
+COPY crawler_reporting.py analytics_sender.py analytics_contract.json ./
+COPY core ./core
 
 EXPOSE 80
 CMD ["uvicorn", "crawl_spawner:app", "--host", "0.0.0.0", "--port", "80"]

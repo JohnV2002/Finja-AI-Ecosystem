@@ -1,7 +1,7 @@
-# Analytics Contract v1.0.1 — Install Guide
+# Analytics Contract v1.1.0 — Install Guide
 
 **Project:** J. Apps - AI-Coding Tooling
-**Version:** 1.0.1
+**Version:** 1.1.0
 
 From this module:
 

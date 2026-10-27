@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 4.4.5
+  Version: 4.5.1
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -28,6 +28,14 @@
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
+ Updates 4.5.1:
+ ---------------------------------------------------------------------
+  + **Save on shutdown:** Stopping the server (docker stop, VM reboot,
+    redeploy) now writes every user still in the RAM cache to disk first.
+    Before, anything learned since the last 10-minute auto-save was lost.
+  + **One writer per file:** Auto-save, cache eviction, backups and the
+    shutdown save share a lock, so two saves never race on the same file.
+
  Updates 4.4.5:
  ---------------------------------------------------------------------
   + **TTS Cache Hash Normalization:** Text is now normalized (leftover
@@ -140,6 +148,18 @@ import urllib.request
 from dotenv import load_dotenv
 import aiofiles
 from datetime import datetime # Added datetime for backup timestamp
+from fastapi.responses import JSONResponse
+
+from analytics_sender import AnalyticsConfig, AnalyticsSender
+from core.exceptions import (
+    AnalyticsDeliveryError,
+    AppError,
+    MemoryApiUnexpectedError,
+    MemoryDiagnosticsProbeError,
+    MemoryNotConfiguredError,
+    MemoryStorageError,
+)
+from memory_stats import average_memory_importance
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -149,12 +169,14 @@ except Exception:
 # Start FastAPI App
 app = FastAPI(title="Memory Service")
 
-# Load .env file
+# Load settings: private/.env (real keys, never committed), then a legacy .env
+_BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(_BASE_DIR / "private" / ".env")
 load_dotenv()
 
 # Get API Key from environment variable
 API_KEY = os.getenv("MEMORY_API_KEY")
-FINJA_DASHBOARD_URL = os.getenv("FINJA_DASHBOARD_URL", "http://192.168.178.27:8051").rstrip("/")
+FINJA_DASHBOARD_URL = os.getenv("FINJA_DASHBOARD_URL", "").rstrip("/")  # empty = no dashboard metrics
 MEMORY_ANALYTICS_ENABLED = os.getenv("MEMORY_ANALYTICS_ENABLED", "1").lower() not in ("0", "false", "no", "off")
 SERVER_STARTED_AT = time.time()
 
@@ -168,7 +190,41 @@ ENCRYPTION_MAGIC = b"FINJAENC1\n"
 NONCE_SIZE = 12
 
 if not API_KEY:
-    raise ValueError("MEMORY_API_KEY environment variable is required!")
+    raise MemoryNotConfiguredError("The memory server is not configured: MEMORY_API_KEY is missing (private/.env)",
+                                   module="finja-memory", setting="MEMORY_API_KEY")
+
+
+# --- Analytics Contract (off unless ANALYTICS_ENABLED) ---
+def _report_analytics_problem(problem: Dict[str, Any]) -> None:
+    error = AnalyticsDeliveryError(str(problem.get("message") or "analytics delivery failed"),
+                                   reason=problem.get("reason"), retry=problem.get("retry"))
+    print(f"WARN:    {error.code} {error} context={error.context}")
+
+
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(_BASE_DIR, version="4.5.1")
+analytics = AnalyticsSender(_analytics_config, root=_BASE_DIR, on_failure=_report_analytics_problem)
+_last_reported: Dict[str, float] = {}
+
+
+def report_failure(error: AppError) -> None:
+    """One structured log line and, when analytics is on, one error.occurrence event."""
+    print(f"ERROR:   {error.code} {error} context={error.context}")
+    analytics.record_exception(error)
+
+
+def report_throttled(error: AppError, every_s: float = 60.0) -> None:
+    """Same code and cause type at most once per minute (background loops run every few minutes)."""
+    cause = getattr(error, "cause", None)
+    key = f"{error.code}:{type(cause).__name__ if cause else ''}:{error.context.get('user_id', '')}"
+    now = time.time()
+    if now - _last_reported.get(key, 0.0) >= every_s:
+        _last_reported[key] = now
+        report_failure(error)
+
+
+# Users whose file could not be read: their file stays untouched (no save may replace it with an empty list).
+_load_failed: set = set()
+_save_lock = threading.RLock()  # one writer at a time: auto-save, eviction, backups, shutdown
 
 # Maximum number of memories kept in RAM per user
 MAX_RAM_MEMORIES = 5000
@@ -458,13 +514,30 @@ def memory_file(user_id):
 def save_to_disk(user_id):
     """Saves a user's memories to disk."""
     filepath = memory_file(user_id)
+    if user_id in _load_failed:
+        report_throttled(MemoryStorageError(
+            "Not saving: this user's memory file could not be read, so it stays untouched on disk",
+            module="finja-memory", user_id=user_id, operation="save_blocked"))
+        return
     if user_id in user_memories:
         try:
-            # Use Pydantic's model_dump for serialization.
-            write_json_file_atomic(filepath, [m.model_dump() for m in user_memories[user_id]])
+            with _save_lock:
+                # Use Pydantic's model_dump for serialization.
+                write_json_file_atomic(filepath, [m.model_dump() for m in list(user_memories.get(user_id, []))])
             print(f"INFO:    Saved memories for user {user_id} to {filepath}")
-        except Exception as e:
-            print(f"ERROR:   Failed to save memories for user {user_id} to {filepath}: {e}")
+        except (OSError, RuntimeError, TypeError, ValueError) as exc:
+            report_throttled(MemoryStorageError("Saving a memory file failed", module="finja-memory", cause=exc,
+                                                user_id=user_id, operation="save"))
+
+
+def save_all_to_disk() -> int:
+    """Write every user still in the RAM cache to disk; returns how many users were saved."""
+    saved = 0
+    for uid in list(user_memories.keys()):
+        if uid in user_memories:  # cleanup may have evicted it meanwhile
+            save_to_disk(uid)
+            saved += 1
+    return saved
     #else:
         # Optionally log if user_id not in memory (might happen during cleanup)
         # print(f"DEBUG:   User {user_id} not in RAM cache, skipping save_to_disk.")
@@ -486,15 +559,16 @@ def load_from_disk(user_id):
                 print(f"WARN:    Skipping invalid entry in {filepath}: {entry}")
         user_memories[user_id] = validated_items
         print(f"INFO:    Loaded {len(validated_items)} memories for user {user_id} from {filepath}")
+        _load_failed.discard(user_id)
     except FileNotFoundError:
         print(f"INFO:    No memory file found for user {user_id}, starting fresh.")
         user_memories[user_id] = []
-    except json.JSONDecodeError as e:
-        print(f"ERROR:   Failed to decode JSON from {filepath}: {e}. Starting fresh for user {user_id}.")
+        _load_failed.discard(user_id)
+    except Exception as exc:  # wrong key, damaged file, bad entry: keep the file, block saves for this user
         user_memories[user_id] = []
-    except Exception as e:
-        print(f"ERROR:   Failed to load memories for user {user_id} from {filepath}: {e}")
-        user_memories[user_id] = [] # Fallback to empty list on other errors
+        _load_failed.add(user_id)
+        report_throttled(MemoryStorageError("A memory file could not be read; it is kept and saves are blocked",
+                                            module="finja-memory", cause=exc, user_id=user_id, operation="load"))
 
 def auto_backup_thread_func():
     """Automatic backup of all user memories in RAM at regular intervals."""
@@ -541,6 +615,9 @@ def cleanup_inactive_caches_thread_func():
 def startup():
     """On startup: Load saved memories & start background threads."""
     print("INFO:    Server startup initiated...")
+    if _analytics_problem:
+        _report_analytics_problem({"message": "analytics stays off", "reason": _analytics_problem})
+    analytics.start()
     # No initial load here, lazy loading on first access per user
 
     # Start the Auto-Save Thread
@@ -553,6 +630,29 @@ def startup():
     cleanup_thread.start()
     print("INFO:    Cache cleanup thread started.")
     print("INFO:    Server startup complete.")
+
+
+@app.on_event("shutdown")
+def shutdown():
+    """On shutdown: write the RAM cache to disk so nothing since the last auto-save is lost."""
+    saved = save_all_to_disk()
+    print(f"INFO:    Shutdown save complete for {saved} users.")
+    analytics.stop()
+
+
+@app.exception_handler(AppError)
+async def structured_error(_request: Request, exc: AppError):
+    report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception):
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = MemoryApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly",
+                                     module="finja-memory", cause=exc, endpoint=request.url.path)
+    report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
 
 
 # -------------------------
@@ -572,6 +672,20 @@ def auth_check(request: Request):
 # API Endpoints
 # -------------------------
 
+@app.get("/diagnostics/probe")
+def diagnostics_probe(token: str = ""):
+    """Owner-only: averages importance before any memory exists (the onboarding pilot's real bug)."""
+    expected = os.getenv("MEMORY_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        value = average_memory_importance([])
+    except ZeroDivisionError as exc:
+        raise MemoryDiagnosticsProbeError("Diagnostics probe hit a real bug", module="finja-memory",
+                                          probe="average_memory_importance") from exc
+    return {"probe": "average_memory_importance", "value": value}
+
+
 @app.get("/health")
 def health():
     """Lightweight health endpoint for Finja's analytics cockpit."""
@@ -589,6 +703,7 @@ def health():
         "cached_users": len(user_memories),
         "memory_files": memory_files,
         "max_ram_memories": MAX_RAM_MEMORIES,
+        "unreadable_users": len(_load_failed),
     }
 
 @app.post("/add_memory", responses={401: {"description": "Unauthorized"}})
@@ -894,12 +1009,7 @@ def backup_all_now(request: Request):
 
     # 1. Save all current RAM caches to disk
     print("INFO:    Saving all active RAM caches to disk before backup...")
-    user_ids_in_ram = list(user_memories.keys())
-    saved_count = 0
-    for uid in user_ids_in_ram:
-        if uid in user_memories: # Check again in case cleanup ran
-            save_to_disk(uid)
-            saved_count +=1
+    saved_count = save_all_to_disk()
     print(f"INFO:    Saved data for {saved_count} users from RAM.")
 
     # 2. Create timestamped backup directory

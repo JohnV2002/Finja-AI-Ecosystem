@@ -4,7 +4,7 @@
 @REM
 @REM   Project: Finja - Twitch Interactivity Suite
 @REM   Author: J. Apps (JohnV2002 / Sodakiller1)
-@REM   Version: 2.4.1
+@REM   Version: 2.5.0
 @REM   Description: Batch script to start static file server for overlay.
 @REM
 @REM   ✨ New in 2.4.1:
@@ -40,7 +40,7 @@ REM ======================================================================
 cd /d "%~dp0"
 echo.
 echo ======================================================================
-echo   Finja Static File Server v2.4.1
+echo   Finja Static File Server v2.5.0
 echo ======================================================================
 echo.
 

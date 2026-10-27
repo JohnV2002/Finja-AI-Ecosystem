@@ -1,11 +1,21 @@
-# 💬 Finja Chat System — v2.4.1
+# 💬 Finja Chat System — v2.5.0
 *OBS Chat Overlay + Bot Panel + Song Requests — cute, fast, Gen-Z approved. 💙*
 
-[![Version](https://img.shields.io/badge/version-2.4.1-blue.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-chat)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/JohnV2002/Finja-AI-Ecosystem/tree/main/finja-chat)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v2.4.1:**
+> **✨ New in v2.5.0:**
+> - **Docker:** one image, three services (overlay pages 8088, VPet bridge 8091,
+>   song requests 8099) via `docker compose up -d --build`; the panel has two new
+>   fields for the song server and VPet bridge address (empty = local as before)
+> - **Flare:** errors, CPU and RAM go to the Analytics Collector (generated sender,
+>   off by default); Flare repairs real bugs and posts cards in `chat-error-handling`
+> - Spotify is set up on first use: the server starts without credentials and a
+>   missing setting is `FINJA-103` (Flare asks you instead of "repairing" it);
+>   unexpected song-request failures are `FINJA-513`
+>
+> **Changelog v2.4.1:**
 > - **Security:** Twitch access and refresh tokens remain only in page memory;
 >   older clear-text browser-storage entries are removed automatically
 > - The public Twitch Client ID remains stored because it is not a secret
@@ -207,6 +217,24 @@ python -m http.server 8088
 The server will start on `http://127.0.0.1:8088`
 
 ---
+
+## 🐳 Docker (v2.5.0)
+
+```bash
+cp .env.example .env            # set FINJA_CHAT_PYTHON_BASE_IMAGE (digest-pinned)
+docker compose up -d --build    # overlay :8088, VPet bridge :8091, songs :8099
+```
+
+- Spotify keys go into `private/.env`; the token cache lives on the `finja-chat-private`
+  volume. Without keys the server still starts and reports `FINJA-103`.
+- Ports listen on loopback unless `FINJA_CHAT_BIND` is the host's private LAN address.
+  Running on another machine: load the overlay and panel from `http://HOST:8088/...` in
+  OBS, enter `http://HOST:8099` and `http://HOST:8091` in the panel's two new fields and
+  list the panel origin in `FINJA_CHAT_ALLOWED_ORIGINS`. OBS itself stays `ws://127.0.0.1:4455`
+  because the panel runs inside OBS on your PC.
+- `FINJA_CHAT_ANALYTICS_ENABLED=true` sends errors, CPU and RAM to the Analytics Collector
+  (container joins the external `flare-finja-private` network); Flare's signal gateway turns
+  repeated errors into repair cards.
 
 ## ⚙️ Configuration
 

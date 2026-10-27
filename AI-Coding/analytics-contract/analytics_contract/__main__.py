@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / __main__.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Python module entry point for Analytics Contract.
 
   New in v1.0.0:

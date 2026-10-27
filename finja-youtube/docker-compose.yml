@@ -5,7 +5,14 @@
 #   Project: Finja - Twitch Interactivity Suite
 #   Module:  finja-youtube
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.0
+#   Version: 1.2.0
+#
+#   New in v1.2.0:
+#     • The VPN container also joins the external network `analytics-ingest`
+#       (only the Analytics Collector is there); Gluetun lets exactly that
+#       subnet past the tunnel (YOUTUBE_ANALYTICS_SUBNET ->
+#       FIREWALL_OUTBOUND_SUBNETS). Internet and DNS stay on the VPN only.
+#     • Analytics (off by default) and the probe token passed through from .env
 #
 # ----------------------------------------------------------------------
 #
@@ -56,6 +63,9 @@ services:
 
     volumes:
       - gluetun-data:/gluetun
+    networks:
+      - default
+      - analytics-ingest
 
     environment:
       # ---- ProtonVPN Config ----
@@ -71,6 +81,8 @@ services:
       # ---- Gluetun Settings ----
       - TZ=Europe/Berlin
       - UPDATER_PERIOD=24h
+      # Only the analytics-ingest subnet may bypass the tunnel (empty = nothing)
+      - FIREWALL_OUTBOUND_SUBNETS=${YOUTUBE_ANALYTICS_SUBNET:-}
 
     healthcheck:
       test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
@@ -122,6 +134,13 @@ services:
       # Later: Finja Brain URL
       - FINJA_BRAIN_URL=${FINJA_BRAIN_URL:-http://finja-ai:8051}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      # Analytics Contract (off by default) -> Analytics Collector -> Flare
+      - ANALYTICS_ENABLED=${YOUTUBE_ANALYTICS_ENABLED:-false}
+      - ANALYTICS_ENDPOINT=${YOUTUBE_ANALYTICS_ENDPOINT:-}
+      - ANALYTICS_TOKEN=${YOUTUBE_ANALYTICS_TOKEN:-}
+      - ANALYTICS_ENVIRONMENT=${YOUTUBE_ANALYTICS_ENVIRONMENT:-production}
+      # Owner-only diagnostics probe (empty = probe off)
+      - YOUTUBE_PROBE_TOKEN=${YOUTUBE_PROBE_TOKEN:-}
 
     # Security
     security_opt:
@@ -141,6 +160,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  # Shared only with the Analytics Collector, created once with a fixed subnet:
+  #   docker network create --subnet <private-subnet> analytics-ingest
+  analytics-ingest:
+    external: true
 
 volumes:
   chrome-profile:

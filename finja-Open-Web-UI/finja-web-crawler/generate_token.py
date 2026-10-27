@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module: finja-web-crawler
   Author: J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.1.0
+  Version: 2.2.0
 
 ----------------------------------------------------------------------
 

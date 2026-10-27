@@ -1,0 +1,21 @@
+# Project: Finja Chat System
+# Module: container / .dockerignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 2.5.0
+# Description: Keeps secrets, tests, caches and tooling state out of the image.
+# New in v2.5.0: First version (analytics_contract.json stays in: the sender reads it).
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
+private
+.env
+tests
+test_*.py
+test_*.js
+*.bat
+.pytest_cache
+__pycache__
+*.py[cod]
+.error_contract
+.github_contract
+contracts
+node_modules

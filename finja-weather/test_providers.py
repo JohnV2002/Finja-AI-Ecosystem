@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-weather / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.1.0
   Description: Unit tests for providers.py -- WMO condition mapping,
                the "truth comes from precipitation, not just the
                weather code" reconciliation logic in OpenMeteoProvider,

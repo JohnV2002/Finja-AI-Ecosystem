@@ -4,7 +4,7 @@
 <!--                                                                        -->
 <!--   Project: Finja - Twitch Interactivity Suite                          -->
 <!--   Author: JohnV2002 (J. Apps / Sodakiller1)                            -->
-<!--   Version: 2.4.1                                                       -->
+<!--   Version: 2.5.0                                                       -->
 <!--   Description: Bot control panel (Twitch connection, commands, LLM,    -->
 <!--                OBS sync, song requests) -- see index_merged.html for   -->
 <!--                the actual OBS overlay.                                -->
@@ -221,6 +221,18 @@
         <small>Die Parameter (channel, theme, …) hängt der Bot automatisch an.</small>
       </div>
     </div>
+    <div class="row">
+      <div>
+        <label>Song-Request-Server</label>
+        <input id="sr_server_url" placeholder="http://127.0.0.1:8099">
+        <small>Leer = lokal. Läuft Finja Chat auf der VM: http://VM-ADRESSE:8099</small>
+      </div>
+      <div>
+        <label>VPet-Bridge</label>
+        <input id="vpet_bridge_url" placeholder="http://127.0.0.1:8091">
+        <small>Leer = lokal. Läuft Finja Chat auf der VM: http://VM-ADRESSE:8091</small>
+      </div>
+    </div>
     <button class="btn" id="obs_connect">OBS verbinden</button>
     <button class="btn alt" id="obs_disconnect">OBS trennen</button>
   </div>
@@ -277,10 +289,20 @@ $("obs_addr").value = localStorage.getItem("finja_obs_addr") || "ws://127.0.0.1:
 $("obs_pass").value = localStorage.getItem("finja_obs_pass") || "";
 $("obs_input").value = localStorage.getItem("finja_obs_input") || "";
 $("obs_overlay_url").value = localStorage.getItem("finja_obs_overlay_url") || "";
+$("sr_server_url").value = localStorage.getItem("finja_sr_server_url") || "";
+$("vpet_bridge_url").value = localStorage.getItem("finja_vpet_bridge_url") || "";
+/* Song-request server and VPet bridge: local by default, or wherever Finja Chat runs (VM). */
+const serviceBase = (key, fallback) => (localStorage.getItem(key) || fallback).replace(/\/+$/, "");
+["sr_server_url", "vpet_bridge_url"].forEach((id) => {
+  $(id).addEventListener("change", () => {
+    localStorage.setItem(`finja_${id}`, $(id).value.trim());
+    log(`${id === "sr_server_url" ? "Song-Server" : "VPet-Bridge"} gespeichert – Panel neu laden, damit es gilt.`, "ok");
+  });
+});
 
 /* ========== VPet Bridge Konfiguration ========== */
 const VPET_BRIDGE_ENABLED = true; // Auf false setzen, um die Bridge zu deaktivieren
-const VPET_BRIDGE_URL = "http://127.0.0.1:8091/command";
+const VPET_BRIDGE_URL = `${serviceBase("finja_vpet_bridge_url", "http://127.0.0.1:8091")}/command`;
 
 // Funktion zum Prüfen, ob VPet aktiviert ist
 const vpetEnabled = () => localStorage.getItem("finja_vpet_enabled") === 'true' || true;
@@ -1045,7 +1067,7 @@ const srEnabled = () => localStorage.getItem("finja_sr_enabled") !== 'false';
    songs get automatically accepted or declined by popularity/label filter.
    Manual: for active streaming -- mod/streamer accepts or declines each
    request individually (!accept/!deny). Switchable without a server restart. */
-const SR_MODE_ENDPOINT = "http://127.0.0.1:8099/mode";
+const SR_MODE_ENDPOINT = `${serviceBase("finja_sr_server_url", "http://127.0.0.1:8099")}/mode`;
 
 function updateSrModeStatus(moderated) {
   const el = $('sr_mode_status');
@@ -1092,7 +1114,7 @@ $('sr_moderated').onchange = function () {
 
 <script>
 (() => {
-  const SR_ENDPOINT = "http://127.0.0.1:8099/chat";
+  const SR_ENDPOINT = `${serviceBase("finja_sr_server_url", "http://127.0.0.1:8099")}/chat`;
   const SR_ALIASES = new Set(["sr","songrequest","queue","q","accept","deny","rq","requests","pending"]);
   const SR_REQUEST_CMDS = new Set(["sr","songrequest","queue","q"]);
 

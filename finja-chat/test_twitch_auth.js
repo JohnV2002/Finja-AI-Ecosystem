@@ -2,7 +2,7 @@
  * Project: Finja - Twitch Interactivity Suite
  * Module: finja-chat / test_twitch_auth.js
  * Author: J. Apps (JohnV2002 / Sodakiller1)
- * Version: 2.4.1
+ * Version: 2.5.0
  * Description: Unit tests for Twitch Device Code OAuth and token rotation.
  * New in v2.4.1:
  *   - Proves OAuth token material never reaches persistent browser storage.

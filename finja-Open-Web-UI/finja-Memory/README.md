@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v4.4.5 
+# 📚 Finja Cloud Memory v4.5.1 
 
 A lightweight, lightning-fast external **Memory Service** acting as long-term memory for AI projects like Finja. This system is designed for seamless integration with **OpenWebUI** via the `adaptive_memory_v4` Plugin.
 
@@ -28,6 +28,31 @@ docker-compose up -d --build
 ```
 ---
 
+
+## 🆕 Updates & Changelog (v4.5.1)
+
+* **Fix – nothing lost on restart:** Stopping the server (`docker stop`, reboot, redeploy) now saves every user still in the RAM cache first. Before, memories learned since the last 10-minute auto-save were lost.
+* **One writer per file:** auto-save, cache cleanup, `/backup_all_now` and the shutdown save share a lock, so two saves never race on the same file.
+
+## Changelog v4.5.0
+
+* **🔐 Secrets in `private/`:** Real keys live in `private/.env` (in `.gitignore`); `docker-compose.yml` reads it. A `.env` in the repository is no longer used. **If you used an older version: rotate `FINJA_DATA_ENCRYPTION_KEY`** (see below), the old example setup made it easy to commit it.
+* **Fix – encryption utility:** `encrypt_memory_at_rest.py` now writes the server's own file header (`FINJAENC1`). Before, it wrote a header the server read as broken JSON, so the next save could replace those memories with an empty list.
+* **Real key rotation:** `FINJA_DATA_ENCRYPTION_KEY_OLD` (old) + `FINJA_DATA_ENCRYPTION_KEY` (new) re-encrypt every memory file (`--include-backups` for backups too, `--check` for a dry run). Files already on the new key stay untouched.
+* **No more silent data loss:** A memory file the server cannot read (wrong key, damaged) is kept on disk and saving is blocked for that user, instead of being replaced by an empty list. `/health` shows `unreadable_users`.
+* **Flare & Analytics (optional, off by default):** structured errors `FINJA-107` (not configured), `FINJA-528` (memory file storage), `FINJA-529` (unexpected request), `FINJA-530` (diagnostics probe); errors, CPU and RAM to the Analytics Collector when `ANALYTICS_ENABLED=true`; owner-only `GET /diagnostics/probe?token=…` (`MEMORY_PROBE_TOKEN`).
+* **Dashboard metrics:** `FINJA_DASHBOARD_URL` has no built-in default address any more (empty = off).
+
+### Rotating the encryption key
+
+```bash
+docker compose stop                       # the server saves its RAM cache with the old key
+cp -r user_memories backups user_memories_backup_before_rotation
+FINJA_DATA_ENCRYPTION_KEY_OLD=<old key> FINJA_DATA_ENCRYPTION_KEY=<new key> python encrypt_memory_at_rest.py --include-backups --check
+FINJA_DATA_ENCRYPTION_KEY_OLD=<old key> FINJA_DATA_ENCRYPTION_KEY=<new key> python encrypt_memory_at_rest.py --include-backups
+# put the new key into private/.env, then:
+docker compose up -d
+```
 
 ## 🆕 Updates & Changelog (v4.4.5)
 
@@ -80,14 +105,11 @@ docker-compose up -d --build
 This is the easiest and most secure method to start the server.
 
 ### 1. Create Configuration File
-Create a `.env` file in the root directory. This is where your secret API keys will be stored.
+Copy `.env.example` to `private/.env` and fill in your keys. `private/` is in `.gitignore`, so your keys never end up on GitHub.
 
-```ini
-# .env
-MEMORY_API_KEY="your-super-secure-key-12345"
-# OPENAI_API_KEY="sk-your-openai-key" # Optional, only if OpenAI is used as a provider
+```bash
+mkdir -p private && cp .env.example private/.env
 ```
-> ⚠️ **Important:** Be sure to add the `.env` file to your `.gitignore` so your API keys never end up on GitHub!
 
 ### 2. Start Server
 1.  **Correct Permissions (One-time):** Run `sudo chown -R $(id -u):$(id -g) .` in the project folder to avoid permission issues with Docker.

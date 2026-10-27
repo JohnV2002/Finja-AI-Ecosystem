@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  analytics_contract / detect.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.1
+  Version: 1.1.0
   Description: Detect project identity, languages, runtimes, and useful metrics.
 
   New in v1.0.0:

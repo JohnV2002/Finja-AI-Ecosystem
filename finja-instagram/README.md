@@ -1,8 +1,10 @@
-# 📸 Finja Instagram Reels v1.1.0
+# 📸 Finja Instagram Reels v1.2.0
 
 A headless Instagram Reels browser container that scrolls through Reels, takes screenshots, scrapes metadata, and lets an external **Vision-LLM (the Brain)** decide whether to **like** and **forward** a video — all routed anonymously through a **VPN tunnel (Gluetun + ProtonVPN)**.
 
 Built as a standalone Docker service for the **Finja AI Ecosystem**. 🕵️‍♀️💻
+
+**Changes (v1.2.0):** Structured `FINJA-105/517/518/519` errors, an optional Analytics Contract sender (errors, CPU, RAM to the Analytics Collector, which hands repeated errors to Flare) and an owner-only diagnostics probe. Analytics is off by default.
 
 ---
 
@@ -60,6 +62,10 @@ While automated interaction goes against Instagram's TOS, following these patter
 | `test_instagram_api.py` | Unit tests: cookie parsing (JSON+TXT) + REST endpoints (mocked Chrome/Playwright) |
 | `test_autopilot.py` | Unit tests: cookie injection, buffer-buster retry logic, Brain/Discord placeholders |
 | `test_docker_config.py` | Config tests: Dockerfile/Compose/entrypoint/`.dockerignore` sanity checks |
+| `reel_stats.py` | Small Reel statistics behind the owner-only diagnostics probe |
+| `core/exceptions.py` | Structured errors (FINJA namespace, module finja-instagram) |
+| `analytics_sender.py` | Analytics Contract sender (off unless `INSTAGRAM_ANALYTICS_ENABLED=true`) |
+| `test_flare_onboarding.py`, `tests/` | Probe, error reports and analytics switch; `tests/` is what Flare's sandbox runs |
 
 ---
 
@@ -170,6 +176,25 @@ Clicks the like button on the current video in the visible viewport:
 ```json
 {"liked": true, "url": "https://www.instagram.com/reels/xyz123", "method": "button"}
 ```
+
+### `GET /diagnostics/probe?token=…`
+Owner-only (needs `INSTAGRAM_PROBE_TOKEN`, otherwise 404): runs the Reel statistics before any Reel was seen and answers 500 with `FINJA-519`. Used to test the Flare path.
+
+---
+
+## 🔥 Flare & Analytics (optional)
+
+Everything here is **off by default**; the stack runs without any backend.
+
+| Setting (`.env`) | Meaning |
+|------------------|---------|
+| `INSTAGRAM_ANALYTICS_ENABLED`, `INSTAGRAM_ANALYTICS_ENDPOINT`, `INSTAGRAM_ANALYTICS_TOKEN` | Send errors, CPU and RAM to the Analytics Collector. |
+| `INSTAGRAM_ANALYTICS_SUBNET` | The `analytics-ingest` subnet Gluetun lets past the tunnel (`FIREWALL_OUTBOUND_SUBNETS`). Empty = nothing bypasses the VPN. |
+| `INSTAGRAM_PROBE_TOKEN` | Enables the owner-only diagnostics probe (empty = off). |
+
+The VPN container joins the external Docker network `analytics-ingest`, which holds only the Analytics Collector at a fixed address. Create it once: `docker network create --subnet <private-subnet> analytics-ingest`. Internet traffic and DNS still go through the VPN only, so the endpoint is an IP address, not a name.
+
+Errors: `FINJA-105` unreadable cookie file (Flare asks a person instead of repairing), `FINJA-517` Chrome unreachable at startup, `FINJA-518` an unexpected request failure, `FINJA-519` the diagnostics probe.
 
 ---
 

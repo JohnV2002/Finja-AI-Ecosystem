@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-web-crawler / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.1.0
+  Version: 2.2.0
 
 ----------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def auth_headers():
-    return {"Authorization": "Bearer test-bearer-token-12345"}
+    return {"Authorization": f"Bearer {orchestrator.EXPECTED_BEARER_TOKEN}"}
 
 
 class FakeResponse:

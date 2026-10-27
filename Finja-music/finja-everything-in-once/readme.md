@@ -1,11 +1,16 @@
-# 🎶 Finja Music - All-in-One Edition v1.2.1
+# 🎶 Finja Music - All-in-One Edition v1.3.0
 *Multi-source NowPlaying system with OBS overlays, radio scrapers & AI reactions. 💜*
 
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](https://github.com/yourusername/finja-music)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/yourusername/finja-music)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-yellow.svg)](https://www.python.org/)
 
-> **✨ New in v1.2.1:**
+> **✨ New in v1.3.0:**
+> - **Flare & Analytics (optional, off by default):** errors go to the Analytics Collector, which hands repeated ones to Flare
+> - **Structured errors:** unexpected request failures report `FINJA-520` (the response no longer contains raw exception text); `FINJA-407` is reported too
+> - **Diagnostics probe:** owner-only `/diagnostics/probe?token=…` (`FINJA-521`) to test the Flare path
+>
+> **Changelog v1.2.1:**
 > - **Spotify OAuth:** Token refresh uses the documented HTTP Basic client authentication
 > - **Clear recovery:** Expired or revoked refresh tokens report `FINJA-407` and request reauthorization
 > - **Stable server:** Permanent Spotify OAuth failures stop only Spotify polling; the control server remains online
@@ -212,6 +217,18 @@ RTL_CDP_PORT=9222             # Chrome DevTools port
 RTL_POLL_S=5                  # Polling interval (seconds)
 ```
 
+**Flare & Analytics (web server, optional, read from `.env` next to `webserver.py`):**
+```bash
+ANALYTICS_ENABLED=false                    # true = send errors to the Analytics Collector
+ANALYTICS_ENDPOINT=http://<collector-host>:8081
+ANALYTICS_TOKEN=                           # the collector's ingest token
+MUSIC_PROBE_TOKEN=                         # owner-only /diagnostics/probe (empty = off)
+```
+See `.env.example`. Off means no thread and no network traffic. On Windows the sender reports
+errors and the app lifecycle only (CPU/RAM samples need Linux `/proc`).
+Errors: `FINJA-407` Spotify token refresh (a revoked grant asks a person), `FINJA-520` an unexpected
+request failure, `FINJA-521` the diagnostics probe.
+
 ---
 
 ## 🎨 OBS Integration
@@ -301,6 +318,8 @@ All overlays read from the `Nowplaying/` folder:
 | `rtl_repeat_counter.py` | ~250 | Song repeat counter |
 | `mdr_nowplaying.py` | ~900 | MDR scraper (ICY/XML/HTML) |
 | `webserver.py` | varies | Main web server |
+| `music_stats.py` | small | Play statistics behind the diagnostics probe |
+| `analytics_sender.py` | ~600 | Analytics Contract sender (off by default) |
 
 ### HTML Files
 
@@ -334,6 +353,8 @@ All overlays read from the `Nowplaying/` folder:
 |------|---------|
 | `test_music_resources.py` | Sanity checks: OBS HTML files exist, helper script syntax, batch file integrity |
 | `test_music_webserver.py` | Full suite: API endpoints, HTML structure, security (path traversal, JSON injection, XSS) |
+| `test_flare_onboarding.py` | Probe, structured error reports and the analytics switch |
+| `tests/` | Small unittest suite Flare's sandbox runs |
 
 ---
 
