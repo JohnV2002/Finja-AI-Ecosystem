@@ -19,7 +19,7 @@ README, installation guide, engine and tests one level below it.
 |----------|---------|---------|---------------|
 | Error Contract | 1.3.2 | Structured error namespaces, public code legends, local implementations and baseline-aware gates | [Open README](error-contract/README.md) |
 | GitHub Contract | 1.1.1 | Project-native headers, module-wide versions, README completeness and leak prevention | [Open README](github-contract/README.md) |
-| Analytics Contract | 1.0.1 | Opt-in, fail-silent analytics discovery, metric planning and stable API schemas | [Open README](analytics-contract/README.md) |
+| Analytics Contract | 1.1.0 | Opt-in, fail-silent analytics, canonical Python sender and Flare onboarding block | [Open README](analytics-contract/README.md) |
 
 ## Repository Model
 

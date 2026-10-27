@@ -12,8 +12,8 @@ All modules are designed to work seamlessly with OpenWebUI and can be easily dep
 
 | Module | Description | Status |
 | :--- | :--- | :--- |
-| 🧠 **Cloud Memory** | Long-term memory storage per user and **True TTS Network Caching**. | ✅ Ready (v4.4.2) |
-| 🌐 **Web Crawler** | Anonymous web searches via Tor + DDG + Fallbacks to provide up-to-date data. | ✅ Ready (v1.0.0) |
+| 🧠 **Cloud Memory** | Long-term memory storage per user and **True TTS Network Caching**. | ✅ Ready (v4.5.0) 🔥 |
+| 🌐 **Web Crawler** | Anonymous web searches via Tor + DDG + Fallbacks to provide up-to-date data. | ✅ Ready (v2.2.0) 🔥 |
 | 📄 **OCR Service** | Extracts text from uploaded documents and images (PDFs, JPGs, etc.). | ⛔ Not maintained |
 | 🎨 **Image Generation** | Generates images locally on your own hardware via Stable Diffusion. | ⛔ Not maintained |
 | 🗣️ **Text-to-Speech (TTS)** | *Moved:* Speech synthesis module. | 🚧 Moved to Neural System |

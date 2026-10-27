@@ -55,12 +55,13 @@ def test_probe_is_hidden_without_the_token(reported, monkeypatch: pytest.MonkeyP
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): no hour looked at yet now reports 0.0 instead of crashing."""
     monkeypatch.setenv("WEATHER_PROBE_TOKEN", TOKEN)
     client = TestClient(weather_api.app, raise_server_exceptions=False)
     response = client.get("/diagnostics/probe", params={"token": TOKEN})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-537"
-    assert isinstance(reported[0], WeatherDiagnosticsProbeError)
+    assert response.status_code == 200 and response.json() == {"probe": "rain_share", "value": 0.0}
+    assert reported == []
 
 
 def test_a_provider_outage_is_logged_but_never_sent_to_flare(reported) -> None:
@@ -93,13 +94,13 @@ def test_analytics_is_off_without_the_switch() -> None:
     assert weather_api.analytics.enabled is False
 
 
-def test_the_probe_error_points_flare_at_weather_stats() -> None:
+def test_an_error_inside_weather_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            weather_api.rain_share(0, 0)
-        except ZeroDivisionError as exc:
+            weather_api.rain_share(1, None)
+        except TypeError as exc:
             raise WeatherDiagnosticsProbeError("probe", module="finja-weather") from exc
     except WeatherDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event["error"]["code"] == "FINJA-537" and event["error"]["affected_file"] == "weather_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "weather_stats.py"

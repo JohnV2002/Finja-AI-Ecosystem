@@ -82,19 +82,24 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
             return
         try:
             try:
-                average_motif_pixels([])
+                value = average_motif_pixels([])
             except ZeroDivisionError as exc:
                 raise CanvasDiagnosticsProbeError("Diagnostics probe hit a real bug",
                                                   probe="average_motif_pixels") from exc
         except CanvasDiagnosticsProbeError as error:
             LOGGER.error("%s %s context=%s", error.code, error, error.context)
             analytics.record_exception(error)
-            body = ('{"error": {"code": "%s"}}' % error.code).encode()
-            self.send_response(500)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            self._send_json(500, '{"error": {"code": "%s"}}' % error.code)
+            return
+        self._send_json(200, '{"probe": "average_motif_pixels", "value": %s}' % value)
+
+    def _send_json(self, status, text):
+        body = text.encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def address_string(self):
         # No reverse-DNS-lookup per request - this can hang depending on the network.
