@@ -56,13 +56,14 @@ def test_probe_is_hidden_without_the_token(monkeypatch: pytest.MonkeyPatch) -> N
     assert client.get("/diagnostics/probe", params={"token": "wrong"}).status_code == 404
 
 
-def test_probe_reports_the_real_bug(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-27): an empty queue now reports 0.0 instead of crashing."""
     token = "probe-" + "p" * 16
     monkeypatch.setenv("FINJA_CHAT_PROBE_TOKEN", token)
     client = TestClient(server.app, raise_server_exceptions=False)
     response = client.get("/diagnostics/probe", params={"token": token})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-514"
-    assert [error.code for error in reported] == ["FINJA-514"]
+    assert response.status_code == 200 and response.json() == {"probe": "average_wait_seconds", "value": 0.0}
+    assert reported == []
 
 
 def test_analytics_is_off_without_the_switch() -> None:

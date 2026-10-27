@@ -130,11 +130,12 @@ def test_probe_is_hidden_without_the_token(client, reported, monkeypatch: pytest
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(client, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(client, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-27): no finished song now reports 0.0 instead of crashing."""
     monkeypatch.setenv("MUSIC_DOCKER_PROBE_TOKEN", TOKEN)
     response = client.get("/diagnostics/probe", params={"token": TOKEN})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-524"
-    assert isinstance(reported[0], MusicDockerDiagnosticsProbeError)
+    assert response.status_code == 200 and response.json() == {"probe": "average_listen_seconds", "value": 0.0}
+    assert reported == []
 
 
 def test_an_unexpected_request_failure_is_reported(client, reported, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -164,12 +165,12 @@ def test_an_expired_login_gets_an_env_fingerprint_so_flare_asks_a_person(credent
     assert event["error"]["fingerprint"].startswith("env-")
 
 
-def test_the_probe_error_points_flare_at_listening_stats() -> None:
+def test_an_error_inside_listening_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            app_module.average_listen_seconds([])
-        except ZeroDivisionError as exc:
+            app_module.average_listen_seconds([None])
+        except TypeError as exc:
             raise MusicDockerDiagnosticsProbeError("probe", probe="average_listen_seconds") from exc
     except MusicDockerDiagnosticsProbeError as error:
         event = sender.record_exception(error)
