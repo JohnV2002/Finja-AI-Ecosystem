@@ -524,13 +524,33 @@ def _set_spotify_state(status: str) -> None:
 
 
 def _oauth_error(response) -> str:
-    """Spotify's short OAuth error name (never the response body, which may echo request data)."""
+    """Classify external OAuth errors into developer-owned, safe-to-log literals."""
     try:
         body = response.json()
     except ValueError:
         return ""
     error = body.get("error") if isinstance(body, dict) else None
-    return error if isinstance(error, str) else ""
+    if not isinstance(error, str):
+        return ""
+    match error:
+        case "invalid_grant":
+            return "invalid_grant"
+        case "invalid_client":
+            return "invalid_client"
+        case "invalid_request":
+            return "invalid_request"
+        case "invalid_scope":
+            return "invalid_scope"
+        case "unauthorized_client":
+            return "unauthorized_client"
+        case "unsupported_grant_type":
+            return "unsupported_grant_type"
+        case "server_error":
+            return "server_error"
+        case "temporarily_unavailable":
+            return "temporarily_unavailable"
+        case _:
+            return "unrecognized_oauth_error"
 
 
 def refresh_token():
