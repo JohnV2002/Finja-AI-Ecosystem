@@ -573,7 +573,7 @@ def refresh_token():
             raise SpotifyReauthorizationRequiredError(
                 f"Spotify login expired or was revoked ({oauth_error}); run spotify_reauth.py for a new refresh token",
                 reason="reauthorization_needed", oauth_error=oauth_error, status_code=r.status_code)
-        log(f"[spotify] refresh error {r.status_code}: {oauth_error or 'no error name'}")
+        log(f"[spotify] refresh error {r.status_code}: response details omitted")
         r.raise_for_status()
     payload = r.json()
     ACCESS_TOKEN = payload['access_token']
