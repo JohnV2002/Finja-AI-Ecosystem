@@ -47,6 +47,35 @@ def _response(status: int, body: dict | None = None, headers: dict | None = None
     return response
 
 
+@pytest.mark.parametrize("value", ["fixture-credential-" + "x" * 24, "invalid_scope\nfixture-private-value", "unexpected_error"])
+def test_unknown_oauth_error_never_reaches_logs(credentials, monkeypatch, capsys, value):
+    response = _response(400, {"error": value})
+    monkeypatch.setattr(app_module.requests, "post", lambda *args, **kwargs: response)
+    with pytest.raises(requests.HTTPError):
+        app_module.refresh_token()
+    output = capsys.readouterr().out
+    assert value not in output
+    assert "unrecognized_oauth_error" in output
+
+
+@pytest.mark.parametrize("name", ["invalid_grant", "invalid_client", "invalid_request", "invalid_scope", "unauthorized_client", "unsupported_grant_type", "server_error", "temporarily_unavailable"])
+def test_oauth_error_classifier_preserves_supported_names(name):
+    assert app_module._oauth_error(_response(400, {"error": name})) == name
+
+
+@pytest.mark.parametrize("body", [{}, {"error": None}, {"error": 123}, [], "unexpected body"])
+def test_oauth_error_classifier_handles_other_response_shapes(body):
+    response = MagicMock()
+    response.json.return_value = body
+    assert app_module._oauth_error(response) == ""
+
+
+def test_oauth_error_classifier_handles_invalid_json():
+    response = MagicMock()
+    response.json.side_effect = ValueError("not json")
+    assert app_module._oauth_error(response) == ""
+
+
 @pytest.fixture()
 def reported(monkeypatch: pytest.MonkeyPatch) -> list:
     seen: list = []
