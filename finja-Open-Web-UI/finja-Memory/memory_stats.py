@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / memory_stats.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Small memory statistics behind the owner-only diagnostics probe.
 New in 4.5.0: average_memory_importance carries a real, harmless bug on purpose (no memory
     yet divides by zero) so Flare's onboarding of the memory server has something to repair.

@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / test_flare_onboarding.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Key rotation of the memory files, the protection against overwriting unreadable
     files, the owner-only probe and structured reports. Lives next to the code (not in tests/)
     because it needs pytest and FastAPI, which Flare's unittest sandbox does not have.
@@ -150,7 +150,7 @@ def test_an_error_inside_memory_stats_points_flare_at_it(server) -> None:
     module, _ = server
     config, problem = AnalyticsConfig.from_environment(
         ROOT, {"ANALYTICS_ENABLED": "true", "ANALYTICS_ENDPOINT": "http://192.0.2.10:8080",
-               "ANALYTICS_TOKEN": "ingest-token"}, version="4.5.0")
+               "ANALYTICS_TOKEN": "ingest-token"}, version="4.5.1")
     assert problem is None and config.project_id == "finja-memory"
     sender = AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
     try:

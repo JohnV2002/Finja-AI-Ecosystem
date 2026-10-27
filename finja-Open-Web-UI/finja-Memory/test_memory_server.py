@@ -2,9 +2,9 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / test_memory_server.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Unit tests for memory-server.py (the server side of the OpenWebUI memory system).
-New in 4.5.0: Ecosystem header added; tests unchanged.
+New in 4.5.1: Shutdown saves the RAM cache and never overwrites an unreadable file.
 Copyright (c) 2026 J. Apps. Licensed under the Apache License 2.0.
 """
 import pytest
@@ -170,6 +170,33 @@ def test_query_uses_local_vector_ranking_not_latest_only(client, auth_headers):
     memories = resp.json()
     assert len(memories) == 1
     assert memories[0]["text"] == "Music is an important permanent preference."
+
+def test_shutdown_saves_memories_that_were_only_in_ram(client, auth_headers, temp_dirs):
+    """docker stop / VM reboot: what was learned since the last auto-save must reach the disk."""
+    server = sys.modules["memory_server"]
+    client.post("/add_memory", headers=auth_headers, json={"user_id": "night_user", "text": "Learned just before a reboot"})
+    memory_path = os.path.join(temp_dirs['user_memory'], "night_user_memory.json")
+    assert not os.path.exists(memory_path)  # only in RAM so far
+
+    with TestClient(server.app):  # leaving the block runs the shutdown event
+        pass
+
+    saved = server.read_json_file(memory_path, default=[])
+    assert [m["text"] for m in saved] == ["Learned just before a reboot"]
+
+def test_shutdown_never_overwrites_an_unreadable_memory_file(client, auth_headers, temp_dirs):
+    server = sys.modules["memory_server"]
+    memory_path = os.path.join(temp_dirs['user_memory'], "broken_user_memory.json")
+    with open(memory_path, "wb") as f:
+        f.write(b"{ not json")
+    client.get("/get_memories?user_id=broken_user", headers=auth_headers)  # load fails, saves get blocked
+    assert "broken_user" in server._load_failed
+
+    with TestClient(server.app):
+        pass
+
+    with open(memory_path, "rb") as f:
+        assert f.read() == b"{ not json"
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

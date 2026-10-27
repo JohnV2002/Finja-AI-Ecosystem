@@ -73,7 +73,7 @@ Reading the legend does not require the Error Contract plugin.
 | &nbsp;&nbsp;└─ finja-music-docker-spotify | **v1.3.1** | 🟢 Stable | Dockerized Spotify-only music API; handles Spotify's 6-month login expiry (`spotify_reauth.py`). | 66 tests · 🔥 Flare-connected |
 | &nbsp;&nbsp;└─ finja-music-standalone | **v1.0.2** | 🔴 Old | Classic modular system. | Won't be updated — use the ones above |
 | **finja-Open-Web-UI** | | 🟢 Stable | OpenWebUI backend modules. | |
-| &nbsp;&nbsp;└─ finja-Memory | **v4.5.0** | 🟢 Stable | Adaptive memory + voice cache + MP3 TTS; safe key rotation, never overwrites unreadable files. | 26 tests · 🔥 Flare-connected · Apache 2.0 (adapted from gramanoid) |
+| &nbsp;&nbsp;└─ finja-Memory | **v4.5.1** | 🟢 Stable | Adaptive memory + voice cache + MP3 TTS; safe key rotation, never overwrites unreadable files, saves on shutdown. | 28 tests · 🔥 Flare-connected · Apache 2.0 (adapted from gramanoid) |
 | &nbsp;&nbsp;└─ finja-web-crawler | **v2.2.0** | 🟢 Stable | Hybrid Tor search + distributed crawl (spawner/worker/research). | 33 tests · 🔥 Flare-connected |
 | &nbsp;&nbsp;└─ finja-stable-diffusion | | ⛔ Not maintained | Local image generation (Docker, adapted). | Kept for reference only (since 2026-10-26) |
 | &nbsp;&nbsp;└─ finja-ocr | | ⛔ Not maintained | Dockerized Tika/Tesseract OCR. | Kept for reference only — OCR now lives in the Neural Network |
