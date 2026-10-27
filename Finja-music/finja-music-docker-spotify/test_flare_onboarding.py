@@ -55,7 +55,7 @@ def test_unknown_oauth_error_never_reaches_logs(credentials, monkeypatch, capsys
         app_module.refresh_token()
     output = capsys.readouterr().out
     assert value not in output
-    assert "unrecognized_oauth_error" in output
+    assert "response details omitted" in output
 
 
 @pytest.mark.parametrize("name", ["invalid_grant", "invalid_client", "invalid_request", "invalid_scope", "unauthorized_client", "unsupported_grant_type", "server_error", "temporarily_unavailable"])
