@@ -1,0 +1,20 @@
+name: Flare acceptance
+on:
+  pull_request:
+    branches: ['codex/flare-github-acceptance-base-*']
+  push:
+    branches: ['codex/flare-github-acceptance-base-*', 'codex/flare-github-acceptance-head-*']
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    name: Flare acceptance (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install pytest==9.0.2
+      - run: python -m pytest -q
