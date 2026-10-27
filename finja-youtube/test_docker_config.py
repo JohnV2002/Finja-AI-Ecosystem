@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-youtube / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.2.0
   Description: Validates the Docker/Compose setup by inspecting file
                content -- no Docker daemon required, so this runs
                anywhere (including plain CI without Docker-in-Docker).

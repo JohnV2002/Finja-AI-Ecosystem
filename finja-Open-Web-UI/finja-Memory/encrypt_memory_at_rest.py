@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-cloud-memory / encrypt-at-rest
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 4.5.0
+  Version: 4.5.1
 
 ----------------------------------------------------------------------
 

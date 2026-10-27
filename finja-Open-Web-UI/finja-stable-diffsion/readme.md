@@ -1,5 +1,10 @@
 # 🎨 Stable Diffusion – Image Generation
 
+> [!CAUTION]
+> **Not maintained (since 2026-10-26).** This module is kept for reference only. It receives no updates,
+> no security fixes and no reviews, and it is not connected to Flare or the Analytics Collector.
+> Use it at your own risk.
+
 A local image generation module using **Stable Diffusion** via the **Automatic1111 WebUI** — running in **Docker (CPU-Only)** 🐳🖌️
 
 Perfect for Text-to-Image generation directly from OpenWebUI 💖  

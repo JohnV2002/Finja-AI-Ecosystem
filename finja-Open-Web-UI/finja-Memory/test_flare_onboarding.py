@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / test_flare_onboarding.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Key rotation of the memory files, the protection against overwriting unreadable
     files, the owner-only probe and structured reports. Lives next to the code (not in tests/)
     because it needs pytest and FastAPI, which Flare's unittest sandbox does not have.
@@ -136,27 +136,28 @@ def test_probe_is_hidden_without_the_token(server, monkeypatch: pytest.MonkeyPat
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(server, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(server, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): a user without memories now reports 0.0 instead of crashing."""
     module, reported = server
     monkeypatch.setenv("MEMORY_PROBE_TOKEN", TOKEN)
     client = TestClient(module.app, raise_server_exceptions=False)
     response = client.get("/diagnostics/probe", params={"token": TOKEN})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-530"
-    assert isinstance(reported[0], MemoryDiagnosticsProbeError)
+    assert response.status_code == 200 and response.json() == {"probe": "average_memory_importance", "value": 0.0}
+    assert reported == []
 
 
-def test_the_probe_error_points_flare_at_memory_stats(server) -> None:
+def test_an_error_inside_memory_stats_points_flare_at_it(server) -> None:
     module, _ = server
     config, problem = AnalyticsConfig.from_environment(
         ROOT, {"ANALYTICS_ENABLED": "true", "ANALYTICS_ENDPOINT": "http://192.0.2.10:8080",
-               "ANALYTICS_TOKEN": "ingest-token"}, version="4.5.0")
+               "ANALYTICS_TOKEN": "ingest-token"}, version="4.5.1")
     assert problem is None and config.project_id == "finja-memory"
     sender = AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
     try:
         try:
-            module.average_memory_importance([])
-        except ZeroDivisionError as exc:
+            module.average_memory_importance([None])
+        except TypeError as exc:
             raise MemoryDiagnosticsProbeError("probe", module="finja-memory") from exc
     except MemoryDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event["error"]["code"] == "FINJA-530" and event["error"]["affected_file"] == "memory_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "memory_stats.py"

@@ -7,7 +7,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-youtube / tests
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.0.0
+  Version: 1.2.0
   Description: Tests for autopilot.py -- the prototype autonomous
                browsing loop. The Brain/Discord placeholder functions
                are real unit tests; the autopilot() loop itself

@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / tests / test_memory_stats.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Unit tests for the memory statistics: plain unittest classes without heavy imports,
     so Flare's offline sandbox (unittest discovery) can run them next to memory_stats.py.
 New in 4.5.0: First version.

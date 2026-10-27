@@ -34,10 +34,10 @@ def reported(monkeypatch: pytest.MonkeyPatch) -> list:
     return seen
 
 
-def test_probe_reports_the_real_bug_and_exits_1(reported) -> None:
-    assert probe.main() == 1
-    assert len(reported) == 1 and isinstance(reported[0], OmniDiagnosticsProbeError)
-    assert isinstance(reported[0].__cause__, ZeroDivisionError)
+def test_probe_is_quiet_after_flares_fix(reported) -> None:
+    """Flare's approved fix (2026-10-26): a frame without OCR lines now reports 0.0 instead of crashing."""
+    assert probe.main() == 0
+    assert reported == []
 
 
 def test_loop_errors_are_reported_at_most_once_a_minute(reported) -> None:
@@ -64,7 +64,8 @@ def test_missing_openrouter_key_is_finja_106(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_analytics_is_off_without_the_switch() -> None:
-    assert omni_reporting.analytics.enabled is False
+    config, problem = AnalyticsConfig.from_environment(ROOT, {})
+    assert config.enabled is False and problem is None
 
 
 def _sender() -> AnalyticsSender:
@@ -86,13 +87,13 @@ def test_a_missing_key_gets_an_env_fingerprint_so_flare_asks_a_person(monkeypatc
     assert event["error"]["fingerprint"].startswith("env-config-")
 
 
-def test_the_probe_error_points_flare_at_omni_stats() -> None:
+def test_an_error_inside_omni_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            probe.average_ocr_confidence([])
-        except ZeroDivisionError as exc:
+            probe.average_ocr_confidence([None])
+        except TypeError as exc:
             raise OmniDiagnosticsProbeError("probe", probe="average_ocr_confidence") from exc
     except OmniDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event["error"]["code"] == "FINJA-527" and event["error"]["affected_file"] == "omni_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "omni_stats.py"

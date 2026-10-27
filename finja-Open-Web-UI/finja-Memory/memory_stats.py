@@ -2,11 +2,11 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / memory_stats.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Small memory statistics behind the owner-only diagnostics probe.
 New in 4.5.0: average_memory_importance carries a real, harmless bug on purpose (no memory
     yet divides by zero) so Flare's onboarding of the memory server has something to repair.
-    Do not fix it by hand; Flare's candidate fixes it after John's approval.
+    Fixed on 2026-10-26 by Flare's approved candidate (applied live on the VM).
 Copyright (c) 2026 J. Apps. Licensed under the Apache License 2.0.
 """
 
@@ -17,7 +17,7 @@ from collections.abc import Sequence
 
 def average_memory_importance(importances: Sequence[float]) -> float:
     """Mean importance of a user's memories; a user without memories should report 0.0."""
-    return sum(importances) / len(importances)
+    return sum(importances) / len(importances) if importances else 0.0
 
 
 def memories_per_day(count: int, days: float) -> float:

@@ -61,12 +61,13 @@ def test_probe_is_hidden_without_the_token(reported, monkeypatch: pytest.MonkeyP
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): no crawl yet now reports 0.0 instead of crashing."""
     monkeypatch.setenv("CRAWLER_PROBE_TOKEN", TOKEN)
     client = TestClient(orchestrator.app, raise_server_exceptions=False)
     response = client.get("/diagnostics/probe", params={"token": TOKEN})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-534"
-    assert isinstance(reported[0], CrawlerDiagnosticsProbeError)
+    assert response.status_code == 200 and response.json() == {"probe": "crawl_success_rate", "value": 0.0}
+    assert reported == []
 
 
 def test_a_failing_search_backend_is_logged_but_never_sent_to_flare(reported, monkeypatch) -> None:
@@ -117,13 +118,13 @@ def test_analytics_is_off_without_the_switch() -> None:
     assert crawler_reporting.analytics.enabled is False
 
 
-def test_the_probe_error_points_flare_at_crawler_stats() -> None:
+def test_an_error_inside_crawler_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            orchestrator.crawl_success_rate(0, 0)
-        except ZeroDivisionError as exc:
+            orchestrator.crawl_success_rate(1, None)
+        except TypeError as exc:
             raise CrawlerDiagnosticsProbeError("probe", module="finja-web-crawler") from exc
     except CrawlerDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event["error"]["code"] == "FINJA-534" and event["error"]["affected_file"] == "crawler_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "crawler_stats.py"

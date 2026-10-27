@@ -6,7 +6,7 @@
 #   Module: finja-cloud-memory
 #   Author: J. Apps (JohnV2002 / Sodakiller1)
 #   Inspired by: gramanoid (diligent_chooser)
-#   Version: 4.5.0
+#   Version: 4.5.1
 #
 # ----------------------------------------------------------------------
 #

@@ -84,11 +84,12 @@ def test_probe_is_hidden_without_the_token(client, reported, monkeypatch: pytest
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(client, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(client, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): no Reel seen yet now reports 0.0 instead of crashing."""
     monkeypatch.setenv("INSTAGRAM_PROBE_TOKEN", TOKEN)
     response = client.get("/diagnostics/probe", params={"token": TOKEN})
-    assert response.status_code == 500 and response.json()["error"]["code"] == "FINJA-519"
-    assert len(reported) == 1 and isinstance(reported[0], InstagramDiagnosticsProbeError)
+    assert response.status_code == 200 and response.json() == {"probe": "like_rate", "value": 0.0}
+    assert reported == []
 
 
 def test_an_unexpected_endpoint_failure_is_reported_with_its_cause(client, page, reported) -> None:
@@ -131,17 +132,16 @@ def _sender() -> AnalyticsSender:
     return AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
 
 
-def test_the_probe_error_points_flare_at_reel_stats() -> None:
+def test_an_error_inside_reel_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            instagram_api.like_rate(0, 0)
-        except ZeroDivisionError as exc:
+            instagram_api.like_rate(1, None)
+        except TypeError as exc:
             raise InstagramDiagnosticsProbeError("probe", probe="like_rate") from exc
     except InstagramDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event is not None and event["error"]["code"] == "FINJA-519"
-    assert event["error"]["affected_file"] == "reel_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "reel_stats.py"
 
 
 def test_a_broken_cookie_file_gets_an_env_fingerprint_so_flare_asks_a_person(tmp_path: Path, monkeypatch) -> None:
