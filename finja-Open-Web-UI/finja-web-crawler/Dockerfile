@@ -26,7 +26,7 @@
 
 # --- Stage 1: Build Stage ---
 # Same Python tag as runtime — Dependabot may bump both; no hard-coded 3.XX paths.
-FROM python:3.14-alpine AS builder
+FROM python:3.15-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies for compiling Python packages if needed
@@ -38,7 +38,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Final Stage ---
-FROM python:3.14-alpine
+FROM python:3.15-alpine
 WORKDIR /app
 
 # Create non-root user and set permissions in ONE step (layer optimized)
