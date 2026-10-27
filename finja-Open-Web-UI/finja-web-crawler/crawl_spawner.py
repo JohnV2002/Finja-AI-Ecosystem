@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-web-crawler / crawl-spawner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.1.0
+  Version: 2.2.0
 
 ----------------------------------------------------------------------
 
@@ -24,6 +24,11 @@
   Only this service mounts the Docker socket. Spawned workers get no
   socket, run read-only, and keep the same network/CPU/RAM/PID limits
   as the old baby worker.
+
+  New in v2.2.0:
+  - Docker failures and workers that never become healthy are reported
+    as FINJA-532 (Analytics Collector when enabled); a slow or failing
+    target site stays a plain 502 for the orchestrator.
 ======================================================================
 """
 
@@ -41,6 +46,9 @@ import docker
 import requests
 from docker.errors import APIError, DockerException, NotFound
 from fastapi import Body, FastAPI, HTTPException
+
+import crawler_reporting
+from core.exceptions import CrawlSpawnError
 from pydantic import BaseModel, Field, HttpUrl
 
 SERVICE_NAME = "finja-crawl-spawner"
@@ -71,6 +79,16 @@ _spawn_slots = threading.BoundedSemaphore(MAX_PARALLEL_SPAWNS)
 _docker_client = docker.from_env()
 
 app = FastAPI(title="Finja Crawl Spawner", version="0.1.0")
+
+
+@app.on_event("startup")
+def _start_reporting() -> None:
+    crawler_reporting.start()
+
+
+@app.on_event("shutdown")
+def _stop_reporting() -> None:
+    crawler_reporting.stop()
 
 
 class CrawlRequest(BaseModel):
@@ -254,6 +272,9 @@ def crawl_endpoint(crawl_request: Annotated[CrawlRequest, Body(...)]) -> CrawlRe
         _m_incr("crawl_fail")
         _m_error(exc)
         logger.warning("Spawned crawl failed: %s", exc)
+        if isinstance(exc, (DockerException, RuntimeError)):  # our side broke; a slow site is not our bug
+            crawler_reporting.report_throttled(CrawlSpawnError("Starting or reaching a crawl worker failed",
+                                                               module="finja-web-crawler", cause=exc))
         raise HTTPException(status_code=502, detail=f"Spawned crawl failed: {exc}") from exc
     finally:
         if container is not None:

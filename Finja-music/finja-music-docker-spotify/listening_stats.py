@@ -6,7 +6,7 @@ Version: 1.3.1
 Description: Small listening statistics behind the owner-only diagnostics probe.
 New in 1.3.0: average_listen_seconds carries a real, harmless bug on purpose (no finished
     song yet divides by zero) so Flare's onboarding of Finja Music Docker has something
-    to repair. Do not fix it by hand; Flare's candidate fixes it after John's approval.
+    to repair. Fixed on 2026-10-27 by Flare's approved candidate (applied live).
 Copyright (c) 2026 J. Apps. Licensed under the MIT License.
 """
 
@@ -17,6 +17,8 @@ from collections.abc import Sequence
 
 def average_listen_seconds(durations: Sequence[float]) -> float:
     """Mean listening time per finished song; no finished song yet should report 0.0."""
+    if not durations:
+        return 0.0
     return sum(durations) / len(durations)
 
 

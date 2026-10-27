@@ -1,4 +1,4 @@
-# 📚 Finja Cloud Memory v4.5.0 
+# 📚 Finja Cloud Memory v4.5.1 
 
 A lightweight, lightning-fast external **Memory Service** acting as long-term memory for AI projects like Finja. This system is designed for seamless integration with **OpenWebUI** via the `adaptive_memory_v4` Plugin.
 
@@ -29,7 +29,12 @@ docker-compose up -d --build
 ---
 
 
-## 🆕 Updates & Changelog (v4.5.0)
+## 🆕 Updates & Changelog (v4.5.1)
+
+* **Fix – nothing lost on restart:** Stopping the server (`docker stop`, reboot, redeploy) now saves every user still in the RAM cache first. Before, memories learned since the last 10-minute auto-save were lost.
+* **One writer per file:** auto-save, cache cleanup, `/backup_all_now` and the shutdown save share a lock, so two saves never race on the same file.
+
+## Changelog v4.5.0
 
 * **🔐 Secrets in `private/`:** Real keys live in `private/.env` (in `.gitignore`); `docker-compose.yml` reads it. A `.env` in the repository is no longer used. **If you used an older version: rotate `FINJA_DATA_ENCRYPTION_KEY`** (see below), the old example setup made it easy to commit it.
 * **Fix – encryption utility:** `encrypt_memory_at_rest.py` now writes the server's own file header (`FINJAENC1`). Before, it wrote a header the server read as broken JSON, so the next save could replace those memories with an empty list.

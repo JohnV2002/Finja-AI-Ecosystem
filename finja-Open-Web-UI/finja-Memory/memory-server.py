@@ -6,7 +6,7 @@
 ======================================================================
 
   Project: Adaptive Memory – Memory Server
-  Version: 4.5.0
+  Version: 4.5.1
   Author:  John (J. Apps / Sodakiller1)
   License: Apache License 2.0 (c) 2025 J. Apps
   Original Inspiration & Credits: gramanoid (aka diligent_chooser)
@@ -28,6 +28,14 @@
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
+ Updates 4.5.1:
+ ---------------------------------------------------------------------
+  + **Save on shutdown:** Stopping the server (docker stop, VM reboot,
+    redeploy) now writes every user still in the RAM cache to disk first.
+    Before, anything learned since the last 10-minute auto-save was lost.
+  + **One writer per file:** Auto-save, cache eviction, backups and the
+    shutdown save share a lock, so two saves never race on the same file.
+
  Updates 4.4.5:
  ---------------------------------------------------------------------
   + **TTS Cache Hash Normalization:** Text is now normalized (leftover
@@ -193,7 +201,7 @@ def _report_analytics_problem(problem: Dict[str, Any]) -> None:
     print(f"WARN:    {error.code} {error} context={error.context}")
 
 
-_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(_BASE_DIR, version="4.5.0")
+_analytics_config, _analytics_problem = AnalyticsConfig.from_environment(_BASE_DIR, version="4.5.1")
 analytics = AnalyticsSender(_analytics_config, root=_BASE_DIR, on_failure=_report_analytics_problem)
 _last_reported: Dict[str, float] = {}
 
@@ -216,6 +224,7 @@ def report_throttled(error: AppError, every_s: float = 60.0) -> None:
 
 # Users whose file could not be read: their file stays untouched (no save may replace it with an empty list).
 _load_failed: set = set()
+_save_lock = threading.RLock()  # one writer at a time: auto-save, eviction, backups, shutdown
 
 # Maximum number of memories kept in RAM per user
 MAX_RAM_MEMORIES = 5000
@@ -512,12 +521,23 @@ def save_to_disk(user_id):
         return
     if user_id in user_memories:
         try:
-            # Use Pydantic's model_dump for serialization.
-            write_json_file_atomic(filepath, [m.model_dump() for m in user_memories[user_id]])
+            with _save_lock:
+                # Use Pydantic's model_dump for serialization.
+                write_json_file_atomic(filepath, [m.model_dump() for m in list(user_memories.get(user_id, []))])
             print(f"INFO:    Saved memories for user {user_id} to {filepath}")
         except (OSError, RuntimeError, TypeError, ValueError) as exc:
             report_throttled(MemoryStorageError("Saving a memory file failed", module="finja-memory", cause=exc,
                                                 user_id=user_id, operation="save"))
+
+
+def save_all_to_disk() -> int:
+    """Write every user still in the RAM cache to disk; returns how many users were saved."""
+    saved = 0
+    for uid in list(user_memories.keys()):
+        if uid in user_memories:  # cleanup may have evicted it meanwhile
+            save_to_disk(uid)
+            saved += 1
+    return saved
     #else:
         # Optionally log if user_id not in memory (might happen during cleanup)
         # print(f"DEBUG:   User {user_id} not in RAM cache, skipping save_to_disk.")
@@ -614,6 +634,9 @@ def startup():
 
 @app.on_event("shutdown")
 def shutdown():
+    """On shutdown: write the RAM cache to disk so nothing since the last auto-save is lost."""
+    saved = save_all_to_disk()
+    print(f"INFO:    Shutdown save complete for {saved} users.")
     analytics.stop()
 
 
@@ -986,12 +1009,7 @@ def backup_all_now(request: Request):
 
     # 1. Save all current RAM caches to disk
     print("INFO:    Saving all active RAM caches to disk before backup...")
-    user_ids_in_ram = list(user_memories.keys())
-    saved_count = 0
-    for uid in user_ids_in_ram:
-        if uid in user_memories: # Check again in case cleanup ran
-            save_to_disk(uid)
-            saved_count +=1
+    saved_count = save_all_to_disk()
     print(f"INFO:    Saved data for {saved_count} users from RAM.")
 
     # 2. Create timestamped backup directory

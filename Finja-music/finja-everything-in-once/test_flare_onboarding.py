@@ -66,12 +66,12 @@ def test_probe_is_hidden_without_a_token(base_url, reported, monkeypatch: pytest
     assert reported == []
 
 
-def test_probe_reports_the_real_bug(base_url, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(base_url, reported, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): no song played yet now reports 0.0 instead of crashing."""
     monkeypatch.setenv("MUSIC_PROBE_TOKEN", TOKEN)
     status, body = _get(f"{base_url}/diagnostics/probe?token={TOKEN}")
-    assert status == 500 and json.loads(body)["message"] == "FINJA-521"
-    assert len(reported) == 1 and isinstance(reported[0], MusicDiagnosticsProbeError)
-    assert isinstance(reported[0].__cause__, ZeroDivisionError)
+    assert status == 200 and json.loads(body)["value"] == 0.0
+    assert reported == []
 
 
 def test_an_unexpected_get_failure_is_reported_with_its_cause(base_url, reported, monkeypatch) -> None:
@@ -121,17 +121,16 @@ def _sender() -> AnalyticsSender:
     return AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
 
 
-def test_the_probe_error_points_flare_at_music_stats() -> None:
+def test_an_error_inside_music_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            webserver.repeat_rate(0, 0)
-        except ZeroDivisionError as exc:
+            webserver.repeat_rate(1, None)
+        except TypeError as exc:
             raise MusicDiagnosticsProbeError("probe", probe="repeat_rate") from exc
     except MusicDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event is not None and event["error"]["code"] == "FINJA-521"
-    assert event["error"]["affected_file"] == "music_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "music_stats.py"
 
 
 def test_a_revoked_spotify_grant_gets_an_env_fingerprint_so_flare_asks_a_person() -> None:

@@ -1,4 +1,4 @@
-# 🌐 Finja Web Crawler v2.1.0
+# 🌐 Finja Web Crawler v2.2.0
 
 A streamlined, fast, and secure web crawler that sends search queries anonymously via **DuckDuckGo (DDGS)** over **Tor** —  
 and automatically falls back to **Google HTML scraping** if too few results are found.  
@@ -17,6 +17,15 @@ Perfect as an **external web search service for Open WebUI**. 🕵️‍♀️�
     - → **If unsure:** Disable the "Adaptive Memory" plugin in Open WebUI.
 
 ---
+
+## 🆕 Updates & Changelog (v2.2.0)
+
+- **Secrets in `private/`:** the real `BEARER_TOKEN` lives in `private/.env` (folder in `.gitignore`); `docker-compose.yml` reads it.
+- **Flare & Analytics (optional, off by default):** structured errors and, with `ANALYTICS_ENABLED=true`, error events plus CPU/RAM to the Analytics Collector (which hands repeated errors to Flare). Search proxy, crawl spawner and research orchestrator join the private Flare network.
+  - `FINJA-531` a search backend (DuckDuckGo/Google) failed: **logged only**, never sent to Flare (an external service cannot be repaired in code)
+  - `FINJA-532` a crawl worker could not be started or reached (Docker side); a slow or failing target site stays a plain 502
+  - `FINJA-533` an unexpected request failure, `FINJA-534` the owner-only probe `GET /diagnostics/probe?token=…` on the orchestrator (`CRAWLER_PROBE_TOKEN`)
+- `torrc` no longer starts with a byte-order mark.
 
 ## 🆕 Updates & Changelog (v2.1.0)
 

@@ -1,17 +1,40 @@
-# Finja YouTube Shorts - Docker Ignore
+# Project: Finja - Twitch Interactivity Suite
+# Module: finja-youtube / .dockerignore
+# Author: J. Apps (JohnV2002 / Sodakiller1)
+# Version: 1.2.0
+# Description: The Dockerfile uses COPY . . - everything private or test-only must stay out.
+# New in v1.2.0: private/ (real cookies), .env, cookie exports, screenshots, tests and contract
+#   tooling are excluded (before, a cookies.json in the folder was baked into the image).
+# Copyright (c) 2026 J. Apps - Licensed under the MIT License.
+
 __pycache__/
 *.pyc
 .venv/
 venv/
 .git/
 .gitignore
-tempCodeRunnerFile.py
-screenshots/
-*.md
 
-# Sensitive files — never include in Docker image!
+# Secrets and private data
 private/
-cookies.json
-www.youtube.com_cookies.txt
-*.example
 .env
+*.env
+cookies.json
+www.youtube.com_cookies.json
+www.youtube.com_cookies.txt
+*cookies*.json
+*cookies*.txt
+*.example
+screenshots/
+
+# Local tools, docs, tests and tooling
+autopilot.py
+startbrowser.py
+tempCodeRunnerFile.py
+*.md
+tests/
+test_*.py
+pytest.ini
+.pytest_cache/
+contracts/
+.error_contract/
+.github_contract/

@@ -65,13 +65,13 @@ def test_probe_is_hidden_without_a_token(canvas_server, monkeypatch: pytest.Monk
     assert recorded == []
 
 
-def test_probe_reports_the_real_bug(canvas_server, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_is_quiet_after_flares_fix(canvas_server, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Flare's approved fix (2026-10-26): no finished motif now reports 0.0 instead of crashing."""
     base, recorded = canvas_server
     monkeypatch.setenv("CANVAS_PROBE_TOKEN", TOKEN)
     status, body = _get(f"{base}/diagnostics/probe?token={TOKEN}")
-    assert status == 500 and json.loads(body)["error"]["code"] == "FINJA-516"
-    assert len(recorded) == 1 and isinstance(recorded[0], CanvasDiagnosticsProbeError)
-    assert isinstance(recorded[0].__cause__, ZeroDivisionError)
+    assert status == 200 and json.loads(body) == {"probe": "average_motif_pixels", "value": 0.0}
+    assert recorded == []
 
 
 def test_the_canvas_page_is_still_served(canvas_server, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -93,17 +93,16 @@ def _sender() -> AnalyticsSender:
     return AnalyticsSender(config, root=ROOT, transport=MagicMock(return_value=202), sampler=MagicMock())
 
 
-def test_the_probe_error_points_flare_at_canvas_stats() -> None:
+def test_an_error_inside_canvas_stats_points_flare_at_it() -> None:
     sender = _sender()
     try:
         try:
-            server.average_motif_pixels([])
-        except ZeroDivisionError as exc:
+            server.average_motif_pixels([None])
+        except TypeError as exc:
             raise CanvasDiagnosticsProbeError("probe", probe="average_motif_pixels") from exc
     except CanvasDiagnosticsProbeError as error:
         event = sender.record_exception(error)
-    assert event is not None and event["error"]["code"] == "FINJA-516"
-    assert event["error"]["affected_file"] == "canvas_stats.py"
+    assert event is not None and event["error"]["affected_file"] == "canvas_stats.py"
 
 
 def test_a_painter_failure_keeps_its_cause() -> None:

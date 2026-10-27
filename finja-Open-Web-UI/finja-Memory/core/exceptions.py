@@ -2,7 +2,7 @@
 Project: Finja - Twitch Interactivity Suite
 Module: finja-cloud-memory / core / exceptions.py
 Author: J. Apps (JohnV2002 / Sodakiller1)
-Version: 4.5.0
+Version: 4.5.1
 Description: Structured FINJA errors of the memory server (module finja-memory).
 New in 4.5.0: First version: FINJA-107 not configured, FINJA-528 memory file storage,
     FINJA-529 unexpected request, FINJA-530 diagnostics probe, shared FINJA-512.

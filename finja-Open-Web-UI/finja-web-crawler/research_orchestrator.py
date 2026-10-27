@@ -6,7 +6,7 @@
   Project: Finja - Twitch Interactivity Suite
   Module:  finja-web-crawler / research-orchestrator
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 2.1.0
+  Version: 2.2.0
 
 ----------------------------------------------------------------------
 
@@ -27,6 +27,12 @@
   - Calls the existing search-proxy service.
   - Optionally calls a crawl-worker service when configured.
   - Does not store persistent research data.
+
+  New in v2.2.0:
+  - Unexpected request failures are FINJA-533; owner-only
+    GET /diagnostics/probe?token=... (CRAWLER_PROBE_TOKEN, FINJA-534);
+    Analytics Contract sender (off unless ANALYTICS_ENABLED).
+  - Settings from private/.env (then .env).
 ======================================================================
 """
 
@@ -44,11 +50,19 @@ from urllib.parse import urlparse, urlunparse
 
 import requests
 from dotenv import load_dotenv
-from fastapi import Body, FastAPI, Header, HTTPException
+from fastapi import Body, FastAPI, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
+import secrets
+from pathlib import Path
 from pydantic import BaseModel, Field, HttpUrl
 
 
+load_dotenv(Path(__file__).resolve().parent / "private" / ".env")
 load_dotenv()
+
+import crawler_reporting  # noqa: E402  (after the .env: the sender reads ANALYTICS_*)
+from core.exceptions import AppError, CrawlerApiUnexpectedError, CrawlerDiagnosticsProbeError  # noqa: E402
+from crawler_stats import crawl_success_rate  # noqa: E402
 
 SERVICE_NAME = "finja-research-orchestrator"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -101,6 +115,45 @@ def _m_snapshot() -> dict:
 
 
 app = FastAPI(title="Finja Research Orchestrator", version="0.1.0")
+
+
+@app.exception_handler(AppError)
+async def _structured_error(_request: Request, exc: AppError) -> JSONResponse:
+    crawler_reporting.report_failure(exc)
+    return JSONResponse(status_code=500, content={"error": {"code": exc.code, "message": str(exc)}})
+
+
+@app.exception_handler(Exception)
+async def _unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Anything an endpoint did not expect is reported once with its cause, then answered with 500."""
+    error = CrawlerApiUnexpectedError(f"{request.method} {request.url.path} failed unexpectedly",
+                                      module="finja-web-crawler", cause=exc, endpoint=request.url.path)
+    crawler_reporting.report_failure(error)
+    return JSONResponse(status_code=500, content={"error": {"code": error.code, "message": str(error)}})
+
+
+@app.on_event("startup")
+def _start_reporting() -> None:
+    crawler_reporting.start()
+
+
+@app.on_event("shutdown")
+def _stop_reporting() -> None:
+    crawler_reporting.stop()
+
+
+@app.get("/diagnostics/probe")
+def _diagnostics_probe(token: str = "") -> dict[str, Any]:
+    """Owner-only: the crawl success rate before any crawl ran (the onboarding pilot's real bug)."""
+    expected = os.getenv("CRAWLER_PROBE_TOKEN", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        value = crawl_success_rate(0, 0)
+    except ZeroDivisionError as exc:
+        raise CrawlerDiagnosticsProbeError("Diagnostics probe hit a real bug", module="finja-web-crawler",
+                                           probe="crawl_success_rate") from exc
+    return {"probe": "crawl_success_rate", "value": value}
 
 EXPECTED_BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 SEARCH_API_URL = os.getenv("SEARCH_API_URL", "http://search-proxy/search")
