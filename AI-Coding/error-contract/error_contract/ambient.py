@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/ambient.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Preflight, baseline gate, session dirty tracking for ambient enforcement.
+
+  New in v1.4.0:
+    • Preflight brief and gate output show scan_exclude counts
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -33,6 +36,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .detect import detect_project
+from .exclusions import CONFIG_FILE, CONFIG_KEY, load_exclusions
 from .models import Finding, ScanReport
 from .registry import resolve_project
 from .scanner import scan_project
@@ -292,6 +296,14 @@ def preflight(root: str | Path, *, session_id: str = "", quiet: bool = False) ->
         f"exceptions: {local_display(profile.exceptions_path)}",
         f"contract: {local_display(profile.contract_path)}",
         f"detected: {', '.join(profile.detected_systems) or '-'}",
+    ]
+    exclusions = load_exclusions(root_p)
+    if exclusions.rules or exclusions.errors:
+        brief_lines.append(
+            f"scan_exclude: {len(exclusions.rules)} rule(s) in {CONFIG_FILE}:{CONFIG_KEY}"
+            + (f", {len(exclusions.errors)} REJECTED (missing reason/path)" if exclusions.errors else "")
+        )
+    brief_lines += [
         "",
         "RULES: no print/console as error path; use AppError + PREFIX-xxx;",
         "broad except must wrap UnexpectedError or dedicated code;",
@@ -443,6 +455,8 @@ def gate(
     # drop pure info
     findings = [f for f in report.findings if f.severity in {"critical", "high", "medium"}]
     out["scanned"] = len(findings)
+    if report.exclusions is not None:
+        out["excluded"] = report.exclusions.excluded_count
 
     # Empty baseline file is valid (0 debt) - only seed when missing on disk
     if not baseline_path(root_p).is_file():
@@ -522,6 +536,7 @@ def format_gate(result: dict[str, Any]) -> str:
     if result.get("ok"):
         return (
             f"gate: OK - no new violations "
-            f"(scanned={result.get('scanned')}, baseline_debt={result.get('existing_debt')})\n"
+            f"(scanned={result.get('scanned')}, baseline_debt={result.get('existing_debt')}, "
+            f"excluded={result.get('excluded', 0)})\n"
         )
     return (result.get("summary") or "gate: FAIL") + "\n"

@@ -1,8 +1,8 @@
-# 🛡️ GitHub Contract v1.1.1
+# 🛡️ GitHub Contract v1.2.0
 
 *Your code goes public without taking your PC with it.*
 
-[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](../../README.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](../../README.md)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 
@@ -92,14 +92,14 @@ The complete setup and update flow lives in [`INSTALL.md`](INSTALL.md).
 ```text
 github-contract detect .
 github-contract preflight .
-github-contract scan . --version 1.1.1
-github-contract check-version . --version 1.1.1
+github-contract scan . --version 1.2.0
+github-contract check-version . --version 1.2.0
 ```
 
 Generate a header when a new file joins a module:
 
 ```text
-github-contract header --kind html --version 1.1.1 \
+github-contract header --kind html --version 1.2.0 \
   --project "Finja - Twitch Interactivity Suite" \
   --title "Finja Overlay" --module "finja-chat / overlay.html" \
   --description "OBS browser source"
@@ -107,6 +107,18 @@ github-contract header --kind html --version 1.1.1 \
 
 The scan returns findings with file, line, severity and a concrete repair hint.
 It must be run from the module root so version boundaries stay meaningful.
+
+Which files are scanned:
+
+- Inside a git repository the file list comes from `git ls-files --cached
+  --others --exclude-standard`, so `.gitignore`'d folders such as private
+  downloads, editor state or local AI-tool configs are not scanned. Git is told
+  to trust only that repository via `safe.directory`, which keeps NAS shares
+  working without trusting every repository.
+- Outside git, or when git is not available, the scanner walks the folder.
+- Binary files are never read as text: known binary extensions (images, fonts,
+  archives, executables, PDFs, media, databases) and any file with a NUL byte in
+  its first 8 KB are skipped. The scan output says how many were skipped.
 
 ---
 
@@ -125,6 +137,12 @@ the public repository.
 ---
 
 ## 📋 Version History
+
+### v1.2.0
+
+- Skip binary files by extension and NUL-byte check, so images and fonts no longer produce fake private-path hits.
+- Respect `.gitignore` inside git repositories via `git ls-files`; fall back to a folder walk outside git.
+- Read each file once for all checks.
 
 ### v1.1.1
 

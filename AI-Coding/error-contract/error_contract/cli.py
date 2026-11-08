@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/cli.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Command-line interface: resolve, scan, ledger, reserve, install-skills, gate.
+
+  New in v1.4.0:
+    • slap prints the scan_exclude summary
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -46,6 +49,7 @@ from .registry import (
 )
 from .report import format_scan, format_taxonomy
 from .scaffold import scaffold_project
+from .exclusions import format_exclusions
 from .scanner import scan_project
 from .taxonomy import dump_contract_json, finja_reference_taxonomy, parse_exceptions_py, propose_code
 
@@ -435,6 +439,8 @@ def cmd_slap(args: argparse.Namespace) -> int:
     pref = report.profile.prefix
     _print(f"*slap*  Error-Contract Check - {report.profile.root}")
     _print(f"Prefix: {pref} | findings: {len(report.findings)} (shown: {min(len(bad), args.max)})")
+    for line in format_exclusions(report.exclusions):
+        _print(line)
     if report.profile.taxonomy and report.profile.taxonomy.style == "missing":
         _print("!! Kein Exception-System gefunden. ensure --scaffold, nicht print(e).")
     for f in report.sorted_findings()[: args.max]:

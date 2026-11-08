@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/scanner.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Find contract violations: print/console, bare except, unstructured broad catches.
+
+  New in v1.4.0:
+    • Skip files listed in scan_exclude; rejected entries become findings
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -29,6 +32,7 @@ import re
 from pathlib import Path
 
 from .detect import SKIP_DIRS, detect_project, iter_files
+from .exclusions import CONFIG_FILE, CONFIG_KEY, load_exclusions
 from .models import Finding, ProjectProfile, ScanReport
 
 # --- Python patterns -------------------------------------------------------
@@ -359,13 +363,31 @@ def scan_project(
                     )
                 )
 
+    # Project exclusions: every entry carries a reason; rejected entries are findings.
+    exclusions = load_exclusions(root_p)
+    for error in exclusions.errors:
+        findings.append(
+            Finding(
+                rule="invalid_scan_exclude",
+                severity="high",
+                path=CONFIG_FILE,
+                line=0,
+                message=error,
+                suggestion=f'Each {CONFIG_KEY} entry needs {{"path": "<glob>", "reason": "<why>"}}',
+            )
+        )
+
     # File scans
     for path in iter_files(root_p, {".py"}, max_files=6000):
+        if exclusions.rules and exclusions.match(_rel(root_p, path)):
+            continue
         findings.extend(scan_python_file(root_p, path, pref))
     for path in iter_files(root_p, {".js", ".ts", ".tsx", ".jsx", ".mjs", ".cjs"}, max_files=4000):
+        if exclusions.rules and exclusions.match(_rel(root_p, path)):
+            continue
         findings.extend(scan_js_file(root_p, path, pref))
 
     if not include_info:
         findings = [f for f in findings if f.severity != "info"]
 
-    return ScanReport(profile=profile, findings=findings)
+    return ScanReport(profile=profile, findings=findings, exclusions=exclusions)

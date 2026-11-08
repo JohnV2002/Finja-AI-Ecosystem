@@ -6,8 +6,11 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / cli
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.1
+  Version: 1.2.0
   Description: CLI for detect, scan, check-version, preflight, install-skills.
+
+  New in v1.2.0:
+    - scan prints how files were listed and how many binaries were skipped
 
   New in v1.1.0:
     - Added explicit target-project labels for generated headers
@@ -89,6 +92,9 @@ def cmd_scan(args: argparse.Namespace) -> int:
         _print(f"Module : {prof.module_name}  version={prof.declared_version or '-'}")
         _print(f"Git/GH : {prof.is_git}/{prof.is_githubish}")
         _print(f"Hits   : {len(findings)}")
+        for note in prof.notes:
+            if note.startswith(("Skipped", "File list")):
+                _print(f"Note   : {note}")
         _print("")
         _print(format_findings(findings, max_n=args.max))
     bad = [f for f in findings if f.severity in {"critical", "high"}]

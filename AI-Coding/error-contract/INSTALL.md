@@ -1,8 +1,8 @@
-# Error Contract v1.3.2 — Install Guide
+# Error Contract v1.4.0 — Install Guide
 
 **Project:** J. Apps - AI-Coding Tooling  
 **Author:** J. Apps (JohnV2002 / Sodakiller1)  
-**Version:** 1.3.2
+**Version:** 1.4.0
 
 Install on any PC or laptop (Codex Desktop, Codex CLI, Grok).  
 No private machine paths are baked into this package.
@@ -54,7 +54,7 @@ python -m error_contract install-skills
 
 ```powershell
 error-contract --version
-# expect: error_contract 1.3.2
+# expect: error_contract 1.4.0
 ```
 
 If missing:

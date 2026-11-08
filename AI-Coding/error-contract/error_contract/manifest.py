@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/manifest.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Path-neutral module manifests backed by a public repo-root error legend.
 
