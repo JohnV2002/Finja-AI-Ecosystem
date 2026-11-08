@@ -12,25 +12,47 @@
 ---
 
 > [!IMPORTANT]
-> # 🚀 ROADMAP 2026 – WE ARE BACK!
+> # ❄️ WINTER BREAK 2026 – SEE YOU IN 2027! ❄️
 >
-> **Status:** 🟢 *Quality First = 95%*
+> **Status:** 🟡 *Maintenance Mode & Critical Fixes Only*
 >
-> 2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
+> Hey ho! It's that time again: the annual **J. Apps Winter Break**. Finja and I are retreating into our creative cave until **01.01.2027**.
 >
-> 1.  🛠️ **Quality First:** Extensive manual refactoring + automated control plane (**CodeQL**, **SonarCloud**, **Trivy**, **Dependabot**, **Snyk**, **MegaLinter**, **Codecov**, Pytest). The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
-> 2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
-> 3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
-> 4.  🐾 **Own VPet Program:** My own VPet is in full development!
->     * 👀 Can be watched **24/7 on Twitch** right now.
->     * 📦 Release to follow once completed.
-> 5.  🌐 **Finja's Brain (Neural Network):** ✅ **Ready for release!** The module that connects **everything** — Memory, Vision, Voice, Tools, Discord, Experts, Dashboard — into one modular AI pipeline.
-> 6.  😅 **Survival:** Don't break down! XD
-> 7.  🗣️ **Releases:** Finja TTS has been drafted but its architecture has shifted — TTS is now integrated directly into the Neural Network (ElevenLabs, DeepInfra Zonos, XTTS).
-> 8.  📚 **Tutorials & Guides:**
->     * Paperless-ngx + Paperless AI + API Tutorial.
->     * Home Assistant + API Tutorial.
-> 9.  ✨ **Wildcard:** ✅ **Completed!** Finja Instagram Reels and YouTube Shorts scrapers + Vision Proxies are fully built, cleaned, and integrated. An AI can now autonomously watch and forward content to Finjas Brain or send funny memes to the user! :3
+> **What to expect in 2027:**
+> 1.  🧠 **More Finja:** Finja V2 is being finished behind the scenes – a new head, cleaner architecture, more stability.
+> 2.  💻 **More Coding:** Quality stays the plan. Fewer construction sites, more finished modules.
+> 3.  🧩 **More Addons:** New extensions and modules around Finja.
+> 4.  🎁 **Wildcard:** Something nice we're not revealing yet. :3
+>
+> **What does this mean for you?**
+> * No big new feature drops until 2027.
+> * 🚑 **Support continues:** For real problems, bugs or security issues I'm still here and will push updates!
+>
+> *Thanks for a crazy 2026 and for your support. Stay hydrated! 💖*
+> *"Sometimes you have to disconnect to reconnect." - Finja*
+
+<details>
+<summary>🚀 Looking back: Roadmap 2026</summary>
+
+**Status:** 🟢 *Quality First = 95%*
+
+2026 is here, and Finja is getting the biggest upgrade of all time. Here is the plan for this year:
+
+1.  🛠️ **Quality First:** Extensive manual refactoring + automated control plane (**CodeQL**, **SonarCloud**, **Trivy**, **Dependabot**, **Snyk**, **MegaLinter**, **Codecov**, Pytest). The Brain module will push the A-rating down initially — that's intentional. Ship first, clean up piece by piece.
+2.  🐛 **Bug-Hunting:** Various fixes. = IN PROGRESS
+3.  🧠 **Memory Update:** Successfully merged and updated! Voice-Support and TTS Network Caching are now fully integrated.
+4.  🐾 **Own VPet Program:** My own VPet is in full development!
+    * 👀 Can be watched **24/7 on Twitch** right now.
+    * 📦 Release to follow once completed.
+5.  🌐 **Finja's Brain (Neural Network):** ✅ **Ready for release!** The module that connects **everything** — Memory, Vision, Voice, Tools, Discord, Experts, Dashboard — into one modular AI pipeline.
+6.  😅 **Survival:** Don't break down! XD
+7.  🗣️ **Releases:** Finja TTS has been drafted but its architecture has shifted — TTS is now integrated directly into the Neural Network (ElevenLabs, DeepInfra Zonos, XTTS).
+8.  📚 **Tutorials & Guides:**
+    * Paperless-ngx + Paperless AI + API Tutorial.
+    * Home Assistant + API Tutorial.
+9.  ✨ **Wildcard:** ✅ **Completed!** Finja Instagram Reels and YouTube Shorts scrapers + Vision Proxies are fully built, cleaned, and integrated. An AI can now autonomously watch and forward content to Finjas Brain or send funny memes to the user! :3
+
+</details>
 
 ---
 
