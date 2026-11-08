@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / __main__
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.1
+  Version: 1.2.0
   Description: python -m github_contract entrypoint.
 
   New in v1.1.0:

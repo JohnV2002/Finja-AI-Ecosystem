@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/ledger.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Global prefix code ledger -- unique FINJA-xxx numbers across owners.
+
+  New in v1.4.0:
+    • Legend rewrites keep project keys such as scan_exclude
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -129,6 +132,9 @@ class CodeLedger:
     namespace: str = ""
     public_legend_schema: bool = False
     categories: dict[str, dict[str, tuple[int, int, str]]] = field(default_factory=dict)
+    # Project-level keys of the public legend that the ledger does not own
+    # (for example ``scan_exclude``). Kept verbatim when the legend is rewritten.
+    extra: dict[str, Any] = field(default_factory=dict)
 
     def categories_for(self, prefix: str) -> dict[str, tuple[int, int, str]]:
         prefix = prefix.upper()
@@ -273,6 +279,7 @@ class CodeLedger:
                     }
                     for prefix in sorted(self.prefixes)
                 },
+                **self.extra,
             }
         if self.namespace_schema:
             prefix = self.namespace.upper()
@@ -336,6 +343,11 @@ def load_ledger(path: Optional[Path] = None) -> CodeLedger:
     if isinstance(data.get("namespaces"), dict):
         led.public_legend_schema = True
         led.version = int(data.get("schema_version") or 1)
+        led.extra = {
+            key: value
+            for key, value in data.items()
+            if key not in {"schema_version", "title", "updated_at", "description", "namespaces"}
+        }
         for prefix, namespace in data["namespaces"].items():
             prefix = str(prefix).upper()
             led.prefixes[prefix] = {}

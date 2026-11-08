@@ -6,8 +6,11 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / scanner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.1
+  Version: 1.2.0
   Description: Scan for missing headers, version drift, secret leaks, README gaps.
+
+  New in v1.2.0:
+    - Skip binary files (extension list + NUL byte) and .gitignore'd files (git ls-files)
 
   New in v1.1.0:
     - Made diagnostics target-project neutral
@@ -33,6 +36,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 from .detect import SKIP, detect_module
@@ -81,6 +85,17 @@ SKIP_NAMES = {
     "yarn.lock",
     "shape_template.json",
 }
+
+# Binary assets are never read as text: random bytes "contain" paths like M:\.
+BINARY_SUFFIX = {
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".bmp", ".tif", ".tiff",
+    ".avif", ".heic", ".psd", ".woff", ".woff2", ".ttf", ".otf", ".eot",
+    ".exe", ".dll", ".so", ".dylib", ".bin", ".msi", ".zip", ".7z", ".rar",
+    ".gz", ".tgz", ".bz2", ".xz", ".tar", ".jar", ".pdf", ".mp3", ".mp4",
+    ".wav", ".ogg", ".flac", ".m4a", ".webm", ".mov", ".avi", ".mkv",
+    ".sqlite", ".sqlite3", ".db", ".pyc", ".pyd", ".class", ".wasm", ".blend",
+}
+NUL_SNIFF_BYTES = 8192
 
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str], str]] = [
     (
@@ -179,12 +194,22 @@ def scan_module(
     target_ver = (expected_version or profile.declared_version or "").strip()
     versions_in_files: dict[str, list[str]] = {}
 
-    for path in _iter_files(root_p):
-        rel = _rel(root_p, path)
-        try:
-            text = path.read_text(encoding="utf-8-sig", errors="ignore")
-        except OSError:
+    candidates, source = _list_files(Path(root).expanduser(), root_p)
+    profile.signals.append(f"files:{source}")
+    texts: list[tuple[Path, str, str]] = []
+    skipped_binary = 0
+    for path in candidates:
+        text = _read_text(path)
+        if text is None:
+            skipped_binary += 1
             continue
+        texts.append((path, _rel(root_p, path), text))
+    if skipped_binary:
+        profile.notes.append(f"Skipped {skipped_binary} binary file(s) (extension or NUL byte).")
+    if source == "git":
+        profile.notes.append("File list from git ls-files: .gitignore'd files are not scanned.")
+
+    for path, rel, text in texts:
 
         # secrets always (skip our own pattern-definition files)
         if not rel.replace("\\", "/").endswith("github_contract/scanner.py"):
@@ -239,13 +264,8 @@ def scan_module(
                     )
         # files with header missing version while others have target
         if github_mode and versions_in_files:
-            for path in _iter_files(root_p):
+            for path, rel, text in texts:
                 if not _is_source(path):
-                    continue
-                rel = _rel(root_p, path)
-                try:
-                    text = path.read_text(encoding="utf-8-sig", errors="ignore")
-                except OSError:
                     continue
                 if has_ecosystem_header(text, path) and not extract_version(text):
                     findings.append(
@@ -281,15 +301,80 @@ def scan_module(
     return profile, findings
 
 
+def _keep(p: Path) -> bool:
+    if any(part in SKIP for part in p.parts):
+        return False
+    if p.name.endswith(".example") or p.name.endswith(".example.json"):
+        return False
+    return True
+
+
 def _iter_files(root: Path):
+    """Filesystem walk, used outside git repositories."""
     for p in root.rglob("*"):
         if not p.is_file():
             continue
-        if any(part in SKIP for part in p.parts):
-            continue
-        if p.name.endswith(".example") or p.name.endswith(".example.json"):
+        if not _keep(p):
             continue
         yield p
+
+
+def _git_toplevel(root: Path) -> Path | None:
+    for candidate in (root, *root.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return None
+
+
+def _git_files(given: Path, root: Path) -> list[Path] | None:
+    """Tracked + untracked-but-not-ignored files via git, or None when git cannot answer."""
+    top = _git_toplevel(root)
+    if top is None:
+        return None
+    # Trust only this repository, never "*". NAS shares report a foreign owner, and git
+    # may see the repo as a mapped drive or as its UNC path, so name both forms.
+    depth = len(root.relative_to(top).parts)
+    given_abs = given.absolute()
+    given_top = given_abs.parents[depth - 1] if 0 < depth <= len(given_abs.parents) else given_abs
+    safe_dirs = list(dict.fromkeys([top.as_posix(), given_top.as_posix()]))
+    cmd = ["git"]
+    for form in safe_dirs:
+        cmd += ["-c", f"safe.directory={form}"]
+    cmd += ["-C", str(root), "ls-files", "-z", "--cached", "--others", "--exclude-standard"]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=120, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    out: list[Path] = []
+    for raw in proc.stdout.split(b"\0"):
+        if not raw:
+            continue
+        p = root / raw.decode("utf-8", errors="surrogateescape")
+        if p.is_file() and _keep(p):
+            out.append(p)
+    return out
+
+
+def _list_files(given: Path, root: Path) -> tuple[list[Path], str]:
+    files = _git_files(given, root)
+    if files is not None:
+        return files, "git"
+    return list(_iter_files(root)), "walk"
+
+
+def _read_text(path: Path) -> str | None:
+    """Text content, or None for binaries (known extension or NUL byte) and unreadable files."""
+    if path.suffix.lower() in BINARY_SUFFIX:
+        return None
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    if b"\0" in data[:NUL_SNIFF_BYTES]:
+        return None
+    return data.decode("utf-8-sig", errors="ignore")
 
 
 def _rel(root: Path, path: Path) -> str:

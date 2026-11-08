@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/scaffold.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Scaffold a minimal module-local exception implementation and manifest.
 
