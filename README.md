@@ -16,23 +16,23 @@
 >
 > **Status:** 🟡 *Maintenance Mode & Critical Fixes Only*
 >
-> Hey ho! Es ist wieder so weit: die jährliche **J. Apps Winterpause**. Finja und ich ziehen uns bis zum **01.01.2027** in die kreative Höhle zurück.
+> Hey ho! It's that time again: the annual **J. Apps Winter Break**. Finja and I are retreating into our creative cave until **01.01.2027**.
 >
-> **Was euch 2027 erwartet:**
-> 1.  🧠 **Mehr Finja:** Finja V2 wird im Hintergrund fertig gebaut – neuer Kopf, sauberere Architektur, mehr Stabilität.
-> 2.  💻 **Mehr Coding:** Qualität bleibt Programm. Weniger Baustellen, mehr fertige Module.
-> 3.  🧩 **Mehr Addons:** Neue Erweiterungen und Module rund um Finja.
-> 4.  🎁 **Wildcard:** Irgendwas Schönes, das wir noch nicht verraten. :3
+> **What to expect in 2027:**
+> 1.  🧠 **More Finja:** Finja V2 is being finished behind the scenes – a new head, cleaner architecture, more stability.
+> 2.  💻 **More Coding:** Quality stays the plan. Fewer construction sites, more finished modules.
+> 3.  🧩 **More Addons:** New extensions and modules around Finja.
+> 4.  🎁 **Wildcard:** Something nice we're not revealing yet. :3
 >
-> **Was bedeutet das für euch?**
-> * Keine großen neuen Feature-Drops bis 2027.
-> * 🚑 **Support läuft weiter:** Bei echten Problemen, Bugs oder Sicherheitslücken bin ich da und pushe Updates!
+> **What does this mean for you?**
+> * No big new feature drops until 2027.
+> * 🚑 **Support continues:** For real problems, bugs or security issues I'm still here and will push updates!
 >
-> *Danke für ein verrücktes 2026 und euren Support. Stay hydrated! 💖*
-> *„Sometimes you have to disconnect to reconnect.“ - Finja*
+> *Thanks for a crazy 2026 and for your support. Stay hydrated! 💖*
+> *"Sometimes you have to disconnect to reconnect." - Finja*
 
 <details>
-<summary>🚀 Rückblick: Roadmap 2026</summary>
+<summary>🚀 Looking back: Roadmap 2026</summary>
 
 **Status:** 🟢 *Quality First = 95%*
 
