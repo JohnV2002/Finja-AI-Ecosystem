@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/report.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Human-readable scan / taxonomy reports.
+
+  New in v1.4.0:
+    • Scan output lists excluded files per rule with its reason
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -25,6 +28,7 @@
 
 from __future__ import annotations
 
+from .exclusions import format_exclusions
 from .models import ScanReport, Taxonomy
 
 
@@ -59,8 +63,9 @@ def format_scan(report: ScanReport, *, max_findings: int = 80) -> str:
         f"SoT    : {p.exceptions_path or p.contract_path or '(missing)'}",
         f"Detect : {', '.join(p.detected_systems) or '-'}",
         f"Hits   : {len(report.findings)}  {counts}",
-        "",
     ]
+    lines.extend(format_exclusions(report.exclusions))
+    lines.append("")
     if p.notes:
         lines.append("Notes:")
         for n in p.notes:

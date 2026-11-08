@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  test_namespace_registry.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Regression tests for canonical namespaces and minimal local scaffolds.
 

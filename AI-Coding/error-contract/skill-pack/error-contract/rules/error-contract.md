@@ -39,6 +39,10 @@ If you changed code (especially error paths):
 4. Fix **new** violations (baseline debt may exist; do not ignore *new* ones)
 5. Report remaining findings honestly
 
+Third-party, obfuscated or intentional-output files: add them to `scan_exclude`
+in the repo-root `error_contract.json` with a `reason` per entry (no reason =
+rejected finding). Never exclude own runtime code to silence the scanner.
+
 Grok **Stop hook** may block completion when the gate finds new violations on edited files — treat that feedback as mandatory.
 
 ## Non-goals

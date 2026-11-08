@@ -48,6 +48,13 @@ Manual: `error-contract slap .` / `error-contract gate . --force`
 
 Only **NEW** findings vs baseline on **edited files** fail (old debt is baseline).
 
+## Exclusion list (`scan_exclude`)
+
+Vendor, obfuscated or intentional-output files go into `scan_exclude` in the
+repo-root `error_contract.json` — each entry `{ "path": "<glob>", "reason": "<why>" }`.
+Entries without a reason are rejected (`invalid_scan_exclude`). Scan/slap print
+every exclusion with its reason. Never exclude own runtime code — fix it.
+
 ## Completion checklist (code changes only)
 
 1. Contract resolved / ACTIVE.md known

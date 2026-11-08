@@ -1,7 +1,7 @@
-# Error Contract v1.3.2 — Standing Rules
+# Error Contract v1.4.0 — Standing Rules
 
 **Project:** J. Apps - AI-Coding Tooling
-**Version:** 1.3.2
+**Version:** 1.4.0
 
 > Goal: projects do not end in `print(e)` / bare catch-alls.  
 > Same engine; project-specific prefixes; **global unique numbers per prefix**.
@@ -18,6 +18,7 @@
 5. Recurring catch-alls → `reserve` / `propose --reserve`, not eternal `PREFIX-999`  
 6. Missing docs → `ensure`  
 7. Numbers: consult the repo-root **`error_contract.json` legend** so `FINJA-820` cannot mean two things  
+8. Vendor / obfuscated / intentional-output files → `scan_exclude` in that same file, **each with a `reason`** (no reason = rejected). Never own runtime code.  
 
 ### Placement
 
