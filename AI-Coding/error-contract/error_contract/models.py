@@ -6,9 +6,12 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  error_contract/models.py
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.3.2
+  Version: 1.4.0
   Description:
     Shared dataclasses: ErrorCode, Taxonomy, Finding, ScanReport.
+
+  New in v1.4.0:
+    • ScanReport carries the scan_exclude result
 
   New in v1.0.0:
     • Production release packaging for public GitHub
@@ -160,6 +163,8 @@ class ProjectProfile:
 class ScanReport:
     profile: ProjectProfile
     findings: list[Finding] = field(default_factory=list)
+    # exclusions.ExclusionConfig of this scan (None = not loaded)
+    exclusions: Optional[Any] = None
 
     def counts(self) -> dict[str, int]:
         out: dict[str, int] = {}
@@ -179,4 +184,5 @@ class ScanReport:
             "summary": self.counts(),
             "finding_count": len(self.findings),
             "findings": [f.to_dict() for f in self.sorted_findings()],
+            "exclusions": self.exclusions.to_dict() if self.exclusions is not None else None,
         }

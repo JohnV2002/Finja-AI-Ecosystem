@@ -6,7 +6,7 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / detect
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.1
+  Version: 1.2.0
   Description: Detect git / GitHub / public-production context for a tree.
 
   New in v1.1.0:

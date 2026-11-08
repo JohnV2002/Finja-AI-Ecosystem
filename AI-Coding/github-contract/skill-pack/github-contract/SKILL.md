@@ -89,4 +89,9 @@ github-contract scan . --version X.Y.Z
 github-contract check-version . --version X.Y.Z
 ```
 
+`scan` reads only text files that git would commit: inside a git repo it uses
+`git ls-files` (so `.gitignore`'d folders are skipped), and binary files
+(images, fonts, archives, PDFs, executables, NUL-byte files) are never read.
+A hit in a scanned file is a real candidate — fix it, don't ignore it.
+
 ENGINE_ROOT: see `ENGINE_ROOT.txt` next to this skill.

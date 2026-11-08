@@ -5,7 +5,7 @@
 #   Project: J. Apps - AI-Coding Tooling
 #   Module:  github-contract / scripts
 #   Author:  J. Apps (JohnV2002 / Sodakiller1)
-#   Version: 1.1.1
+#   Version: 1.2.0
 #   Description: Install skills, ALWAYS ACTIVE rules, hooks, PATH for
 #                Grok / Codex / Claude (parity with error-contract).
 #

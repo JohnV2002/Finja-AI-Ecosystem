@@ -6,8 +6,11 @@
   Project: J. Apps - AI-Coding Tooling
   Module:  github-contract / test_scanner
   Author:  J. Apps (JohnV2002 / Sodakiller1)
-  Version: 1.1.1
+  Version: 1.2.0
   Description: Regression tests for headers and private-path detection.
+
+  New in v1.2.0:
+    - Cover binary skipping, .gitignore handling and the non-git fallback
 
   New in v1.1.0:
     - Verify explicit target-project labels in generated headers
@@ -26,6 +29,8 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -120,6 +125,59 @@ class PrivatePathRegressionTests(unittest.TestCase):
                 root, expected_version="1.0.1", require_headers=True
             )
             self.assertFalse(any(item.rule == "private_path" for item in findings))
+
+
+PRIVATE_BYTES = b"Z:" + bytes([92]) + b"Users" + bytes([92]) + b"someone" + bytes([92]) + b"file"
+README = "# Demo v1.0.1\n\n## License\nMIT\n\n## Support\nJ. Apps\n"
+
+
+class BinaryAndIgnoreRegressionTests(unittest.TestCase):
+    def _private_paths(self, root: Path) -> set[str]:
+        _, findings = scan_module(root, expected_version="1.0.1")
+        return {item.path for item in findings if item.rule == "private_path"}
+
+    def test_binary_extensions_are_not_read_as_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "README.md").write_text(README, encoding="utf-8")
+            for name in ("logo.png", "font.woff2", "tool.exe", "doc.pdf"):
+                (root / name).write_bytes(b"junk " + PRIVATE_BYTES + b" junk")
+            self.assertEqual(self._private_paths(root), set())
+
+    def test_nul_byte_marks_unknown_extension_as_binary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "README.md").write_text(README, encoding="utf-8")
+            (root / "blob.dat").write_bytes(b"\x00\x01" + PRIVATE_BYTES)
+            (root / "notes.txt").write_bytes(PRIVATE_BYTES)
+            self.assertEqual(self._private_paths(root), {"notes.txt"})
+
+    @unittest.skipUnless(shutil.which("git"), "git not installed")
+    def test_gitignored_files_are_skipped_inside_git(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            (root / ".gitignore").write_text("secret-stuff/\n", encoding="utf-8")
+            (root / "README.md").write_text(README, encoding="utf-8")
+            (root / "secret-stuff").mkdir()
+            (root / "secret-stuff" / "notes.txt").write_bytes(PRIVATE_BYTES)
+            (root / "kept.txt").write_bytes(PRIVATE_BYTES)
+            profile, findings = scan_module(root, expected_version="1.0.1")
+            paths = {item.path for item in findings if item.rule == "private_path"}
+            self.assertEqual(paths, {"kept.txt"})
+            self.assertIn("files:git", profile.signals)
+
+    def test_filesystem_walk_outside_git(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "README.md").write_text(README, encoding="utf-8")
+            (root / "sub").mkdir()
+            (root / "sub" / "notes.txt").write_bytes(PRIVATE_BYTES)
+            profile, _ = scan_module(root, expected_version="1.0.1")
+            if "files:git" in profile.signals:
+                self.skipTest("temp directory lives inside a git repository")
+            self.assertIn("files:walk", profile.signals)
+            self.assertEqual(self._private_paths(root), {"sub/notes.txt"})
 
 
 class GitHubRemoteRegressionTests(unittest.TestCase):

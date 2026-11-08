@@ -1,8 +1,8 @@
-# Error Contract v1.3.2
+# Error Contract v1.4.0
 
 *If it can fail, it gets a real name.*
 
-[![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)](../../README.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](../../README.md)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](../../LICENSE)
 
@@ -128,6 +128,33 @@ error-contract create . CompletelyNewThingError \
 
 ---
 
+## 🚫 Excluding Third-Party and Intentional Code
+
+Some files must not follow the contract: minified vendor libraries, obfuscated
+builds, or story text that prints to the console on purpose. List them in the
+repository-root `error_contract.json`, next to the legend. Every entry needs a
+reason:
+
+```json
+"scan_exclude": [
+  { "path": "public/scripts/lottie-player.js", "reason": "Minified third-party LottieFiles player; replaced as a whole on update." },
+  { "path": "vendor/**", "reason": "Vendored libraries, not edited here." }
+]
+```
+
+- `path` is a glob relative to the project root. `*` and `?` stay inside one
+  folder, `**` spans folders, and a trailing `/` means the whole folder.
+- Excluded files are not scanned by `scan`, `slap`, `gate` or `baseline`.
+- `scan` and `slap` always print how many files each rule excluded and its
+  reason. A rule that matches nothing is flagged so stale entries get removed.
+- An entry without a `reason`, or with an absolute or `../` path, is rejected:
+  it is not applied, and it becomes an `invalid_scan_exclude` finding.
+- `error-contract create` and other legend rewrites keep `scan_exclude`.
+
+Own runtime code does not belong on this list. Fix it instead.
+
+---
+
 ## 🧩 Prefixes, Owners and Modules
 
 | Concept | Meaning |
@@ -170,6 +197,13 @@ do not receive an error namespace, local state folder or automatic stop gate.
 ---
 
 ## 📋 Version History
+
+### v1.4.0
+
+- Added `scan_exclude` in the root `error_contract.json`: per-project exclusions that each need a reason.
+- `scan`, `slap`, `gate` and the preflight brief report what was excluded and why; stale rules are flagged.
+- Entries without a reason are rejected and reported as `invalid_scan_exclude` findings.
+- Legend rewrites by the ledger keep `scan_exclude` and other project keys.
 
 ### v1.3.2
 

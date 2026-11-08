@@ -125,3 +125,21 @@ Canonical error-code legend (repo-backed, no machine paths):
 Project-local `.error_contract/` is ignored scanner cache. `baseline.json`
 contains pre-existing finding fingerprints so only new debt blocks the gate.
 
+## Exclusion list (`scan_exclude`)
+
+Files that must not follow the contract (minified vendor libraries, obfuscated
+builds, story text printed to the console on purpose) are listed in the
+repo-root `error_contract.json`:
+
+```json
+"scan_exclude": [
+  { "path": "public/scripts/vendor.min.js", "reason": "Minified third-party library, replaced as a whole." }
+]
+```
+
+- `path`: glob relative to the project root (`*` one folder, `**` any depth, trailing `/` = folder).
+- `reason` is required. Entries without one are rejected and reported as `invalid_scan_exclude`.
+- `scan`/`slap` print how many files each rule excluded and why; rules that match nothing are flagged.
+- Prefer this over hiding findings in the local `baseline.json`, which is invisible to others.
+- Never exclude own runtime code. Fix it.
+
