@@ -35,7 +35,7 @@
 #       no functional changes in this file specifically
 # ======================================================================
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # ---- System Dependencies: Chromium + Libs ----
 RUN apt-get update && apt-get install -y --no-install-recommends \
